@@ -114,7 +114,38 @@ $$('nav.tabs').forEach(nav => {
 });
 
 let searchQuery = '';
+/* ═══════════ تماس و چت امن ═══════════ */
+window.contactSeller = function(listingId, method) {
+  const l = DB.listings.find(x => x.id === listingId);
+  if (!l) { toast('❌ غذا پیدا نشد', true); return; }
+  const s = DB.sellers.find(x => x.id === l.sellerId);
+  if (!s) { toast('❌ فروشنده پیدا نشد', true); return; }
+  if (!s.phone) { toast('❌ فروشنده شماره تماس ثبت نکرده', true); return; }
 
+  const phone = s.phone.replace(/[^0-9]/g, '');
+  const message = `سلام 👋\nاز اپ سفره سبز مزاحم می‌شم.\nدرباره‌ی «${l.title}» سوال داشتم.\nممنون! 🍲`;
+
+  if (method === 'whatsapp') {
+    // واتساپ (شماره با 98 شروع می‌شه برای ایران)
+    let waPhone = phone;
+    if (waPhone.startsWith('0')) waPhone = '98' + waPhone.slice(1);
+    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    toast('✅ واتساپ باز شد');
+  } else if (method === 'sms') {
+    // پیامک
+    window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
+    toast('✅ پیامک باز شد');
+  } else if (method === 'call') {
+    // تماس تلفنی
+    window.location.href = `tel:${phone}`;
+    toast('✅ در حال تماس...');
+  } else if (method === 'telegram') {
+    // تلگرام
+    let tgPhone = phone.startsWith('0') ? '+98' + phone.slice(1) : phone;
+    window.open(`https://t.me/${tgPhone}`, '_blank');
+    toast('✅ تلگرام باز شد');
+  }
+};
 function renderFoods() {
   const items = DB.listings;
   const sellers = DB.sellers;
@@ -170,7 +201,6 @@ function renderFoods() {
       </div>`;
   }).join('') + '</div>';
 }
-
 window.openFoodDetail = function(id) {
   const l = DB.listings.find(x => x.id === id);
   if (!l) return;
@@ -180,6 +210,23 @@ window.openFoodDetail = function(id) {
   const img = l.image
     ? `<img src="${l.image}" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px" onerror="this.style.display='none'">`
     : `<div style="width:100%;height:140px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:12px">🍲</div>`;
+
+  const sellerPhone = s && s.phone ? s.phone : '';
+  const contactButtons = sellerPhone ? `
+    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px;margin-top:12px">
+      <p style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">📞 راه‌های تماس با فروشنده:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="btn small" style="background:linear-gradient(135deg,#25D366,#128C7E);margin:0" onclick="contactSeller('${l.id}','whatsapp')">💬 واتساپ</button>
+        <button class="btn small blue" style="margin:0" onclick="contactSeller('${l.id}','telegram')">✈️ تلگرام</button>
+        <button class="btn small" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin:0" onclick="contactSeller('${l.id}','sms')">📨 پیامک</button>
+        <button class="btn small danger" style="margin:0" onclick="contactSeller('${l.id}','call')">📞 تماس</button>
+      </div>
+      <p style="font-size:11px;color:#6b7280;text-align:center;margin-top:8px">🔒 پیام از قبل نوشته شده — فقط ارسال کن</p>
+    </div>
+  ` : `<div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:10px;margin-top:12px">
+    <p style="font-size:12px;color:#dc2626;text-align:center">⚠️ فروشنده شماره تماس ثبت نکرده</p>
+  </div>`;
+
   $('#foodDetailContent').innerHTML = `
     ${img}
     <h3 style="color:#15803d;font-size:18px;margin-bottom:8px">${l.title}</h3>
@@ -200,17 +247,16 @@ window.openFoodDetail = function(id) {
       <span class="stars">${renderStars(l.rating || 0)}</span>
       <span style="font-size:12px;color:#6b7280">(${l.ratingCount || 0} نظر)</span>
     </div>
-    <button class="btn small blue" onclick="openReviewModal('${l.id}');closeFoodDetail()">💬 ثبت نظر</button>
-    <button class="btn small gray" onclick="openCommentsModal('${l.id}')">📖 نظرات</button>
+    ${contactButtons}
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button class="btn small blue" style="flex:1;margin:0" onclick="openReviewModal('${l.id}');closeFoodDetail()">💬 ثبت نظر</button>
+      <button class="btn small gray" style="flex:1;margin:0" onclick="openCommentsModal('${l.id}')">📖 نظرات</button>
+    </div>
     ${out
-      ? `<button class="btn" disabled>❌ ناموجود</button>`
-      : `<button class="btn" onclick="addToCart('${l.id}');closeFoodDetail()">🛒 افزودن به سبد</button>`}
+      ? `<button class="btn" disabled style="margin-top:12px">❌ ناموجود</button>`
+      : `<button class="btn" onclick="addToCart('${l.id}');closeFoodDetail()" style="margin-top:12px">🛒 افزودن به سبد</button>`}
   `;
   $('#foodDetailModal').classList.add('show');
-};
-
-window.closeFoodDetail = function() {
-  $('#foodDetailModal').classList.remove('show');
 };
 
 const closeFoodDetailBtn = $('#closeFoodDetail');
