@@ -1,399 +1,503 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-<!-- ═══════════════════════════════════════════════════
-  <h1>سفره سبز</h1>(Sofreh Sabz)
-  شعار: سفره سبز، پلی برای استفاده بهینه از غذا
-  Designed & Developed by alavi1405
-  Copyright © ۱۴۰۵ - All Rights Reserved
-  اثر انگشت دیجیتال: SAFREH-SABZ-1405-ALAVI-A1B2C3D4
-  GitHub: https://github.com/alavi1405/Sofreh-sabz
-═══════════════════════════════════════════════════ -->
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#16a34a">
-<title>سفره سبز | پلی برای استفاده بهینه از غذا</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:Tahoma,sans-serif;background:linear-gradient(180deg,#f0fdf4,#fff);background-attachment:fixed;color:#111827;padding:12px;line-height:1.8;min-height:100vh;padding-bottom:40px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سفره سبز | سفارش آنلاین غذا</title>
+    
+    <!-- فونت وزیرمتن برای زیبایی بیشتر -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
 
-/* ═══════ هدر با لوگو ═══════ */
-header{text-align:center;padding:22px 16px 18px;background:linear-gradient(135deg,#16a34a,#22c55e,#4ade80);color:#fff;border-radius:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(22,163,74,.15);position:relative;overflow:hidden}
-header::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 60%);pointer-events:none}
-.logo-wrap{display:flex;justify-content:center;margin-bottom:10px;position:relative;z-index:1}
-.logo-svg{width:110px;height:110px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.1));opacity:0.5}
-header h1{font-size:24px;font-weight:800;margin-bottom:6px;position:relative;z-index:1;letter-spacing:.5px}
-header .slogan{font-size:16px;opacity:1;position:relative;z-index:1;font-weight:800;background:rgba(255,255,255,.25);display:inline-block;padding:8px 20px;border-radius:99px;backdrop-filter:blur(10px);text-shadow:0 2px 4px rgba(0,0,0,.15);letter-spacing:.3px
-/* ═══════ نوار جستجو ═══════ */
-.search-wrap{background:#fff;border-radius:16px;padding:6px;box-shadow:0 2px 12px rgba(22,163,74,.08);margin-bottom:12px;display:flex;gap:6px;align-items:center;border:1.5px solid #dcfce7}
-.search-wrap input{flex:1;padding:11px 14px;border:0;background:transparent;font:inherit;font-size:14px;color:#111827;outline:none}
-.search-wrap input::placeholder{color:#9ca3af}
-.search-wrap .search-icon{color:#16a34a;font-size:18px;padding:0 6px}
-.search-wrap button{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,.25)}
+    <style>
+        /* ================= تنظیمات کلی ================= */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+        }
 
-/* ═══════ حالت کاربر ═══════ */
-.mode-switch{display:flex;background:#fff;border-radius:16px;padding:5px;margin-bottom:12px;box-shadow:0 2px 12px rgba(22,163,74,.08);gap:5px}
-.mode-switch button{flex:1;padding:11px 8px;border:0;background:transparent;font:inherit;font-size:13px;border-radius:12px;cursor:pointer;color:#6b7280;font-weight:600;transition:all .25s}
-.mode-switch button.active{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.3)}
+        body {
+            background-color: #F3E5F5; /* رنگ یاسی بسیار روشن */
+            color: #333;
+            padding-bottom: 80px; /* فضا برای نوار پایین */
+            position: relative;
+            min-height: 100vh;
+        }
 
-/* ═══════ تب‌ها ═══════ */
-nav.tabs{display:flex;background:#fff;border-radius:16px;padding:5px;margin-bottom:16px;box-shadow:0 2px 12px rgba(22,163,74,.08);gap:4px;overflow-x:auto;scrollbar-width:none}
-nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{flex:1;min-width:85px;padding:10px 8px;border:0;background:transparent;font:inherit;font-size:12px;border-radius:11px;cursor:pointer;color:#6b7280;white-space:nowrap;transition:all .2s;font-weight:500}
-nav.tabs button.active{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+        /* ================= هدر ================= */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-section.tab{display:none;animation:fadeIn .3s}
-section.tab.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .app-title {
+            font-size: 18px;
+            color: #673AB7;
+            margin: 0;
+        }
 
-/* ═══════ جدول غذاها (سبک دیوار) ═══════ */
-.food-table{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(22,163,74,.08);border:1px solid #dcfce7;margin-bottom:12px}
-.food-row{display:grid;grid-template-columns:80px 1fr auto;gap:10px;padding:12px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .2s;align-items:center;text-decoration:none;color:inherit}
-.food-row:last-child{border-bottom:0}
-.food-row:active{background:#f0fdf4}
-.food-thumb{width:80px;height:80px;border-radius:12px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden;position:relative;flex-shrink:0}
-.food-thumb img{width:100%;height:100%;object-fit:cover}
-.food-thumb .discount-tag{position:absolute;top:4px;right:4px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:99px}
-.food-info{min-width:0;display:flex;flex-direction:column;gap:3px}
-.food-title{font-weight:700;font-size:14px;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.food-meta{font-size:11px;color:#6b7280;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.food-meta .dot{color:#d1d5db}
-.food-price{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
-.food-price .old{text-decoration:line-through;color:#9ca3af;font-size:11px}
-.food-price .new{color:#16a34a;font-weight:800;font-size:14px;white-space:nowrap}
-.food-price .stars-mini{color:#f59e0b;font-size:11px}
+        /* منوی کاربر */
+        .user-menu-container { position: relative; }
+        .user-btn {
+            background: #F3E5F5;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #673AB7;
+            font-weight: bold;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background: #fff;
+            min-width: 180px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 10px;
+            z-index: 200;
+        }
+        .dropdown.show { display: block; }
+        .dropdown h4 { font-size: 13px; color: #673AB7; margin: 5px 0; }
+        .dropdown a { display: block; padding: 5px 0; text-decoration: none; color: #333; font-size: 13px; }
+        .dropdown hr { border: 0; border-top: 1px solid #eee; margin: 5px 0; }
 
-/* ═══════ کارت عمومی ═══════ */
-.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(22,163,74,.08);border:1px solid #dcfce7}
-.card h3{color:#15803d;font-size:15.5px;margin-bottom:6px;font-weight:700}
-.card p{font-size:13px;color:#374151;margin-bottom:4px}
+        /* ================= مدیریت صفحات ================= */
+        .page { padding: 15px; }
+        .hidden { display: none !important; }
+        .active { display: block; }
 
-/* ═══════ قیمت در کارت ═══════ */
-.price-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
-.old-price{text-decoration:line-through;color:#9ca3af;font-size:12.5px}
-.new-price{color:#16a34a;font-weight:800;font-size:17px}
-.discount-badge{background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #fecaca}
+        /* ================= صفحه اصلی ================= */
+        .top-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-box {
+            flex: 2; padding: 12px; border: 1px solid #D1C4E9; border-radius: 10px;
+            background: #fff; font-size: 14px; outline: none;
+        }
+        .location-box {
+            flex: 1; padding: 12px; border: 1px solid #D1C4E9; border-radius: 10px;
+            background: #fff; font-size: 13px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; color: #673AB7; font-weight: bold;
+        }
 
-/* ═══════ چیپ ═══════ */
-.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:11.5px}
-.chip{background:#f3f4f6;padding:4px 10px;border-radius:99px;color:#374151;font-weight:500;border:1px solid #e5e7eb}
-.chip.green{background:#dcfce7;color:#166534;border-color:#bbf7d0}
-.chip.blue{background:#dbeafe;color:#0969da;border-color:#bfdbfe}
-.chip.red{background:#fee2e2;color:#dc2626;border-color:#fecaca}
-.chip.orange{background:#ffedd5;color:#c2410c;border-color:#fed7aa}
-.chip.gold{background:#fef3c7;color:#92400e;border-color:#fde68a}
+        .categories { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .cat-btn {
+            padding: 8px 16px; border: 1px solid #D1C4E9; border-radius: 20px;
+            background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .cat-btn.active { background: #673AB7; color: #fff; border-color: #673AB7; }
+        .cat-btn.disabled { background: #E0E0E0; color: #9E9E9E; cursor: not-allowed; border-color: #E0E0E0; }
 
-/* ═══════ فرم ═══════ */
-form label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;color:#374151}
-form input,form select,form textarea{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font:inherit;font-size:14px;background:#f9fafb;transition:all .2s;color:#111827}
-form input:focus,form select:focus,form textarea:focus{outline:none;border-color:#22c55e;background:#fff;box-shadow:0 0 0 4px rgba(34,197,94,.1)}
+        /* کارت غذا */
+        .food-list { display: flex; flex-direction: column; gap: 12px; }
+        .food-item {
+            display: flex; background: #fff; border-radius: 12px; padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); align-items: center; gap: 15px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .food-item:hover { transform: translateY(-2px); }
+        .food-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background-color: #eee; }
+        .food-details { display: flex; flex-direction: column; flex: 1; }
+        .food-name { font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #333; }
+        .food-price { font-size: 14px; color: #673AB7; font-weight: bold; }
 
-/* ═══════ دکمه‌ها ═══════ */
-.btn{display:inline-block;padding:12px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:0;border-radius:12px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;width:100%;transition:all .2s;box-shadow:0 3px 10px rgba(22,163,74,.25)}
-.btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(22,163,74,.35)}
-.btn.danger{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 3px 10px rgba(220,38,38,.25)}
-.btn.blue{background:linear-gradient(135deg,#0969da,#3b82f6);box-shadow:0 3px 10px rgba(9,105,218,.25)}
-.btn.gray{background:linear-gradient(135deg,#6b7280,#9ca3af)}
-.btn.small{padding:8px 14px;font-size:12px;width:auto;margin-top:8px;display:inline-block}
-.btn:disabled{opacity:.5;cursor:not-allowed}
+        /* ================= صفحه جزئیات غذا ================= */
+        .back-btn {
+            background: none; border: none; color: #673AB7; font-size: 14px;
+            cursor: pointer; margin-bottom: 15px; font-weight: bold;
+        }
+        .food-header-details { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .detail-img { width: 120px; height: 120px; border-radius: 15px; object-fit: cover; margin-bottom: 10px; }
+        .base-price { color: #673AB7; font-weight: bold; }
 
-/* ═══════ خالی ═══════ */
-.empty{text-align:center;color:#9ca3af;font-size:13.5px;padding:40px 20px;line-height:2}
-.empty-icon{font-size:48px;display:block;margin-bottom:10px;opacity:.5}
+        /* آکاردئون افزودنی‌ها */
+        .addon-category {
+            background: #fff; border: 1px solid #eee; border-radius: 12px;
+            margin-bottom: 12px; overflow: hidden;
+        }
+        .category-header {
+            background-color: #F3E5F5; padding: 12px 15px; font-weight: bold;
+            font-size: 14px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; color: #673AB7;
+        }
+        .category-body { display: none; padding: 10px 15px; }
+        .category-body.open { display: block; }
+        .addon-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px dashed #eee;
+        }
+        .addon-item:last-child { border-bottom: none; }
+        .addon-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        .addon-price { font-size: 13px; color: #673AB7; font-weight: bold; }
 
-/* ═══════ توست ═══════ */
-.toast{position:fixed;bottom:20px;right:20px;left:20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;padding:14px 18px;border-radius:14px;font-size:13.5px;text-align:center;font-weight:600;opacity:0;transform:translateY(30px);transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(22,163,74,.35)}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast.error{background:linear-gradient(135deg,#dc2626,#ef4444)}
+        /* نوار پایین صفحه */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+            padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center; z-index: 100;
+        }
+        .total-price { font-size: 16px; font-weight: bold; }
+        .btn-primary {
+            background-color: #673AB7; color: #fff; border: none; padding: 12px 25px;
+            border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: bold;
+        }
+        .btn-block { width: 100%; margin-top: 15px; }
 
-.required::after{content:" *";color:#dc2626}
-
-/* ═══════ مودال ═══════ */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;z-index:1000;align-items:center;justify-content:center;padding:16px}
-.modal-bg.show{display:flex;animation:fadeIn .2s}
-.modal{background:#fff;border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
-@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
-.modal h3{color:#15803d;margin-bottom:14px;font-size:17px}
-
-.stars{color:#f59e0b;font-size:15px;letter-spacing:1px}
-#starPicker{display:flex;gap:10px;font-size:38px;color:#d1d5db;cursor:pointer;padding:8px 0;user-select:none}
-#starPicker span{transition:all .15s}
-#starPicker span.active{color:#f59e0b}
-
-/* ═══════ فوتر ═══════ */
-footer{text-align:center;padding:24px 12px 16px;font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;margin-top:24px;line-height:2}
-footer b{color:#16a34a}
-footer a{color:#0969da;text-decoration:none}
-footer .fingerprint{font-family:monospace;font-size:10px;color:#9ca3af;letter-spacing:1px;margin-top:6px;display:block}
-</style>
+        /* ================= صفحه سبد خرید ================= */
+        .payment-section { background: #fff; padding: 15px; border-radius: 12px; margin-top: 15px; }
+        .payment-section h4 { margin-bottom: 10px; font-size: 14px; }
+        .payment-section label { display: block; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+    </style>
 </head>
 <body>
 
-<header>
-<div class="logo-wrap">
-<!-- ═══════════ لوگوی جدید: خونه با سقف رنگی + کاسه سوپ زیرش ═══════════ -->
-<svg class="logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-  <!-- سقف رنگی خانه (گرادیانت نارنجی-قرمز) -->
-  <defs>
-    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="50%" stop-color="#f97316"/>
-      <stop offset="100%" stop-color="#ef4444"/>
-    </linearGradient>
-    <linearGradient id="soupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef3c7"/>
-      <stop offset="100%" stop-color="#fbbf24"/>
-    </linearGradient>
-    <linearGradient id="bowlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#e0f2fe"/>
-    </linearGradient>
-  </defs>
+    <!-- ================= هدر اصلی ================= -->
+    <header class="main-header">
+        <div class="user-menu-container">
+            <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
+            <div class="dropdown" id="userDropdown">
+                <h4>مشتری</h4>
+                <a href="#" onclick="showPage('page-home')">سفارش‌های من</a>
+                <a href="#">آدرس‌های من</a>
+                <hr>
+                <h4>فروشنده</h4>
+                <a href="#">ثبت غذا</a>
+                <a href="#">سفارش‌های دریافتی</a>
+            </div>
+        </div>
+        <h1 class="app-title">سفره سبز</h1>
+    </header>
 
-  <!-- دود از لوله بخاری -->
-  <path d="M 88 22 Q 92 18 88 14 Q 84 10 88 6" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-  <path d="M 96 24 Q 100 20 96 16 Q 92 12 96 8" stroke="rgba(255,255,255,0.7)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- ================= صفحه اصلی (لیست غذاها) ================= -->
+    <main id="page-home" class="page active">
+        <div class="top-bar">
+            <input type="text" class="search-box" placeholder="جستجوی غذا یا رستوران...">
+            <div class="location-box" onclick="alert('پنجره انتخاب استان و شهر باز می‌شود')">📍 انتخاب محل</div>
+        </div>
 
-  <!-- لوله بخاری -->
-  <rect x="84" y="30" width="9" height="16" fill="#fff" rx="1.5"/>
-  <rect x="82" y="28" width="13" height="5" fill="#fff" rx="2.5"/>
+        <div class="categories">
+            <button class="cat-btn active">رستوران</button>
+            <button class="cat-btn">کترینگ</button>
+            <button class="cat-btn">فست فود</button>
+            <button class="cat-btn disabled">غذای خانگی (به زودی)</button>
+        </div>
 
-  <!-- سقف خانه (گرادیانت رنگی) -->
-  <path d="M 15 70 L 60 34 L 105 70 Z" fill="url(#roofGrad)"/>
-  <path d="M 15 70 L 60 34 L 105 70" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none"/>
-  <!-- لبه‌های سقف روشن‌تر -->
-  <path d="M 15 70 L 60 34 L 60 40 L 20 70 Z" fill="rgba(255,255,255,.25)"/>
+        <div class="food-list" id="foodListContainer">
+            <!-- لیست غذاها با جاوااسکریپت پر می‌شود -->
+        </div>
+    </main>
 
-  <!-- بدنه‌ی سفید خونه زیر سقف -->
-  <rect x="30" y="70" width="60" height="14" fill="#fff" opacity=".9"/>
+    <!-- ================= صفحه جزئیات غذا ================= -->
+    <main id="page-details" class="page hidden">
+        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
+        
+        <div class="food-header-details">
+            <img src="https://via.placeholder.com/150" alt="غذا" class="detail-img" id="detail-img-element">
+            <h2 id="detail-food-name">چلوکباب کوبیده</h2>
+            <p id="detail-food-price" class="base-price">قیمت پایه: ۲۵۰,۰۰۰ تومان</p>
+        </div>
 
-  <!-- کاسه سوپ پر (زیر سقف) -->
-  <!-- سوپ داخل کاسه -->
-  <ellipse cx="60" cy="82" rx="30" ry="6" fill="url(#soupGrad)"/>
-  <!-- کاسه -->
-  <path d="M 28 82 Q 60 104 92 82 Z" fill="url(#bowlGrad)"/>
-  <path d="M 28 82 Q 60 104 92 82" stroke="rgba(22,163,74,.3)" stroke-width="1.5" fill="none"/>
-  <!-- لبه کاسه -->
-  <ellipse cx="60" cy="82" rx="32" ry="5" fill="none" stroke="#fff" stroke-width="2"/>
-  <!-- تیکه‌های غذا داخل سوپ -->
-  <circle cx="50" cy="81" r="2" fill="#dc2626" opacity=".7"/>
-  <circle cx="65" cy="80" r="1.8" fill="#f59e0b" opacity=".8"/>
-  <circle cx="72" cy="82" r="1.5" fill="#22c55e" opacity=".8"/>
-  <circle cx="44" cy="82" r="1.5" fill="#a16207" opacity=".6"/>
+        <h3>افزودنی‌های خود را انتخاب کنید:</h3>
 
-  <!-- بخار از سوپ -->
-  <path d="M 50 74 Q 53 70 50 66" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M 60 72 Q 63 68 60 64" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <path d="M 70 74 Q 73 70 70 66" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-</svg>
-</div>
-<h1>🍲 سفره سبز</h1>
-<p class="slogan">پلی برای استفاده بهینه از غذا</p>
-</header>
+        <!-- دسته نوشیدنی‌ها -->
+        <div class="addon-category">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span>🥤 نوشیدنی‌ها</span><span>▼</span>
+            </div>
+            <div class="category-body">
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="آب معدنی" data-price="5000"> آب معدنی</label>
+                    <span class="addon-price">۵,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="کوکا کولا" data-price="25000"> کوکا کولا</label>
+                    <span class="addon-price">۲۵,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="پپسی" data-price="25000"> پپسی</label>
+                    <span class="addon-price">۲۵,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="دوغ" data-price="15000"> دوغ</label>
+                    <span class="addon-price">۱۵,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
 
-<!-- نوار جستجو -->
-<div class="search-wrap">
-  <span class="search-icon">🔍</span>
-  <input type="text" id="searchInput" placeholder="جستجوی غذا، فروشنده یا محل...">
-  <button id="searchBtn">بگرد</button>
-</div>
+        <!-- دسته سس‌ها -->
+        <div class="addon-category">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span>🥣 سس‌ها</span><span>▼</span>
+            </div>
+            <div class="category-body">
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="سس مایونز" data-price="3000"> سس مایونز</label>
+                    <span class="addon-price">۳,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="سس مخصوص" data-price="5000"> سس مخصوص</label>
+                    <span class="addon-price">۵,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
 
-<!-- حالت کاربر -->
-<div class="mode-switch">
-<button id="modeCustomer" class="active" data-mode="customer">👤 مشتری</button>
-<button id="modeSeller" data-mode="seller">🏪 فروشنده</button>
-</div>
+        <!-- دسته سالادها -->
+        <div class="addon-category">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span>🥗 سالادها</span><span>▼</span>
+            </div>
+            <div class="category-body">
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="سالاد فصل" data-price="25000"> سالاد فصل</label>
+                    <span class="addon-price">۲۵,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="سالاد شیرازی" data-price="30000"> سالاد شیرازی</label>
+                    <span class="addon-price">۳۰,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
 
-<!-- تب‌های مشتری -->
-<nav class="tabs" id="tabsCustomer">
-<button class="active" data-tab="foods">🍽️ غذاها</button>
-<button data-tab="cart">🛒 سبد <span id="cartCount" style="background:#dc2626;color:white;padding:1px 7px;border-radius:99px;font-size:10px;margin-right:2px;display:none">0</span></button>
-<button data-tab="myorders">📦 سفارش‌ها</button>
-</nav>
+        <!-- دسته نان و مخلفات -->
+        <div class="addon-category">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span>🍞 نان اضافه</span><span>▼</span>
+            </div>
+            <div class="category-body">
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="نان بربری" data-price="5000"> نان بربری</label>
+                    <span class="addon-price">۵,۰۰۰ تومان</span>
+                </div>
+                <div class="addon-item">
+                    <label><input type="checkbox" class="addon" data-name="نان لواش" data-price="3000"> نان لواش</label>
+                    <span class="addon-price">۳,۰۰۰ تومان</span>
+                </div>
+            </div>
+        </div>
 
-<!-- تب‌های فروشنده -->
-<nav class="tabs" id="tabsSeller" style="display:none">
-<button class="active" data-tab="newlisting">➕ آگهی</button>
-<button data-tab="newseller">🏪 فروشنده</button>
-<button data-tab="sellerorders">📥 سفارش‌ها</button>
-<button data-tab="mysellers">👥 فروشندگان</button>
-</nav>
+        <div class="bottom-bar">
+            <div class="total-price">جمع: <span id="detail-final-price">۲۵۰,۰۰۰</span> تومان</div>
+            <button class="btn-primary" onclick="addToCart()">افزودن به سبد</button>
+        </div>
+    </main>
 
-<!-- ============ تب‌ها ============ -->
-<section id="tab-foods" class="tab active">
-  <div id="foodsList"></div>
-</section>
+    <!-- ================= صفحه سبد خرید و پرداخت ================= -->
+    <main id="page-cart" class="page hidden">
+        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
+        <h2>سبد خرید شما</h2>
+        <div id="cart-items-container">
+            <!-- آیتم‌های سبد خرید اینجا نمایش داده می‌شوند -->
+        </div>
+        
+        <div class="payment-section">
+            <h4>روش پرداخت:</h4>
+            <label><input type="radio" name="payment" value="online" checked> پرداخت اینترنتی (آنلاین)</label>
+            <label><input type="radio" name="payment" value="cash"> پرداخت در محل (نقدی/کارتخوان)</label>
+        </div>
 
-<section id="tab-cart" class="tab">
-  <div id="cartList"></div>
-  <div id="cartSummary"></div>
-</section>
+        <button class="btn-primary btn-block" onclick="submitOrder()">ثبت نهایی سفارش</button>
+    </main>
 
-<section id="tab-myorders" class="tab">
-  <div id="myOrdersList"></div>
-</section>
+    <script>
+        // ================= داده‌های اولیه =================
+        const foods = [
+            { id: 1, name: 'لوبیا پلو', price: 140000, img: 'https://via.placeholder.com/80' },
+            { id: 2, name: 'چلوکباب کوبیده', price: 250000, img: 'https://via.placeholder.com/80' },
+            { id: 3, name: 'قیمه بادمجان', price: 180000, img: 'https://via.placeholder.com/80' }
+        ];
 
-<section id="tab-newlisting" class="tab">
-<div class="card">
-<h3>➕ ثبت آگهی غذا</h3>
-<form id="listingForm">
-<label class="required">نام غذا</label>
-<input type="text" name="title" required placeholder="مثلاً: قیمه نثار">
+        let cart = []; 
+        let currentFood = null; 
 
-<label class="required">فروشنده</label>
-<select name="sellerId" id="sellerSelect" required><option value="">— انتخاب فروشنده —</option></select>
+        // ================= مدیریت صفحات =================
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('active');
+            });
+            
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                targetPage.classList.add('active');
+            }
 
-<label>لینک عکس غذا (اختیاری)</label>
-<input type="url" name="image" placeholder="https://...">
+            if (pageId === 'page-cart') {
+                renderCart();
+            }
+        }
 
-<label>توضیحات</label>
-<textarea name="description" rows="2" placeholder="مواد اولیه، وزن و..."></textarea>
+        // ================= رندر لیست غذاها =================
+        function renderFoodList() {
+            const container = document.getElementById('foodListContainer');
+            container.innerHTML = '';
+            
+            foods.forEach(food => {
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-item';
+                foodItem.onclick = () => openFoodDetails(food);
+                foodItem.innerHTML = `
+                    <img src="${food.img}" alt="${food.name}" class="food-img">
+                    <div class="food-details">
+                        <div class="food-name">${food.name}</div>
+                        <div class="food-price">${food.price.toLocaleString()} تومان</div>
+                    </div>
+                `;
+                container.appendChild(foodItem);
+            });
+        }
 
-<label class="required">قیمت اصلی (تومان)</label>
-<input type="number" name="originalPrice" required min="0" placeholder="150000">
+        // ================= باز کردن جزئیات غذا =================
+        function openFoodDetails(food) {
+            currentFood = food;
+            document.getElementById('detail-food-name').innerText = food.name;
+            document.getElementById('detail-food-price').innerText = `قیمت پایه: ${food.price.toLocaleString()} تومان`;
+            document.getElementById('detail-img-element').src = food.img;
+            
+            document.querySelectorAll('.addon').forEach(cb => cb.checked = false);
+            calculateDetailTotal();
+            
+            showPage('page-details');
+        }
 
-<label class="required">قیمت با تخفیف (تومان)</label>
-<input type="number" name="discountedPrice" required min="0" placeholder="90000">
+        // ================= آکاردئون =================
+        function toggleCategory(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('open');
+            const arrow = header.querySelector('span:last-child');
+            arrow.innerText = body.classList.contains('open') ? '▲' : '▼';
+        }
 
-<label class="required">تعداد پرس موجود</label>
-<input type="number" name="quantity" required min="1" value="1">
+        // ================= محاسبه قیمت نهایی =================
+        function calculateDetailTotal() {
+            if (!currentFood) return;
+            
+            let total = currentFood.price;
+            document.querySelectorAll('.addon:checked').forEach(cb => {
+                total += parseInt(cb.getAttribute('data-price'));
+            });
+            
+            document.getElementById('detail-final-price').innerText = total.toLocaleString();
+        }
 
-<label class="required">نوع تحویل</label>
-<select name="deliveryType" required>
-<option value="pickup">فقط حضوری</option>
-<option value="courier_free">پیک رایگان</option>
-<option value="courier_paid">پیک با هزینه</option>
-<option value="both">هر دو</option>
-</select>
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('addon')) {
+                calculateDetailTotal();
+            }
+        });
 
-<label>هزینه پیک (تومان)</label>
-<input type="number" name="courierCost" min="0" value="0">
+        // ================= افزودن به سبد خرید =================
+        function addToCart() {
+            if (!currentFood) return;
 
-<label class="required">مدت آماده‌سازی</label>
-<select name="deliveryTime" required>
-<option value="15">۱۵ دقیقه</option>
-<option value="30" selected>۳۰ دقیقه</option>
-<option value="45">۴۵ دقیقه</option>
-<option value="60">۱ ساعت</option>
-<option value="120">۲ ساعت</option>
-<option value="240">۴ ساعت</option>
-</select>
+            const selectedAddons = [];
+            document.querySelectorAll('.addon:checked').forEach(cb => {
+                selectedAddons.push({
+                    name: cb.getAttribute('data-name'),
+                    price: parseInt(cb.getAttribute('data-price'))
+                });
+            });
 
-<button type="submit" class="btn">ثبت آگهی ✅</button>
-</form>
-</div>
-</section>
+            const cartItem = {
+                food: currentFood,
+                addons: selectedAddons,
+                totalPrice: currentFood.price + selectedAddons.reduce((sum, a) => sum + a.price, 0)
+            };
 
-<section id="tab-newseller" class="tab">
-<div class="card">
-<h3>🏪 ثبت‌نام فروشنده</h3>
-<form id="sellerForm">
-<label class="required">نام کسب‌وکار / آشپز</label>
-<input type="text" name="name" required placeholder="مثلاً: رستوران بهار">
+            cart.push(cartItem);
+            alert('غذا به سبد خرید اضافه شد.');
+            showPage('page-home');
+        }
 
-<label class="required">نوع</label>
-<select name="type" id="sellerType" required>
-<option value="home">آشپز خانگی</option>
-<option value="restaurant">رستوران</option>
-<option value="fastfood">فست‌فود</option>
-<option value="catering">کترینگ</option>
-</select>
+        // ================= رندر سبد خرید =================
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">سبد خرید شما خالی است.</p>';
+                return;
+            }
 
-<label>شماره تماس</label>
-<input type="tel" name="phone" placeholder="09121234567">
+            container.innerHTML = '';
+            let grandTotal = 0;
 
-<label id="licenseLabel" class="required">شماره جواز کسب</label>
-<input type="text" name="license" id="licenseInput" placeholder="مثلاً: ۱۲۳۴۵۶/ب">
+            cart.forEach((item) => {
+                grandTotal += item.totalPrice;
+                
+                let addonsHtml = '';
+                if (item.addons.length > 0) {
+                    addonsHtml = item.addons.map(a => `+ ${a.name} (${a.price.toLocaleString()})`).join('<br>');
+                }
 
-<label class="required">محل ارائه (آدرس)</label>
-<textarea name="address" id="addressInput" required rows="2" placeholder="مثلاً: تهران، ونک"></textarea>
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.food.name}</strong><br>
+                        <small style="color:#777;">${addonsHtml}</small>
+                    </div>
+                    <div>${item.totalPrice.toLocaleString()} تومان</div>
+                `;
+                container.appendChild(div);
+            });
 
-<button type="button" class="btn blue" id="gpsBtn" style="width:auto;padding:8px 14px;font-size:12px;margin-top:6px">📍 موقعیت من</button>
-<input type="hidden" name="lat" id="latInput">
-<input type="hidden" name="lng" id="lngInput">
-<p style="font-size:12px;color:#6b7280;margin-top:6px" id="gpsStatus"></p>
+            const totalDiv = document.createElement('div');
+            totalDiv.style.marginTop = '15px';
+            totalDiv.style.fontWeight = 'bold';
+            totalDiv.style.textAlign = 'left';
+            totalDiv.innerHTML = `جمع کل: ${grandTotal.toLocaleString()} تومان`;
+            container.appendChild(totalDiv);
+        }
 
-<button type="submit" class="btn">ثبت فروشنده ✅</button>
-</form>
-</div>
-</section>
+        // ================= ثبت نهایی سفارش =================
+        function submitOrder() {
+            if (cart.length === 0) {
+                alert('سبد خرید شما خالی است!');
+                return;
+            }
 
-<section id="tab-sellerorders" class="tab"><div id="sellerOrdersList"></div></section>
-<section id="tab-mysellers" class="tab"><div class="card"><h3>👥 فروشندگان ثبت‌شده</h3><div id="sellersList"></div></div></section>
+            // شبیه‌سازی ثبت در دیتابیس
+            console.log('سفارش ثبت شد:', cart);
+            
+            // هشدار سلامت غذا طبق درخواست شما
+            alert('✅ سفارش شما با موفقیت ثبت شد.\n\n⚠️ لطفاً هنگام تحویل غذا، از سلامت و تازگی آن اطمینان حاصل کنید.');
+            
+            cart = [];
+            showPage('page-home');
+        }
 
-<!-- مودال سفارش -->
-<div class="modal-bg" id="orderModal"><div class="modal">
-<h3>🛒 ثبت سفارش</h3>
-<div id="orderFoodInfo"></div>
-<form id="orderForm">
-<label class="required">نام و نام خانوادگی</label>
-<input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
-<label class="required">شماره تماس</label>
-<input type="tel" name="customerPhone" required placeholder="09121234567">
-<label class="required">آدرس تحویل</label>
-<textarea name="customerAddress" required rows="2"></textarea>
-<label>توضیحات</label>
-<textarea name="note" rows="2" placeholder="مثلاً: بدون پیاز"></textarea>
-<button type="submit" class="btn">ثبت سفارش نهایی ✅</button>
-<button type="button" class="btn danger" id="closeOrderModal">انصراف</button>
-</form>
-</div></div>
+        // ================= منوی کاربر =================
+        function toggleUserMenu() {
+            document.getElementById("userDropdown").classList.toggle("show");
+        }
 
-<!-- مودال ثبت نظر -->
-<div class="modal-bg" id="reviewModal"><div class="modal">
-<h3>💬 ثبت نظر و امتیاز</h3>
-<div id="reviewFoodInfo"></div>
-<form id="reviewForm">
-<label class="required">نام شما</label>
-<input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
-<label class="required">امتیاز شما</label>
-<div id="starPicker">
-<span data-star="1">★</span><span data-star="2">★</span><span data-star="3">★</span><span data-star="4">★</span><span data-star="5">★</span>
-</div>
-<input type="hidden" name="rating" id="ratingInput" required>
-<label class="required">نظر شما</label>
-<textarea name="text" required rows="3" placeholder="تجربه‌ات از این غذا چطور بود؟"></textarea>
-<button type="submit" class="btn">ثبت نظر ✅</button>
-<button type="button" class="btn danger" id="closeReviewModal">انصراف</button>
-</form>
-</div></div>
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
 
-<!-- مودال دیدن نظرات -->
-<div class="modal-bg" id="commentsModal"><div class="modal">
-<h3>📖 نظرات مشتریان</h3>
-<div id="commentsList"></div>
-<button type="button" class="btn danger" id="closeCommentsModal">بستن</button>
-</div></div>
-
-<!-- مودال جزئیات غذا -->
-<div class="modal-bg" id="foodDetailModal"><div class="modal">
-<div id="foodDetailContent"></div>
-<button type="button" class="btn danger" id="closeFoodDetail">بستن</button>
-</div></div>
-
-<div class="toast" id="toast"></div>
-
-<script src="app.js"></script>
-<!-- مودال هشدار سلامت -->
-<div class="modal-bg" id="healthModal">
-  <div class="modal">
-    <div style="text-align:center;padding:10px">
-      <div style="font-size:56px;margin-bottom:12px">🛡️</div>
-      <h3 style="color:#15803d;font-size:18px;margin-bottom:14px">سفارش شما ثبت شد!</h3>
-      <div style="background:#fef3c7;border:2px solid #fbbf24;border-radius:14px;padding:16px;margin-bottom:16px;text-align:right">
-        <p style="font-weight:700;color:#92400e;margin-bottom:8px">⚠️ هشدار مهم:</p>
-        <p style="font-size:14px;color:#78350f;line-height:2">
-          لطفاً <b>قبل از تحویل غذا</b>، از <b>سلامت و تازگی</b> آن اطمینان حاصل کنید.
-        </p>
-        <p style="font-size:13px;color:#92400e;margin-top:8px">
-          در صورت مشاهده‌ی هرگونه مشکل، با فروشنده تماس بگیرید.
-        </p>
-      </div>
-      <button type="button" class="btn" onclick="closeHealthModal()">متوجه شدم ✅</button>
-    </div>
-  </div>
-</div>
-
+        // ================= راه‌اندازی اولیه =================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFoodList();
+        });
+    </script>
 </body>
 </html>
