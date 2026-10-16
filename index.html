@@ -1,226 +1,491 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
- <!--
-  ========================================================
-  سفره سبز (Sofreh Sabz)
+<!--
+  ═══════════════════════════════════════════════════════
+  🍲 سفره سبز (Sofreh Sabz)
+  ───────────────────────────────────────────────────────
   Designed & Developed by alavi1405
   Copyright © ۱۴۰۵ - All Rights Reserved
   First published: ۱۴۰۵/۰۷ (October 2026)
   GitHub: https://github.com/alavi1405/Sofreh-sabz
-  ========================================================
+  ───────────────────────────────────────────────────────
+  اثر انگشت دیجیتال: SAFREH-SABZ-1405-ALAVI-A1B2C3D4
+  ═══════════════════════════════════════════════════════
 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#16a34a">
 <title>سفره سبز | خرید و فروش غذاهای اضافه</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green-50: #f0fdf4;
+    --green-100: #dcfce7;
+    --green-500: #22c55e;
+    --green-600: #16a34a;
+    --green-700: #15803d;
+    --green-800: #166534;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --amber-500: #f59e0b;
+    --blue-500: #3b82f6;
+    --blue-600: #0969da;
+    --radius: 16px;
+    --shadow: 0 2px 12px rgba(22, 163, 74, 0.08);
+    --shadow-lg: 0 8px 24px rgba(22, 163, 74, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
   body {
-    font-family: Tahoma, sans-serif;
-    background: #f0fdf4;
-    color: #14532d;
+    font-family: Tahoma, 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+    background-attachment: fixed;
+    color: var(--gray-900);
     padding: 12px;
     line-height: 1.8;
-    padding-bottom: 80px;
+    min-height: 100vh;
+    padding-bottom: 40px;
   }
+
+  /* ═══════════ هدر با لوگو ═══════════ */
   header {
     text-align: center;
-    padding: 24px 16px;
-    background: linear-gradient(135deg, #16a34a, #22c55e);
+    padding: 22px 16px 18px;
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-500) 50%, #4ade80 100%);
     color: white;
-    border-radius: 14px;
-    margin-bottom: 16px;
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
   }
-  header h1 { font-size: 24px; margin-bottom: 6px; }
-  header p { font-size: 13px; }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .logo-svg {
+    width: 90px;
+    height: 90px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+  }
+  header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+  }
+  header p {
+    font-size: 12.5px;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+  }
 
-  nav.tabs {
+  /* ═══════════ انتخاب حالت ═══════════ */
+  .mode-switch {
     display: flex;
     background: white;
-    border-radius: 12px;
-    padding: 4px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    gap: 4px;
-    overflow-x: auto;
+    border-radius: var(--radius);
+    padding: 5px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    gap: 5px;
   }
-  nav.tabs button {
+  .mode-switch button {
     flex: 1;
-    min-width: 90px;
-    padding: 10px 8px;
+    padding: 11px 8px;
     border: 0;
     background: transparent;
     font: inherit;
     font-size: 13px;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    color: #656d76;
+    color: var(--gray-500);
+    font-weight: 600;
+    transition: all 0.25s ease;
+  }
+  .mode-switch button.active {
+    background: linear-gradient(135deg, var(--green-600), var(--green-500));
+    color: white;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ═══════════ تب‌ها ═══════════ */
+  nav.tabs {
+    display: flex;
+    background: white;
+    border-radius: var(--radius);
+    padding: 5px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs button {
+    flex: 1;
+    min-width: 85px;
+    padding: 10px 8px;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    border-radius: 11px;
+    cursor: pointer;
+    color: var(--gray-500);
     white-space: nowrap;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    position: relative;
   }
   nav.tabs button.active {
-    background: #16a34a;
+    background: linear-gradient(135deg, var(--green-600), var(--green-500));
     color: white;
     font-weight: 700;
+    box-shadow: 0 3px 10px rgba(22, 163, 74, 0.3);
   }
 
-  section.tab { display: none; }
+  section.tab { display: none; animation: fadeIn 0.3s ease; }
   section.tab.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
+  /* ═══════════ کارت ═══════════ */
   .card {
     background: white;
-    border-radius: 14px;
+    border-radius: var(--radius);
     padding: 16px;
     margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    border: 1px solid #dcfce7;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--green-100);
+    transition: all 0.25s ease;
   }
-  .card h3 { color: #16a34a; font-size: 16px; margin-bottom: 8px; }
-  .card p { font-size: 13px; color: #4b5563; margin-bottom: 4px; }
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  .card h3 {
+    color: var(--green-700);
+    font-size: 15.5px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .card p { font-size: 13px; color: var(--gray-700); margin-bottom: 4px; }
 
+  /* ═══════════ قیمت ═══════════ */
   .price-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 8px 0;
+    margin: 10px 0;
     flex-wrap: wrap;
   }
   .old-price {
     text-decoration: line-through;
-    color: #9ca3af;
-    font-size: 13px;
+    color: var(--gray-400);
+    font-size: 12.5px;
   }
   .new-price {
-    color: #16a34a;
-    font-weight: 700;
+    color: var(--green-600);
+    font-weight: 800;
     font-size: 17px;
   }
   .discount-badge {
-    background: #fee2e2;
-    color: #dc2626;
-    padding: 2px 8px;
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: var(--red-600);
+    padding: 3px 10px;
     border-radius: 99px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
+    border: 1px solid #fecaca;
   }
+
+  /* ═══════════ چیپ‌ها ═══════════ */
   .meta {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 8px;
-    font-size: 12px;
+    font-size: 11.5px;
   }
   .chip {
-    background: #eaeef2;
-    padding: 3px 10px;
+    background: var(--gray-100);
+    padding: 4px 10px;
     border-radius: 99px;
-    color: #4b5563;
+    color: var(--gray-700);
+    font-weight: 500;
+    border: 1px solid var(--gray-200);
   }
-  .chip.green { background: #dafbe1; color: #1a7f37; }
-  .chip.blue { background: #ddf4ff; color: #0969da; }
+  .chip.green { background: var(--green-100); color: var(--green-800); border-color: #bbf7d0; }
+  .chip.blue { background: #dbeafe; color: var(--blue-600); border-color: #bfdbfe; }
+  .chip.red { background: #fee2e2; color: var(--red-600); border-color: #fecaca; }
+  .chip.orange { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
+  .chip.gold { background: #fef3c7; color: #92400e; border-color: #fde68a; }
 
+  /* ═══════════ فرم ═══════════ */
   form label {
     display: block;
     font-size: 13px;
-    font-weight: 500;
-    margin: 12px 0 4px;
-    color: #374151;
+    font-weight: 600;
+    margin: 12px 0 5px;
+    color: var(--gray-700);
   }
   form input, form select, form textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d0d7de;
-    border-radius: 10px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 12px;
     font: inherit;
     font-size: 14px;
-    background: #f9fafb;
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+    color: var(--gray-900);
   }
   form input:focus, form select:focus, form textarea:focus {
     outline: none;
-    border-color: #16a34a;
+    border-color: var(--green-500);
     background: white;
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
   }
+
+  /* ═══════════ دکمه‌ها ═══════════ */
   .btn {
     display: inline-block;
-    padding: 11px 20px;
-    background: #16a34a;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--green-600), var(--green-500));
     color: white;
     border: 0;
-    border-radius: 10px;
+    border-radius: 12px;
     font: inherit;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    margin-top: 14px;
+    margin-top: 12px;
     width: 100%;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
   }
-  .btn.secondary {
-    background: #e5e7eb;
-    color: #374151;
-    width: auto;
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(22, 163, 74, 0.35); }
+  .btn:active { transform: translateY(0); }
+  .btn.danger { background: linear-gradient(135deg, var(--red-600), var(--red-500)); box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25); }
+  .btn.blue { background: linear-gradient(135deg, var(--blue-600), var(--blue-500)); box-shadow: 0 3px 10px rgba(9, 105, 218, 0.25); }
+  .btn.small {
     padding: 8px 14px;
     font-size: 12px;
-    margin-top: 0;
-  }
-  .btn.gps {
-    background: #0969da;
     width: auto;
-    padding: 8px 14px;
-    font-size: 12px;
-    margin-top: 6px;
+    margin-top: 8px;
+    display: inline-block;
   }
+  .btn.gray { background: linear-gradient(135deg, #6b7280, #9ca3af); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  /* ═══════════ حالت خالی ═══════════ */
   .empty {
     text-align: center;
-    color: #9ca3af;
-    font-size: 13px;
-    padding: 30px 10px;
+    color: var(--gray-400);
+    font-size: 13.5px;
+    padding: 40px 20px;
+    line-height: 2;
   }
+  .empty-icon { font-size: 48px; display: block; margin-bottom: 10px; opacity: 0.5; }
 
+  /* ═══════════ توست ═══════════ */
   .toast {
     position: fixed;
     bottom: 20px;
     right: 20px;
     left: 20px;
-    background: #16a34a;
+    background: linear-gradient(135deg, var(--green-600), var(--green-500));
     color: white;
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-size: 14px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 13.5px;
     text-align: center;
+    font-weight: 600;
     opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s;
+    transform: translateY(30px);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
-    z-index: 999;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
   }
   .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: linear-gradient(135deg, var(--red-600), var(--red-500)); box-shadow: 0 8px 24px rgba(220, 38, 38, 0.35); }
 
-  .required::after {
-    content: " *";
-    color: #dc2626;
+  .required::after { content: " *"; color: var(--red-600); }
+
+  /* ═══════════ مودال ═══════════ */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-bg.show { display: flex; animation: fadeIn 0.2s; }
+  .modal {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    max-width: 440px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .modal h3 { color: var(--green-700); margin-bottom: 14px; font-size: 17px; }
+
+  /* ═══════════ ستاره‌ها ═══════════ */
+  .stars { color: var(--amber-500); font-size: 15px; letter-spacing: 1px; }
+  #starPicker {
+    display: flex;
+    gap: 10px;
+    font-size: 38px;
+    color: #d1d5db;
+    cursor: pointer;
+    padding: 8px 0;
+    user-select: none;
+  }
+  #starPicker span { transition: all 0.15s ease; }
+  #starPicker span:hover { transform: scale(1.2); }
+  #starPicker span.active { color: var(--amber-500); }
+
+  /* ═══════════ کارت سفارش ═══════════ */
+  .order-card {
+    border-right: 4px solid var(--green-500);
+    padding-right: 12px;
+  }
+  .order-meta { font-size: 12px; color: var(--gray-500); margin-top: 6px; }
+
+  /* ═══════════ فوتر ═══════════ */
+  footer {
+    text-align: center;
+    padding: 24px 12px 16px;
+    font-size: 12px;
+    color: var(--gray-500);
+    border-top: 1px solid var(--gray-200);
+    margin-top: 24px;
+    line-height: 2;
+  }
+  footer b { color: var(--green-600); }
+  footer a { color: var(--blue-600); text-decoration: none; }
+  footer .fingerprint {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--gray-400);
+    letter-spacing: 1px;
+    margin-top: 6px;
+    display: block;
   }
 </style>
 </head>
 <body>
 
 <header>
+  <div class="logo-wrap">
+    <!-- ═══════════ لوگوی سفره سبز: بشقاب سوپ + دودکش خونه ═══════════ -->
+    <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- دود (بوی غذا) -->
+      <path d="M 38 20 Q 42 16 38 12 Q 34 8 38 4" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+      <path d="M 50 18 Q 54 14 50 10 Q 46 6 50 2" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.75"/>
+      <path d="M 62 20 Q 66 16 62 12 Q 58 8 62 4" stroke="rgba(255,255,255,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.9"/>
+
+      <!-- دودکش / لوله بخاری -->
+      <rect x="66" y="28" width="8" height="14" fill="white" rx="1.5"/>
+      <rect x="64" y="26" width="12" height="5" fill="white" rx="2"/>
+
+      <!-- شیروانی (سقف خونه) -->
+      <path d="M 20 62 L 50 42 L 80 62 Z" fill="white"/>
+      <path d="M 20 62 L 50 42 L 80 62" stroke="rgba(255,255,255,0.5)" stroke-width="1" fill="none"/>
+
+      <!-- بشقاب سوپ -->
+      <ellipse cx="50" cy="74" rx="30" ry="4" fill="rgba(255,255,255,0.3)"/>
+      <path d="M 22 68 Q 50 88 78 68 Z" fill="white"/>
+      <ellipse cx="50" cy="68" rx="28" ry="5" fill="rgba(255,255,255,0.9)"/>
+
+      <!-- بخار روی سوپ -->
+      <path d="M 40 62 Q 43 58 40 54" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M 50 60 Q 53 56 50 52" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M 60 62 Q 63 58 60 54" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
   <h1>🍲 سفره سبز</h1>
   <p>غذای اضافه‌ات را بفروش، غذای خوب را ارزان بخر</p>
 </header>
 
-<nav class="tabs">
-  <button class="active" data-tab="home">🍽️ غذاها</button>
-  <button data-tab="new">➕ ثبت آگهی</button>
-  <button data-tab="seller">🏪 ثبت فروشنده</button>
+<!-- حالت کاربر -->
+<div class="mode-switch">
+  <button id="modeCustomer" class="active" data-mode="customer">👤 من مشتری‌ام</button>
+  <button id="modeSeller" data-mode="seller">🏪 من فروشنده‌ام</button>
+</div>
+
+<!-- تب‌های مشتری -->
+<nav class="tabs" id="tabsCustomer">
+  <button class="active" data-tab="foods">🍽️ غذاها</button>
+  <button data-tab="cart">🛒 سبد <span id="cartCount" style="background:#dc2626;color:white;padding:1px 7px;border-radius:99px;font-size:10px;margin-right:2px;display:none">0</span></button>
+  <button data-tab="myorders">📦 سفارش‌ها</button>
 </nav>
 
-<!-- ============ تب خانه ============ -->
-<section id="tab-home" class="tab active">
-  <div id="listings"></div>
+<!-- تب‌های فروشنده -->
+<nav class="tabs" id="tabsSeller" style="display:none">
+  <button class="active" data-tab="newlisting">➕ آگهی</button>
+  <button data-tab="newseller">🏪 فروشنده</button>
+  <button data-tab="sellerorders">📥 سفارش‌ها</button>
+  <button data-tab="mysellers">👥 فروشندگان</button>
+</nav>
+
+<!-- ============ تب‌های مشتری ============ -->
+<section id="tab-foods" class="tab active">
+  <div id="foodsList"></div>
 </section>
 
-<!-- ============ تب ثبت آگهی ============ -->
-<section id="tab-new" class="tab">
+<section id="tab-cart" class="tab">
+  <div id="cartList"></div>
+  <div id="cartSummary"></div>
+</section>
+
+<section id="tab-myorders" class="tab">
+  <div id="myOrdersList"></div>
+</section>
+
+<!-- ============ تب‌های فروشنده ============ -->
+<section id="tab-newlisting" class="tab">
   <div class="card">
     <h3>➕ ثبت آگهی غذا</h3>
     <form id="listingForm">
@@ -245,7 +510,7 @@
       <input type="number" name="quantity" required min="1" value="1">
 
       <label class="required">نوع تحویل</label>
-      <select name="deliveryType" id="deliveryType" required>
+      <select name="deliveryType" required>
         <option value="pickup">فقط حضوری</option>
         <option value="courier_free">پیک رایگان</option>
         <option value="courier_paid">پیک با هزینه</option>
@@ -270,8 +535,7 @@
   </div>
 </section>
 
-<!-- ============ تب ثبت فروشنده ============ -->
-<section id="tab-seller" class="tab">
+<section id="tab-newseller" class="tab">
   <div class="card">
     <h3>🏪 ثبت‌نام فروشنده</h3>
     <form id="sellerForm">
@@ -294,7 +558,7 @@
 
       <label class="required">آدرس</label>
       <textarea name="address" id="addressInput" required rows="2" placeholder="آدرس دقیق"></textarea>
-      <button type="button" class="btn gps" id="gpsBtn">📍 موقعیت من را بگیر</button>
+      <button type="button" class="btn gps" id="gpsBtn" style="background:linear-gradient(135deg,var(--blue-600),var(--blue-500));width:auto;padding:8px 14px;font-size:12px;margin-top:6px">📍 موقعیت من را بگیر</button>
       <input type="hidden" name="lat" id="latInput">
       <input type="hidden" name="lng" id="lngInput">
       <p style="font-size:12px;color:#6b7280;margin-top:6px" id="gpsStatus"></p>
@@ -302,258 +566,165 @@
       <button type="submit" class="btn">ثبت فروشنده ✅</button>
     </form>
   </div>
+</section>
 
+<section id="tab-sellerorders" class="tab">
+  <div id="sellerOrdersList"></div>
+</section>
+
+<section id="tab-mysellers" class="tab">
   <div class="card">
-    <h3>📋 فروشندگان ثبت‌شده</h3>
+    <h3>👥 فروشندگان ثبت‌شده</h3>
     <div id="sellersList"></div>
   </div>
 </section>
 
+<!-- مودال سفارش -->
+<div class="modal-bg" id="orderModal">
+  <div class="modal">
+    <h3>🛒 ثبت سفارش</h3>
+    <div id="orderFoodInfo"></div>
+    <form id="orderForm">
+      <label class="required">نام و نام خانوادگی</label>
+      <input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
+
+      <label class="required">شماره تماس</label>
+      <input type="tel" name="customerPhone" required placeholder="09121234567">
+
+      <label class="required">آدرس تحویل</label>
+      <textarea name="customerAddress" required rows="2" placeholder="آدرس دقیق"></textarea>
+
+      <label>توضیحات</label>
+      <textarea name="note" rows="2" placeholder="مثلاً: بدون پیاز"></textarea>
+
+      <button type="submit" class="btn">ثبت سفارش نهایی ✅</button>
+      <button type="button" class="btn danger" id="closeOrderModal">انصراف</button>
+    </form>
+  </div>
+</div>
+
+<!-- مودال ثبت نظر -->
+<div class="modal-bg" id="reviewModal">
+  <div class="modal">
+    <h3>💬 ثبت نظر و امتیاز</h3>
+    <div id="reviewFoodInfo"></div>
+    <form id="reviewForm">
+      <label class="required">نام شما</label>
+      <input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
+
+      <label class="required">امتیاز شما</label>
+      <div id="starPicker">
+        <span data-star="1">★</span>
+        <span data-star="2">★</span>
+        <span data-star="3">★</span>
+        <span data-star="4">★</span>
+        <span data-star="5">★</span>
+      </div>
+      <input type="hidden" name="rating" id="ratingInput" required>
+
+      <label class="required">نظر شما</label>
+      <textarea name="text" required rows="3" placeholder="تجربه‌ات از این غذا چطور بود؟"></textarea>
+
+      <button type="submit" class="btn">ثبت نظر ✅</button>
+      <button type="button" class="btn danger" id="closeReviewModal">انصراف</button>
+    </form>
+  </div>
+</div>
+
+<!-- مودال دیدن نظرات -->
+<div class="modal-bg" id="commentsModal">
+  <div class="modal">
+    <h3>📖 نظرات مشتریان</h3>
+    <div id="commentsList"></div>
+    <button type="button" class="btn danger" id="closeCommentsModal">بستن</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ داده‌ها (localStorage) ============
+// ═══════════════════════════════════════════════════════
+//  سفره سبز | اثر انگشت دیجیتال: SAFREH-SABZ-1405-ALAVI-A1B2C3D4
+// ═══════════════════════════════════════════════════════
+
 const DB = {
-  get sellers() {
-    return JSON.parse(localStorage.getItem('safreh_sellers') || '[]');
-  },
-  set sellers(v) {
-    localStorage.setItem('safreh_sellers', JSON.stringify(v));
-  },
-  get listings() {
-    return JSON.parse(localStorage.getItem('safreh_listings') || '[]');
-  },
-  set listings(v) {
-    localStorage.setItem('safreh_listings', JSON.stringify(v));
-  }
+  get sellers() { return JSON.parse(localStorage.getItem('safreh_sellers') || '[]'); },
+  set sellers(v) { localStorage.setItem('safreh_sellers', JSON.stringify(v)); },
+  get listings() { return JSON.parse(localStorage.getItem('safreh_listings') || '[]'); },
+  set listings(v) { localStorage.setItem('safreh_listings', JSON.stringify(v)); },
+  get orders() { return JSON.parse(localStorage.getItem('safreh_orders') || '[]'); },
+  set orders(v) { localStorage.setItem('safreh_orders', JSON.stringify(v)); },
+  get cart() { return JSON.parse(localStorage.getItem('safreh_cart') || '[]'); },
+  set cart(v) { localStorage.setItem('safreh_cart', JSON.stringify(v)); }
 };
 
-// ============ کمک‌کننده‌ها ============
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
-function toast(msg) {
+function toast(msg, isError) {
   const t = $('#toast');
   t.textContent = msg;
+  t.classList.toggle('error', !!isError);
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-function toman(n) {
-  return Number(n).toLocaleString('fa-IR');
-}
+function toman(n) { return Number(n).toLocaleString('fa-IR'); }
 
 function calcDiscount(oldP, newP) {
   if (!oldP || oldP <= newP) return 0;
   return Math.round((1 - newP / oldP) * 100);
 }
 
-// ============ تب‌ها ============
-$$('nav.tabs button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    $$('nav.tabs button').forEach(b => b.classList.remove('active'));
-    $$('section.tab').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active');
-    $('#tab-' + btn.dataset.tab).classList.add('active');
-    if (btn.dataset.tab === 'home') renderListings();
-    if (btn.dataset.tab === 'seller') renderSellers();
-    if (btn.dataset.tab === 'new') fillSellerSelect();
-  });
-});
-
-// ============ نمایش غذاها ============
-function renderListings() {
-  const items = DB.listings;
-  const wrap = $('#listings');
-  if (!items.length) {
-    wrap.innerHTML = '<div class="empty">هنوز آگهی‌ای ثبت نشده.<br>از تب «ثبت آگهی» شروع کن!</div>';
-    return;
-  }
-  const sellers = DB.sellers;
-  wrap.innerHTML = items.slice().reverse().map(l => {
-    const s = sellers.find(x => x.id === l.sellerId);
-    const disc = calcDiscount(l.originalPrice, l.discountedPrice);
-    const deliveryMap = {
-      pickup: '🏃 حضوری',
-      courier_free: '🛵 پیک رایگان',
-      courier_paid: `🛵 پیک (${toman(l.courierCost)} ت)`,
-      both: '🏃 یا 🛵'
-    };
-    return `
-      <div class="card">
-        <h3>${l.title}</h3>
-        <p>${l.description || ''}</p>
-        <div class="price-row">
-          <span class="old-price">${toman(l.originalPrice)} ت</span>
-          <span class="new-price">${toman(l.discountedPrice)} ت</span>
-          ${disc ? `<span class="discount-badge">${disc}٪ تخفیف</span>` : ''}
-        </div>
-        <div class="meta">
-          <span class="chip green">📦 ${l.quantity} پرس</span>
-          <span class="chip">⏱️ ${l.deliveryTime} دقیقه</span>
-          <span class="chip blue">${deliveryMap[l.deliveryType]}</span>
-          <span class="chip">🏪 ${s ? s.name : 'ناشناس'}</span>
-          <span class="chip">🛒 ${l.orderCount || 0} سفارش</span>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-// ============ فرم ثبت آگهی ============
-function fillSellerSelect() {
-  const sel = $('#sellerSelect');
-  const sellers = DB.sellers;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— انتخاب فروشنده —</option>' +
-    sellers.map(s => `<option value="${s.id}">${s.name} (${typeLabel(s.type)})</option>`).join('');
-  sel.value = cur;
-}
-
 function typeLabel(t) {
   return { home: 'خانگی', restaurant: 'رستوران', fastfood: 'فست‌فود', catering: 'کترینگ' }[t] || t;
 }
 
-$('#listingForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const data = Object.fromEntries(f);
-  const item = {
-    id: Date.now().toString(),
-    title: data.title,
-    sellerId: data.sellerId,
-    description: data.description || '',
-    originalPrice: Number(data.originalPrice),
-    discountedPrice: Number(data.discountedPrice),
-    quantity: Number(data.quantity),
-    deliveryType: data.deliveryType,
-    courierCost: Number(data.courierCost) || 0,
-    deliveryTime: Number(data.deliveryTime),
-    orderCount: 0,
-    createdAt: Date.now()
-  };
-  if (item.discountedPrice > item.originalPrice) {
-    toast('❌ قیمت تخفیف نمی‌تونه بیشتر از قیمت اصلی باشه');
-    return;
+// ═══════════ نظرات و امتیاز ═══════════
+function renderStars(rating) {
+  const r = Number(rating) || 0;
+  const full = Math.floor(r);
+  const half = r - full >= 0.5;
+  let s = '';
+  for (let i = 0; i < 5; i++) {
+    if (i < full) s += '★';
+    else if (i === full && half) s += '⯨';
+    else s += '☆';
   }
-  const arr = DB.listings;
-  arr.push(item);
-  DB.listings = arr;
-  e.target.reset();
-  toast('✅ آگهی با موفقیت ثبت شد!');
-  // رفتن به تب خانه
-  $$('nav.tabs button').forEach(b => b.classList.remove('active'));
-  $$('section.tab').forEach(s => s.classList.remove('active'));
-  document.querySelector('[data-tab="home"]').classList.add('active');
-  $('#tab-home').classList.add('active');
-  renderListings();
-});
-
-// ============ فرم ثبت فروشنده ============
-function updateLicenseField() {
-  const type = $('#sellerType').value;
-  const needsLicense = ['restaurant','fastfood','catering'].includes(type);
-  const label = $('#licenseLabel');
-  const input = $('#licenseInput');
-  if (needsLicense) {
-    label.textContent = 'شماره جواز کسب (وزارت بهداشت)';
-    label.classList.add('required');
-    input.required = true;
-    input.placeholder = 'مثلاً: ۱۲۳۴۵۶/ب';
-  } else {
-    label.textContent = 'شماره جواز (اختیاری برای خانگی)';
-    label.classList.remove('required');
-    input.required = false;
-    input.placeholder = 'اختیاری';
-  }
+  return s;
 }
-$('#sellerType').addEventListener('change', updateLicenseField);
-updateLicenseField();
-
-// GPS
-$('#gpsBtn').addEventListener('click', () => {
-  const status = $('#gpsStatus');
-  if (!navigator.geolocation) {
-    status.textContent = '❌ مرورگر شما از GPS پشتیبانی نمی‌کند';
-    return;
+function getComments(id) { return JSON.parse(localStorage.getItem('safreh_comments_' + id) || '[]'); }
+function saveComments(id, c) { localStorage.setItem('safreh_comments_' + id, JSON.stringify(c)); }
+function recalcRating(id) {
+  const cs = getComments(id);
+  const l = DB.listings.find(x => x.id === id);
+  if (!l) return;
+  if (!cs.length) { l.rating = 0; l.ratingCount = 0; }
+  else {
+    const sum = cs.reduce((s, c) => s + c.rating, 0);
+    l.rating = (sum / cs.length).toFixed(1);
+    l.ratingCount = cs.length;
   }
-  status.textContent = '⏳ در حال دریافت موقعیت...';
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      $('#latInput').value = pos.coords.latitude.toFixed(6);
-      $('#lngInput').value = pos.coords.longitude.toFixed(6);
-      status.textContent = `✅ موقعیت ثبت شد (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
-    },
-    err => {
-      status.textContent = '❌ دسترسی به موقعیت رد شد. لطفاً اجازه بده.';
-    }
-  );
-});
-
-$('#sellerForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const data = Object.fromEntries(f);
-  const seller = {
-    id: Date.now().toString(),
-    name: data.name,
-    type: data.type,
-    phone: data.phone || '',
-    license: data.license || '',
-    address: data.address,
-    lat: data.lat || '',
-    lng: data.lng || '',
-    createdAt: Date.now()
-  };
-  const arr = DB.sellers;
-  arr.push(seller);
-  DB.sellers = arr;
-  e.target.reset();
-  updateLicenseField();
-  $('#gpsStatus').textContent = '';
-  toast('✅ فروشنده با موفقیت ثبت شد!');
-  renderSellers();
-  fillSellerSelect();
-});
-
-function renderSellers() {
-  const wrap = $('#sellersList');
-  const arr = DB.sellers;
-  if (!arr.length) {
-    wrap.innerHTML = '<div class="empty">هنوز فروشنده‌ای ثبت نشده.</div>';
-    return;
-  }
-  wrap.innerHTML = arr.slice().reverse().map(s => `
-    <div style="border-bottom:1px solid #eee;padding:10px 0">
-      <b>${s.name}</b> <span class="chip green">${typeLabel(s.type)}</span>
-      ${s.license ? `<span class="chip">📜 جواز: ${s.license}</span>` : ''}
-      <p style="font-size:12px;color:#6b7280;margin-top:4px">📍 ${s.address}${s.lat ? ` (${s.lat}, ${s.lng})` : ''}</p>
-      ${s.phone ? `<p style="font-size:12px;color:#6b7280">📞 ${s.phone}</p>` : ''}
-    </div>
-  `).join('');
+  DB.listings = DB.listings;
 }
 
-// ============ شروع ============
-renderListings();
-renderSellers();
-fillSellerSelect();
- 
- // ============ امضای مالکیت ============
-document.body.insertAdjacentHTML('beforeend', `
-  <footer style="
-    text-align:center;
-    padding:20px 12px;
-    font-size:12px;
-    color:#6b7280;
-    border-top:1px solid #e5e7eb;
-    margin-top:20px;
-    line-height:1.8;
-  ">
-    © ۱۴۰۵ <b style="color:#16a34a">سفره سبز</b> — تمامی حقوق محفوظ است<br>
-    طراحی و توسعه: <a href="https://github.com/alavi1405" style="color:#0969da;text-decoration:none">alavi1405</a><br>
-    <span style="font-size:11px;color:#9ca3af">کپی‌برداری از این اپ بدون اجازه‌ی کتبی ممنوع است.</span>
-  </footer>
-`);
-</script>
-
-</body>
-</html>
+// ═══════════ حالت کاربر ═══════════
+let currentMode = 'customer';
+$$('.mode-switch button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.mode-switch button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = btn.dataset.mode;
+    if (currentMode === 'customer') {
+      $('#tabsCustomer').style.display = 'flex';
+      $('#tabsSeller').style.display = 'none';
+      $$('#tabsCustomer button').forEach(b => b.classList.remove('active'));
+      $$('section.tab').forEach(s => s.classList.remove('active'));
+      $('#tabsCustomer button[data-tab="foods"]').classList.add('active');
+      $('#tab-foods').classList.add('active');
+      renderFoods();
+    } else {
+      $('#tabsCustomer').style.display = 'none';
+      $('#tabsSeller').style.display = 'flex';
+      $$('#tabsSeller button').forEach(b => b.classList.remove('active'));
+      $$('
