@@ -12,14 +12,14 @@
 
         /* ================= هدر ================= */
         .main-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .app-brand { display: flex; align-items: center; gap: 5px; }
-        .brand-icon { font-size: 20px; }
-        .app-title { font-size: 18px; color: #673AB7; margin: 0; display: flex; align-items: center; gap: 5px; }
+        .app-brand { display: flex; align-items: center; gap: 8px; }
+        .app-brand svg { width: 36px; height: 36px; flex-shrink: 0; }
+        .app-title { font-size: 18px; color: #673AB7; margin: 0; font-weight: bold; white-space: nowrap; }
 
         /* منوی کاربر */
         .user-menu-container { position: relative; }
         .user-btn { background: #F3E5F5; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #673AB7; font-weight: bold; }
-        .dropdown { display: none; position: absolute; right: 0; top: 40px; background: #fff; min-width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border-radius: 10px; padding: 10px; z-index: 200; }
+        .dropdown { display: none; position: absolute; right: 0; top: 40px; background: #fff; min-width: 190px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border-radius: 10px; padding: 10px; z-index: 200; }
         .dropdown.show { display: block; }
         .dropdown h4 { font-size: 13px; color: #673AB7; margin: 5px 0; }
         .dropdown a { display: block; padding: 5px 0; text-decoration: none; color: #333; font-size: 13px; }
@@ -108,22 +108,29 @@
             </div>
         </div>
         <div class="app-brand">
-            <span class="brand-icon">🏠</span>
-            <h1 class="app-title">سفره سبز 🍲</h1>
+            <svg width="36" height="36" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="8,28 32,8 56,28" fill="#673AB7" stroke="#673AB7" stroke-width="2" stroke-linejoin="round"/>
+                <rect x="14" y="28" width="36" height="24" rx="2" fill="#F3E5F5" stroke="#673AB7" stroke-width="2"/>
+                <path d="M 20 40 Q 32 52 44 40" fill="#FFB74D" stroke="#E65100" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 28 36 Q 30 32 28 28" fill="none" stroke="#E65100" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 36 36 Q 38 32 36 28" fill="none" stroke="#E65100" stroke-width="1.5" stroke-linecap="round"/>
+                <rect x="28" y="36" width="8" height="16" rx="1" fill="#673AB7"/>
+            </svg>
+            <h1 class="app-title">سفره سبز</h1>
         </div>
     </header>
 
     <!-- ================= صفحه اصلی ================= -->
     <main id="page-home" class="page active">
         <div class="top-bar">
-            <input type="text" class="search-box" placeholder="جستجوی غذا یا رستوران...">
+            <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا یا رستوران..." oninput="searchFood()">
             <div class="location-box" id="locationBtn" onclick="openLocationModal()">📍 انتخاب محل</div>
         </div>
 
         <div class="categories">
-            <button class="cat-btn active">رستوران</button>
-            <button class="cat-btn">کترینگ</button>
-            <button class="cat-btn">فست فود</button>
+            <button class="cat-btn active" id="cat-restaurant" onclick="switchCategory('restaurant')">رستوران</button>
+            <button class="cat-btn" id="cat-catering" onclick="switchCategory('catering')">کترینگ</button>
+            <button class="cat-btn" id="cat-fastfood" onclick="switchCategory('fastfood')">فست فود</button>
             <button class="cat-btn disabled">غذای خانگی (به زودی)</button>
         </div>
 
@@ -225,15 +232,30 @@
     </div>
 
     <script>
-        // ================= داده‌های اولیه =================
-        const foods = [
-            { id: 1, name: 'لوبیا پلو', price: 140000, img: 'https://via.placeholder.com/80' },
-            { id: 2, name: 'چلوکباب کوبیده', price: 250000, img: 'https://via.placeholder.com/80' },
-            { id: 3, name: 'قیمه بادمجان', price: 180000, img: 'https://via.placeholder.com/80' }
-        ];
+        // ================= داده‌های اولیه (دسته‌بندی شده) =================
+        const foodCategories = {
+            restaurant: [
+                { id: 1, name: 'چلوکباب کوبیده', price: 250000, img: 'https://via.placeholder.com/80' },
+                { id: 2, name: 'قیمه بادمجان', price: 180000, img: 'https://via.placeholder.com/80' },
+                { id: 3, name: 'لوبیا پلو', price: 140000, img: 'https://via.placeholder.com/80' },
+                { id: 4, name: 'زرشک پلو با مرغ', price: 220000, img: 'https://via.placeholder.com/80' }
+            ],
+            catering: [
+                { id: 5, name: 'باقالی پلو با ماهیچه', price: 320000, img: 'https://via.placeholder.com/80' },
+                { id: 6, name: 'عدس پلو مجلسی', price: 200000, img: 'https://via.placeholder.com/80' },
+                { id: 7, name: 'ته‌چین مرغ', price: 240000, img: 'https://via.placeholder.com/80' }
+            ],
+            fastfood: [
+                { id: 8, name: 'برگر دوبل', price: 180000, img: 'https://via.placeholder.com/80' },
+                { id: 9, name: 'پیتزا پپرونی', price: 260000, img: 'https://via.placeholder.com/80' },
+                { id: 10, name: 'ساندویچ فلافل', price: 90000, img: 'https://via.placeholder.com/80' },
+                { id: 11, name: 'هات داگ ویژه', price: 150000, img: 'https://via.placeholder.com/80' }
+            ]
+        };
 
-        let cart = []; 
-        let currentFood = null; 
+        let currentCategory = 'restaurant';
+        let cart = [];
+        let currentFood = null;
 
         // ================= مدیریت صفحات =================
         function showPage(pageId) {
@@ -241,7 +263,6 @@
                 page.classList.add('hidden');
                 page.classList.remove('active');
             });
-            
             const targetPage = document.getElementById(pageId);
             if (targetPage) {
                 targetPage.classList.remove('hidden');
@@ -250,11 +271,64 @@
             if (pageId === 'page-cart') renderCart();
         }
 
-        // ================= رندر لیست غذاها =================
-        function renderFoodList() {
+        // ================= رندر لیست غذاها بر اساس دسته =================
+        function renderFoodList(category = currentCategory) {
             const container = document.getElementById('foodListContainer');
+            const foods = foodCategories[category] || [];
             container.innerHTML = '';
+
+            if (foods.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">غذایی در این دسته موجود نیست.</p>';
+                return;
+            }
+
             foods.forEach(food => {
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-item';
+                foodItem.onclick = () => openFoodDetails(food);
+                foodItem.innerHTML = `
+                    <img src="${food.img}" alt="${food.name}" class="food-img">
+                    <div class="food-details">
+                        <div class="food-name">${food.name}</div>
+                        <div class="food-price">${food.price.toLocaleString()} تومان</div>
+                    </div>`;
+                container.appendChild(foodItem);
+            });
+        }
+
+        // ================= تغییر دسته‌بندی =================
+        function switchCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`cat-${category}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            renderFoodList(category);
+        }
+
+        // ================= جستجوی غذا =================
+        function searchFood() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const container = document.getElementById('foodListContainer');
+            const foods = foodCategories[currentCategory] || [];
+
+            if (query === '') { renderFoodList(currentCategory); return; }
+
+            const results = foods.filter(food => food.name.toLowerCase().includes(query));
+
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px; color:#999;">
+                        <p style="font-size:16px;">🍽️</p>
+                        <p>غذای مورد نظر شما موجود نمی‌باشد.</p>
+                    </div>`;
+                return;
+            }
+
+            results.sort((a, b) => a.price - b.price);
+            container.innerHTML = '';
+            results.forEach(food => {
                 const foodItem = document.createElement('div');
                 foodItem.className = 'food-item';
                 foodItem.onclick = () => openFoodDetails(food);
@@ -357,17 +431,43 @@
             }
         };
 
-        // ================= صفحات مشتری/فروشنده =================
+        // ================= صفحات مشتری و فروشنده =================
         function showCustomerPage(page) {
             document.getElementById("userDropdown").classList.remove("show");
-            if (page === 'orders') alert('صفحه «سفارش‌های من» به زودی اضافه می‌شود.');
-            else if (page === 'addresses') alert('صفحه «آدرس‌های من» به زودی اضافه می‌شود.');
+            let title = '';
+            if (page === 'orders') title = '📦 سفارش‌های من';
+            else if (page === 'addresses') title = '📍 آدرس‌های من';
+            showSimplePage(title);
         }
         function showSellerPage(page) {
             document.getElementById("userDropdown").classList.remove("show");
-            if (page === 'add-food') alert('صفحه «ثبت غذا» به زودی اضافه می‌شود.');
-            else if (page === 'received-orders') alert('صفحه «سفارش‌های دریافتی» به زودی اضافه می‌شود.');
-            else if (page === 'subscription') alert('صفحه «اشتراک و پرداخت» به زودی اضافه می‌شود.');
+            let title = '';
+            if (page === 'add-food') title = '🍲 ثبت غذا';
+            else if (page === 'received-orders') title = '📥 سفارش‌های دریافتی';
+            else if (page === 'subscription') title = '💳 اشتراک و پرداخت';
+            showSimplePage(title);
+        }
+
+        function showSimplePage(title) {
+            const tempPage = document.createElement('main');
+            tempPage.className = 'page active';
+            tempPage.id = 'page-temp';
+            tempPage.innerHTML = `
+                <button class="back-btn" onclick="closeSimplePage()">⬅ بازگشت</button>
+                <h2 style="text-align:center; margin-top:50px; color:#673AB7;">${title}</h2>
+                <p style="text-align:center; color:#999; margin-top:20px;">این صفحه به زودی تکمیل می‌شود.</p>
+            `;
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.add('hidden');
+                p.classList.remove('active');
+            });
+            document.body.appendChild(tempPage);
+        }
+
+        function closeSimplePage() {
+            const tempPage = document.getElementById('page-temp');
+            if (tempPage) tempPage.remove();
+            showPage('page-home');
         }
 
         // ================= انتخاب محل =================
@@ -410,7 +510,9 @@
         }
 
         // ================= راه‌اندازی اولیه =================
-        document.addEventListener('DOMContentLoaded', () => { renderFoodList(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            renderFoodList('restaurant');
+        });
     </script>
 </body>
 </html>
