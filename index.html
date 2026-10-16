@@ -1,78 +1,533 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>سفره سبز | خرید و فروش غذاهای اضافه</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Tahoma, sans-serif;
-      background: #f0fdf4;
-      color: #14532d;
-      padding: 20px;
-      line-height: 1.8;
-    }
-    header {
-      text-align: center;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #16a34a, #22c55e);
-      color: white;
-      border-radius: 16px;
-      margin-bottom: 30px;
-    }
-    header h1 { font-size: 32px; margin-bottom: 10px; }
-    header p { font-size: 16px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      border: 1px solid #dcfce7;
-    }
-    .card h3 { color: #16a34a; margin-bottom: 8px; font-size: 18px; }
-    .card p { color: #4b5563; font-size: 14px; }
-    .btn {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 8px 18px;
-      background: #16a34a;
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سفره سبز | خرید و فروش غذاهای اضافه</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Tahoma, sans-serif;
+    background: #f0fdf4;
+    color: #14532d;
+    padding: 12px;
+    line-height: 1.8;
+    padding-bottom: 80px;
+  }
+  header {
+    text-align: center;
+    padding: 24px 16px;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: white;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  header h1 { font-size: 24px; margin-bottom: 6px; }
+  header p { font-size: 13px; }
+
+  nav.tabs {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    gap: 4px;
+    overflow-x: auto;
+  }
+  nav.tabs button {
+    flex: 1;
+    min-width: 90px;
+    padding: 10px 8px;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #656d76;
+    white-space: nowrap;
+  }
+  nav.tabs button.active {
+    background: #16a34a;
+    color: white;
+    font-weight: 700;
+  }
+
+  section.tab { display: none; }
+  section.tab.active { display: block; }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    border: 1px solid #dcfce7;
+  }
+  .card h3 { color: #16a34a; font-size: 16px; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: #4b5563; margin-bottom: 4px; }
+
+  .price-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .old-price {
+    text-decoration: line-through;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+  .new-price {
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .discount-badge {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .chip {
+    background: #eaeef2;
+    padding: 3px 10px;
+    border-radius: 99px;
+    color: #4b5563;
+  }
+  .chip.green { background: #dafbe1; color: #1a7f37; }
+  .chip.blue { background: #ddf4ff; color: #0969da; }
+
+  form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 12px 0 4px;
+    color: #374151;
+  }
+  form input, form select, form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    background: #f9fafb;
+  }
+  form input:focus, form select:focus, form textarea:focus {
+    outline: none;
+    border-color: #16a34a;
+    background: white;
+  }
+  .btn {
+    display: inline-block;
+    padding: 11px 20px;
+    background: #16a34a;
+    color: white;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+    width: 100%;
+  }
+  .btn.secondary {
+    background: #e5e7eb;
+    color: #374151;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 12px;
+    margin-top: 0;
+  }
+  .btn.gps {
+    background: #0969da;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+
+  .empty {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    padding: 30px 10px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    background: #16a34a;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .required::after {
+    content: " *";
+    color: #dc2626;
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>🍲 سفره سبز</h1>
-    <p>غذای اضافه‌ات را بفروش، غذای خوب را ارزان بخر</p>
-  </header>
-  <div class="grid">
-    <div class="card">
-      <h3>🍕 رستوران‌ها و فست‌فودها</h3>
-      <p>غذاهای اضافه‌ی آخر شب را با تخفیف بفروش.</p>
-      <a href="#" class="btn">مشاهده</a>
-    </div>
-    <div class="card">
-      <h3>🍱 کترینگ‌ها</h3>
-      <p>غذای مراسم و مهمانی‌های باقی‌مانده را عرضه کن.</p>
-      <a href="#" class="btn">مشاهده</a>
-    </div>
-    <div class="card">
-      <h3>🏠 غذاهای خانگی</h3>
-      <p>آشپزهای خانگی، غذای دست‌سازشان را بفروشند.</p>
-      <a href="#" class="btn">مشاهده</a>
-    </div>
+
+<header>
+  <h1>🍲 سفره سبز</h1>
+  <p>غذای اضافه‌ات را بفروش، غذای خوب را ارزان بخر</p>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-tab="home">🍽️ غذاها</button>
+  <button data-tab="new">➕ ثبت آگهی</button>
+  <button data-tab="seller">🏪 ثبت فروشنده</button>
+</nav>
+
+<!-- ============ تب خانه ============ -->
+<section id="tab-home" class="tab active">
+  <div id="listings"></div>
+</section>
+
+<!-- ============ تب ثبت آگهی ============ -->
+<section id="tab-new" class="tab">
+  <div class="card">
+    <h3>➕ ثبت آگهی غذا</h3>
+    <form id="listingForm">
+      <label class="required">نام غذا</label>
+      <input type="text" name="title" required placeholder="مثلاً: قیمه نثار">
+
+      <label class="required">فروشنده</label>
+      <select name="sellerId" id="sellerSelect" required>
+        <option value="">— انتخاب فروشنده —</option>
+      </select>
+
+      <label>توضیحات</label>
+      <textarea name="description" rows="2" placeholder="مواد اولیه، وزن و..."></textarea>
+
+      <label class="required">قیمت اصلی (تومان)</label>
+      <input type="number" name="originalPrice" required min="0" placeholder="150000">
+
+      <label class="required">قیمت با تخفیف (تومان)</label>
+      <input type="number" name="discountedPrice" required min="0" placeholder="90000">
+
+      <label class="required">تعداد پرس موجود</label>
+      <input type="number" name="quantity" required min="1" value="1">
+
+      <label class="required">نوع تحویل</label>
+      <select name="deliveryType" id="deliveryType" required>
+        <option value="pickup">فقط حضوری</option>
+        <option value="courier_free">پیک رایگان</option>
+        <option value="courier_paid">پیک با هزینه</option>
+        <option value="both">هر دو</option>
+      </select>
+
+      <label>هزینه پیک (تومان) — اگر پولی</label>
+      <input type="number" name="courierCost" min="0" value="0">
+
+      <label class="required">مدت آماده‌سازی</label>
+      <select name="deliveryTime" required>
+        <option value="15">۱۵ دقیقه</option>
+        <option value="30" selected>۳۰ دقیقه</option>
+        <option value="45">۴۵ دقیقه</option>
+        <option value="60">۱ ساعت</option>
+        <option value="120">۲ ساعت</option>
+        <option value="240">۴ ساعت</option>
+      </select>
+
+      <button type="submit" class="btn">ثبت آگهی ✅</button>
+    </form>
   </div>
+</section>
+
+<!-- ============ تب ثبت فروشنده ============ -->
+<section id="tab-seller" class="tab">
+  <div class="card">
+    <h3>🏪 ثبت‌نام فروشنده</h3>
+    <form id="sellerForm">
+      <label class="required">نام کسب‌وکار / آشپز</label>
+      <input type="text" name="name" required placeholder="مثلاً: رستوران بهار">
+
+      <label class="required">نوع</label>
+      <select name="type" id="sellerType" required>
+        <option value="home">آشپز خانگی</option>
+        <option value="restaurant">رستوران</option>
+        <option value="fastfood">فست‌فود</option>
+        <option value="catering">کترینگ</option>
+      </select>
+
+      <label>شماره تماس</label>
+      <input type="tel" name="phone" placeholder="09121234567">
+
+      <label id="licenseLabel" class="required">شماره جواز کسب (وزارت بهداشت)</label>
+      <input type="text" name="license" id="licenseInput" placeholder="مثلاً: ۱۲۳۴۵۶/ب">
+
+      <label class="required">آدرس</label>
+      <textarea name="address" id="addressInput" required rows="2" placeholder="آدرس دقیق"></textarea>
+      <button type="button" class="btn gps" id="gpsBtn">📍 موقعیت من را بگیر</button>
+      <input type="hidden" name="lat" id="latInput">
+      <input type="hidden" name="lng" id="lngInput">
+      <p style="font-size:12px;color:#6b7280;margin-top:6px" id="gpsStatus"></p>
+
+      <button type="submit" class="btn">ثبت فروشنده ✅</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>📋 فروشندگان ثبت‌شده</h3>
+    <div id="sellersList"></div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ داده‌ها (localStorage) ============
+const DB = {
+  get sellers() {
+    return JSON.parse(localStorage.getItem('safreh_sellers') || '[]');
+  },
+  set sellers(v) {
+    localStorage.setItem('safreh_sellers', JSON.stringify(v));
+  },
+  get listings() {
+    return JSON.parse(localStorage.getItem('safreh_listings') || '[]');
+  },
+  set listings(v) {
+    localStorage.setItem('safreh_listings', JSON.stringify(v));
+  }
+};
+
+// ============ کمک‌کننده‌ها ============
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function toman(n) {
+  return Number(n).toLocaleString('fa-IR');
+}
+
+function calcDiscount(oldP, newP) {
+  if (!oldP || oldP <= newP) return 0;
+  return Math.round((1 - newP / oldP) * 100);
+}
+
+// ============ تب‌ها ============
+$$('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('nav.tabs button').forEach(b => b.classList.remove('active'));
+    $$('section.tab').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    $('#tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'home') renderListings();
+    if (btn.dataset.tab === 'seller') renderSellers();
+    if (btn.dataset.tab === 'new') fillSellerSelect();
+  });
+});
+
+// ============ نمایش غذاها ============
+function renderListings() {
+  const items = DB.listings;
+  const wrap = $('#listings');
+  if (!items.length) {
+    wrap.innerHTML = '<div class="empty">هنوز آگهی‌ای ثبت نشده.<br>از تب «ثبت آگهی» شروع کن!</div>';
+    return;
+  }
+  const sellers = DB.sellers;
+  wrap.innerHTML = items.slice().reverse().map(l => {
+    const s = sellers.find(x => x.id === l.sellerId);
+    const disc = calcDiscount(l.originalPrice, l.discountedPrice);
+    const deliveryMap = {
+      pickup: '🏃 حضوری',
+      courier_free: '🛵 پیک رایگان',
+      courier_paid: `🛵 پیک (${toman(l.courierCost)} ت)`,
+      both: '🏃 یا 🛵'
+    };
+    return `
+      <div class="card">
+        <h3>${l.title}</h3>
+        <p>${l.description || ''}</p>
+        <div class="price-row">
+          <span class="old-price">${toman(l.originalPrice)} ت</span>
+          <span class="new-price">${toman(l.discountedPrice)} ت</span>
+          ${disc ? `<span class="discount-badge">${disc}٪ تخفیف</span>` : ''}
+        </div>
+        <div class="meta">
+          <span class="chip green">📦 ${l.quantity} پرس</span>
+          <span class="chip">⏱️ ${l.deliveryTime} دقیقه</span>
+          <span class="chip blue">${deliveryMap[l.deliveryType]}</span>
+          <span class="chip">🏪 ${s ? s.name : 'ناشناس'}</span>
+          <span class="chip">🛒 ${l.orderCount || 0} سفارش</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ============ فرم ثبت آگهی ============
+function fillSellerSelect() {
+  const sel = $('#sellerSelect');
+  const sellers = DB.sellers;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— انتخاب فروشنده —</option>' +
+    sellers.map(s => `<option value="${s.id}">${s.name} (${typeLabel(s.type)})</option>`).join('');
+  sel.value = cur;
+}
+
+function typeLabel(t) {
+  return { home: 'خانگی', restaurant: 'رستوران', fastfood: 'فست‌فود', catering: 'کترینگ' }[t] || t;
+}
+
+$('#listingForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const data = Object.fromEntries(f);
+  const item = {
+    id: Date.now().toString(),
+    title: data.title,
+    sellerId: data.sellerId,
+    description: data.description || '',
+    originalPrice: Number(data.originalPrice),
+    discountedPrice: Number(data.discountedPrice),
+    quantity: Number(data.quantity),
+    deliveryType: data.deliveryType,
+    courierCost: Number(data.courierCost) || 0,
+    deliveryTime: Number(data.deliveryTime),
+    orderCount: 0,
+    createdAt: Date.now()
+  };
+  if (item.discountedPrice > item.originalPrice) {
+    toast('❌ قیمت تخفیف نمی‌تونه بیشتر از قیمت اصلی باشه');
+    return;
+  }
+  const arr = DB.listings;
+  arr.push(item);
+  DB.listings = arr;
+  e.target.reset();
+  toast('✅ آگهی با موفقیت ثبت شد!');
+  // رفتن به تب خانه
+  $$('nav.tabs button').forEach(b => b.classList.remove('active'));
+  $$('section.tab').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-tab="home"]').classList.add('active');
+  $('#tab-home').classList.add('active');
+  renderListings();
+});
+
+// ============ فرم ثبت فروشنده ============
+function updateLicenseField() {
+  const type = $('#sellerType').value;
+  const needsLicense = ['restaurant','fastfood','catering'].includes(type);
+  const label = $('#licenseLabel');
+  const input = $('#licenseInput');
+  if (needsLicense) {
+    label.textContent = 'شماره جواز کسب (وزارت بهداشت)';
+    label.classList.add('required');
+    input.required = true;
+    input.placeholder = 'مثلاً: ۱۲۳۴۵۶/ب';
+  } else {
+    label.textContent = 'شماره جواز (اختیاری برای خانگی)';
+    label.classList.remove('required');
+    input.required = false;
+    input.placeholder = 'اختیاری';
+  }
+}
+$('#sellerType').addEventListener('change', updateLicenseField);
+updateLicenseField();
+
+// GPS
+$('#gpsBtn').addEventListener('click', () => {
+  const status = $('#gpsStatus');
+  if (!navigator.geolocation) {
+    status.textContent = '❌ مرورگر شما از GPS پشتیبانی نمی‌کند';
+    return;
+  }
+  status.textContent = '⏳ در حال دریافت موقعیت...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      $('#latInput').value = pos.coords.latitude.toFixed(6);
+      $('#lngInput').value = pos.coords.longitude.toFixed(6);
+      status.textContent = `✅ موقعیت ثبت شد (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+    },
+    err => {
+      status.textContent = '❌ دسترسی به موقعیت رد شد. لطفاً اجازه بده.';
+    }
+  );
+});
+
+$('#sellerForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const data = Object.fromEntries(f);
+  const seller = {
+    id: Date.now().toString(),
+    name: data.name,
+    type: data.type,
+    phone: data.phone || '',
+    license: data.license || '',
+    address: data.address,
+    lat: data.lat || '',
+    lng: data.lng || '',
+    createdAt: Date.now()
+  };
+  const arr = DB.sellers;
+  arr.push(seller);
+  DB.sellers = arr;
+  e.target.reset();
+  updateLicenseField();
+  $('#gpsStatus').textContent = '';
+  toast('✅ فروشنده با موفقیت ثبت شد!');
+  renderSellers();
+  fillSellerSelect();
+});
+
+function renderSellers() {
+  const wrap = $('#sellersList');
+  const arr = DB.sellers;
+  if (!arr.length) {
+    wrap.innerHTML = '<div class="empty">هنوز فروشنده‌ای ثبت نشده.</div>';
+    return;
+  }
+  wrap.innerHTML = arr.slice().reverse().map(s => `
+    <div style="border-bottom:1px solid #eee;padding:10px 0">
+      <b>${s.name}</b> <span class="chip green">${typeLabel(s.type)}</span>
+      ${s.license ? `<span class="chip">📜 جواز: ${s.license}</span>` : ''}
+      <p style="font-size:12px;color:#6b7280;margin-top:4px">📍 ${s.address}${s.lat ? ` (${s.lat}, ${s.lng})` : ''}</p>
+      ${s.phone ? `<p style="font-size:12px;color:#6b7280">📞 ${s.phone}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+// ============ شروع ============
+renderListings();
+renderSellers();
+fillSellerSelect();
+</script>
+
 </body>
-  </html>
+</html>
