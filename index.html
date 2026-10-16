@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+ <!--
+  ========================================================
+  سفره سبز (Sofreh Sabz)
+  Designed & Developed by alavi1405
+  Copyright © ۱۴۰۵ - All Rights Reserved
+  First published: ۱۴۰۵/۰۷ (October 2026)
+  GitHub: https://github.com/alavi1405/Sofreh-sabz
+  ========================================================
+-->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -527,6 +536,23 @@ function renderSellers() {
 renderListings();
 renderSellers();
 fillSellerSelect();
+ 
+ // ============ امضای مالکیت ============
+document.body.insertAdjacentHTML('beforeend', `
+  <footer style="
+    text-align:center;
+    padding:20px 12px;
+    font-size:12px;
+    color:#6b7280;
+    border-top:1px solid #e5e7eb;
+    margin-top:20px;
+    line-height:1.8;
+  ">
+    © ۱۴۰۵ <b style="color:#16a34a">سفره سبز</b> — تمامی حقوق محفوظ است<br>
+    طراحی و توسعه: <a href="https://github.com/alavi1405" style="color:#0969da;text-decoration:none">alavi1405</a><br>
+    <span style="font-size:11px;color:#9ca3af">کپی‌برداری از این اپ بدون اجازه‌ی کتبی ممنوع است.</span>
+  </footer>
+`);
 </script>
 
 </body>
