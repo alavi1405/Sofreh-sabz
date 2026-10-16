@@ -3,11 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سفره سبز | سفارش آنلاین غذا</title>
     
+    <div class="app-brand">
+    <span class="brand-icon">🏠</span>
+    <h1 class="app-title">سفره سبز 🍲</h1>
+</div>
     <!-- فونت وزیرمتن برای زیبایی بیشتر -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+/* ================= استایل مودال (پنجره بازشو) ================= */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
 
+.modal-overlay.hidden {
+    display: none !important;
+}
+
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #673AB7;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #999;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.modal-select {
+    padding: 10px;
+    border: 1px solid #D1C4E9;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+}
+
+.modal-footer {
+    margin-top: 20px;
+}
     <style>
         /* ================= تنظیمات کلی ================= */
         * {
@@ -164,22 +238,23 @@
 <body>
 
     <!-- ================= هدر اصلی ================= -->
-    <header class="main-header">
-        <div class="user-menu-container">
-            <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
-            <div class="dropdown" id="userDropdown">
-                <h4>مشتری</h4>
-                <a href="#" onclick="showPage('page-home')">سفارش‌های من</a>
-                <a href="#">آدرس‌های من</a>
-                <hr>
-                <h4>فروشنده</h4>
-                <a href="#">ثبت غذا</a>
-                <a href="#">سفارش‌های دریافتی</a>
-            </div>
+<!-- ================= هدر اصلی ================= -->
+<header class="main-header">
+    <div class="user-menu-container">
+        <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
+        <div class="dropdown" id="userDropdown">
+            <h4>مشتری</h4>
+            <a href="#" onclick="showCustomerPage('orders')">📦 سفارش‌های من</a>
+            <a href="#" onclick="showCustomerPage('addresses')">📍 آدرس‌های من</a>
+            <hr>
+            <h4>فروشنده</h4>
+            <a href="#" onclick="showSellerPage('add-food')">🍲 ثبت غذا</a>
+            <a href="#" onclick="showSellerPage('received-orders')">📥 سفارش‌های دریافتی</a>
+            <a href="#" onclick="showSellerPage('subscription')">💳 اشتراک و پرداخت</a>
         </div>
-        <h1 class="app-title">سفره سبز</h1>
-    </header>
-
+    </div>
+    <h1 class="app-title">سفره سبز</h1>
+</header>
     <!-- ================= صفحه اصلی (لیست غذاها) ================= -->
     <main id="page-home" class="page active">
         <div class="top-bar">
@@ -498,6 +573,119 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderFoodList();
         });
+        // ================= مدیریت صفحات مشتری و فروشنده =================
+
+// صفحات مشتری
+function showCustomerPage(page) {
+    document.getElementById("userDropdown").classList.remove("show");
+    
+    if (page === 'orders') {
+        alert('صفحه «سفارش‌های من» به زودی اضافه می‌شود.');
+    } else if (page === 'addresses') {
+        alert('صفحه «آدرس‌های من» به زودی اضافه می‌شود.');
+    }
+}
+
+// صفحات فروشنده
+function showSellerPage(page) {
+    document.getElementById("userDropdown").classList.remove("show");
+    
+    if (page === 'add-food') {
+        alert('صفحه «ثبت غذا» به زودی اضافه می‌شود.');
+    } else if (page === 'received-orders') {
+        alert('صفحه «سفارش‌های دریافتی» به زودی اضافه می‌شود.');
+    } else if (page === 'subscription') {
+        alert('صفحه «اشتراک و پرداخت» به زودی اضافه می‌شود.');
+    }
+}
+    // ================= مدیریت انتخاب محل =================
+
+// داده‌های استان‌ها و شهرها
+const locationsData = {
+    tehran: ["تهران", "شهریار", "اسلامشهر", "ورامین"],
+    isfahan: ["اصفهان", "کاشان", "نجف‌آباد", "خمینی‌شهر"],
+    fars: ["شیراز", "مرودشت", "کازرون", "جهرم"],
+    khorasan: ["مشهد", "نیشابور", "سبزوار", "تربت حیدریه"]
+};
+
+// باز کردن مودال
+function openLocationModal() {
+    document.getElementById('locationModal').classList.remove('hidden');
+}
+
+// بستن مودال
+function closeLocationModal() {
+    document.getElementById('locationModal').classList.add('hidden');
+}
+
+// به‌روزرسانی لیست شهرها بر اساس استان انتخاب‌شده
+function updateCities() {
+    const province = document.getElementById('provinceSelect').value;
+    const citySelect = document.getElementById('citySelect');
+    
+    // پاک کردن لیست قبلی
+    citySelect.innerHTML = '<option value="">-- انتخاب شهر --</option>';
+
+    if (province && locationsData[province]) {
+        locationsData[province].forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.text = city;
+            citySelect.appendChild(option);
+        });
+    } else {
+        citySelect.innerHTML = '<option value="">-- ابتدا استان را انتخاب کنید --</option>';
+    }
+}
+
+// تایید نهایی و بستن مودال
+function confirmLocation() {
+    const provinceSelect = document.getElementById('provinceSelect');
+    const citySelect = document.getElementById('citySelect');
+    
+    const provinceText = provinceSelect.options[provinceSelect.selectedIndex]?.text;
+    const cityText = citySelect.options[citySelect.selectedIndex]?.text;
+
+    if (!provinceSelect.value || !citySelect.value) {
+        alert('لطفاً استان و شهر خود را انتخاب کنید.');
+        return;
+    }
+
+    // نمایش محل انتخاب‌شده در دکمه
+    document.querySelector('.location-box').innerText = `📍 ${cityText}`;
+    
+    closeLocationModal();
+    // alert(`محل شما به ${cityText}، ${provinceText} تغییر یافت.`);
+}    
     </script>
+    <!-- ================= مودال (پنجره) انتخاب محل ================= -->
+<div id="locationModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📍 انتخاب محل</h3>
+            <button onclick="closeLocationModal()" class="close-btn">✖</button>
+        </div>
+        <div class="modal-body">
+            <!-- انتخاب استان -->
+            <label for="provinceSelect">استان:</label>
+            <select id="provinceSelect" class="modal-select" onchange="updateCities()">
+                <option value="">-- انتخاب استان --</option>
+                <option value="tehran">تهران</option>
+                <option value="isfahan">اصفهان</option>
+                <option value="fars">فارس</option>
+                <option value="khorasan">خراسان رضوی</option>
+            </select>
+
+            <!-- انتخاب شهر -->
+            <label for="citySelect" style="margin-top: 15px;">شهر:</label>
+            <select id="citySelect" class="modal-select">
+                <option value="">-- ابتدا استان را انتخاب کنید --</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary btn-block" onclick="confirmLocation()">تایید محل</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
