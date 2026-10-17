@@ -140,7 +140,19 @@
         .modal-body label { font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333; }
         .modal-select { padding: 10px; border: 1px solid #D1C4E9; border-radius: 8px; font-size: 14px; background: #fff; outline: none; font-family: inherit; width: 100%; }
         .modal-footer { margin-top: 20px; }
-    </style>
+    </style>.gps-btn {
+    background: #fff;
+    border: 1px solid #D1C4E9;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #673AB7;
+    transition: background 0.3s;
+}
+.gps-btn:hover {
+    background: #F3E5F5;
+}
 </head>
 <body>
 
@@ -150,6 +162,7 @@
             <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
             <div class="dropdown" id="userDropdown">
                 <h4>مشتری</h4>
+                <a onclick="showSellerPage('store-settings')">⚙️ تنظیمات فروشگاه</a>
                 <a onclick="showCustomerPage('orders')">📦 سفارش‌های من</a>
                 <a onclick="showCustomerPage('addresses')">📍 آدرس‌های من</a>
                 <hr>
@@ -185,6 +198,18 @@
     <!-- ================= صفحه اصلی ================= -->
     <main id="page-home" class="page active">
         <div class="top-bar">
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا..." oninput="searchFood()">
+    </div>
+    <div class="location-box" id="locationBtn" onclick="openLocationModal()">
+        <span class="location-icon">📍</span>
+        <span id="locationText">انتخاب محل</span>
+    </div>
+    <button class="gps-btn" onclick="getLocation()" title="تشخیص موقعیت با GPS">
+        🎯
+    </button>
+</div>
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
                 <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا..." oninput="searchFood()">
@@ -444,7 +469,26 @@
             <button class="btn-primary btn-block" style="margin-top:10px;" onclick="alert('به درگاه پرداخت متصل می‌شود.')">پرداخت آنلاین</button>
         </div>
     </main>
+<!-- ================= صفحه تنظیمات فروشگاه (فروشنده) ================= -->
+<main id="page-seller-store-settings" class="page hidden">
+    <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
+    <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">⚙️ تنظیمات فروشگاه</h2>
 
+    <div class="payment-section">
+        <h4>وضعیت پیک فروشگاه:</h4>
+        <label><input type="radio" name="courierStatus" value="no" onchange="updateSellerCourierSettings()"> ❌ پیک ندارم</label>
+        <label><input type="radio" name="courierStatus" value="free" onchange="updateSellerCourierSettings()"> ✅ پیک دارم (ارسال رایگان)</label>
+        <label><input type="radio" name="courierStatus" value="paid" onchange="updateSellerCourierSettings()"> 💰 پیک دارم (با هزینه)</label>
+    </div>
+
+    <div class="payment-section" id="courierCostSection" style="display:none;">
+        <h4>هزینه پیک (تومان):</h4>
+        <p style="font-size:12px; color:#777; margin-bottom:10px;">این مبلغ به صورت ثابت به فاکتور مشتری اضافه می‌شود.</p>
+        <input type="number" class="modal-select" id="courierCostInput" placeholder="مثلاً ۳۰۰۰۰">
+    </div>
+
+    <button class="btn-primary btn-block" onclick="saveSellerSettings()" style="margin-top:20px;">💾 ذخیره تنظیمات</button>
+</main>
     <!-- ================= مودال انتخاب محل ================= -->
     <div id="locationModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -506,6 +550,57 @@
             'WELCOME50': { discount: 50000, type: 'fixed' },
             'FREESHIP': { discount: 30000, type: 'fixed' }
         };
+        // ================= تشخیص موقعیت با GPS =================
+function getLocation() {
+    const locationText = document.getElementById('locationText');
+    
+    if (!navigator.geolocation) {
+        alert('مرورگر شما از GPS پشتیبانی نمی‌کند.');
+        return;
+    }
+
+    locationText.innerText = 'در حال تشخیص...';
+    
+    navigator.geolocation.getCurrentPosition(
+        // موفقیت
+        function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // در حالت واقعی، با استفاده از یک API (مثل Nominatim) مختصات را به آدرس تبدیل می‌کنیم
+            // اما برای سادگی، مختصات را نشان می‌دهیم
+            locationText.innerText = `موقعیت شما (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+            
+            // در اینجا می‌توانید مختصات را به دیتابیس بفرستید
+            console.log('موقعیت GPS:', { lat, lng });
+            
+            // شبیه‌سازی تبدیل مختصات به نام شهر (در حالت واقعی از API استفاده کنید)
+            // برای این نمونه، فرض می‌کنیم کاربر در تهران است
+            setTimeout(() => {
+                locationText.innerText = 'تهران (تشخیص خودکار)';
+            }, 1500);
+        },
+        // خطا
+        function(error) {
+            let msg = 'خطا در تشخیص موقعیت.';
+            if (error.code === error.PERMISSION_DENIED) {
+                msg = 'شما دسترسی به موقعیت را رد کردید.';
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+                msg = 'اطلاعات موقعیت در دسترس نیست.';
+            } else if (error.code === error.TIMEOUT) {
+                msg = 'زمان تشخیص موقعیت به پایان رسید.';
+            }
+            alert(msg);
+            locationText.innerText = 'انتخاب محل';
+        },
+        // تنظیمات
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
 
         // ================= مدیریت صفحات =================
         function showPage(pageId) {
