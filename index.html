@@ -32,55 +32,19 @@
         .active { display: block; }
 
         /* ================= صفحه اصلی ================= */
-        .top-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .top-bar { display: flex; gap: 8px; margin-bottom: 15px; align-items: center; }
         
-        /* کادر جستجو با آیکون دقیق */
-        .search-wrapper {
-            flex: 2;
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .search-icon {
-            position: absolute;
-            right: 12px;
-            font-size: 18px;
-            color: #673AB7;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .search-box { 
-            width: 100%;
-            padding: 12px 42px 12px 12px; 
-            border: 1px solid #D1C4E9; 
-            border-radius: 10px; 
-            background: #fff; 
-            font-size: 14px; 
-            outline: none; 
-            transition: border-color 0.3s;
-        }
+        .search-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 0; }
+        .search-icon { position: absolute; right: 10px; font-size: 16px; color: #673AB7; pointer-events: none; z-index: 1; }
+        .search-box { width: 100%; padding: 10px 35px 10px 10px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 13px; outline: none; transition: border-color 0.3s; }
         .search-box:focus { border-color: #673AB7; }
-        .search-box::placeholder { color: #B39DDB; }
 
-        /* دکمه انتخاب محل با آیکون */
-        .location-box { 
-            flex: 1; 
-            padding: 12px; 
-            border: 1px solid #D1C4E9; 
-            border-radius: 10px; 
-            background: #fff; 
-            font-size: 13px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            color: #673AB7; 
-            font-weight: bold;
-            gap: 5px;
-            transition: background 0.3s;
-        }
+        .location-box { flex-shrink: 0; padding: 10px 12px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #673AB7; font-weight: bold; gap: 4px; transition: background 0.3s; white-space: nowrap; }
         .location-box:hover { background: #F3E5F5; }
-        .location-icon { font-size: 16px; }
+        .location-icon { font-size: 14px; }
+
+        .gps-btn { flex-shrink: 0; background: #fff; border: 1px solid #D1C4E9; border-radius: 10px; padding: 10px 12px; font-size: 16px; cursor: pointer; color: #673AB7; transition: background 0.3s; }
+        .gps-btn:hover { background: #F3E5F5; }
 
         .categories { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
         .cat-btn { padding: 8px 16px; border: 1px solid #D1C4E9; border-radius: 20px; background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all 0.3s; }
@@ -140,19 +104,7 @@
         .modal-body label { font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333; }
         .modal-select { padding: 10px; border: 1px solid #D1C4E9; border-radius: 8px; font-size: 14px; background: #fff; outline: none; font-family: inherit; width: 100%; }
         .modal-footer { margin-top: 20px; }
-    </style>.gps-btn {
-    background: #fff;
-    border: 1px solid #D1C4E9;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 18px;
-    cursor: pointer;
-    color: #673AB7;
-    transition: background 0.3s;
-}
-.gps-btn:hover {
-    background: #F3E5F5;
-}
+    </style>
 </head>
 <body>
 
@@ -162,15 +114,18 @@
             <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
             <div class="dropdown" id="userDropdown">
                 <h4>مشتری</h4>
-                <a onclick="showSellerPage('store-settings')">⚙️ تنظیمات فروشگاه</a>
                 <a onclick="showCustomerPage('orders')">📦 سفارش‌های من</a>
                 <a onclick="showCustomerPage('addresses')">📍 آدرس‌های من</a>
                 <hr>
                 <h4>فروشنده</h4>
+                <a onclick="showSellerPage('store-settings')">⚙️ تنظیمات فروشگاه</a>
                 <a onclick="showSellerPage('register')">📝 ثبت‌نام فروشنده</a>
                 <a onclick="showSellerPage('add-food')">🍲 ثبت غذا</a>
                 <a onclick="showSellerPage('received-orders')">📥 سفارش‌های دریافتی</a>
                 <a onclick="showSellerPage('subscription')">💳 اشتراک و پرداخت</a>
+                <hr>
+                <h4>مدیریت</h4>
+                <a onclick="openAdminPanel()">👨‍💼 مدیریت فروشندگان</a>
             </div>
         </div>
         <div class="app-brand">
@@ -198,18 +153,6 @@
     <!-- ================= صفحه اصلی ================= -->
     <main id="page-home" class="page active">
         <div class="top-bar">
-    <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا..." oninput="searchFood()">
-    </div>
-    <div class="location-box" id="locationBtn" onclick="openLocationModal()">
-        <span class="location-icon">📍</span>
-        <span id="locationText">انتخاب محل</span>
-    </div>
-    <button class="gps-btn" onclick="getLocation()" title="تشخیص موقعیت با GPS">
-        🎯
-    </button>
-</div>
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
                 <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا..." oninput="searchFood()">
@@ -218,6 +161,7 @@
                 <span class="location-icon">📍</span>
                 <span id="locationText">انتخاب محل</span>
             </div>
+            <button class="gps-btn" onclick="getLocation()" title="تشخیص موقعیت با GPS">🎯</button>
         </div>
 
         <div class="categories">
@@ -307,12 +251,11 @@
         <div class="payment-section">
             <h4>نحوه دریافت سفارش:</h4>
             <label><input type="radio" name="delivery" value="pickup" checked onchange="updateDeliveryCost()"> 🏃 حضوری (خودم مراجعه می‌کنم)</label>
-            <label><input type="radio" name="delivery" value="courier" onchange="updateDeliveryCost()"> 🛵 ارسال با پیک</label>
+            <label id="courierLabel"><input type="radio" name="delivery" value="courier" onchange="updateDeliveryCost()"> 🛵 ارسال با پیک فروشنده <span id="courierPriceText"></span></label>
             
-            <div id="courierOptions" style="display:none; margin-top:10px; padding-right:20px;">
-                <label><input type="radio" name="courierType" value="free" checked onchange="updateDeliveryCost()"> پیک رایگان (تا ۵ کیلومتر)</label>
-                <label><input type="radio" name="courierType" value="paid" onchange="updateDeliveryCost()"> پیک با هزینه (بیش از ۵ کیلومتر) - ۳۰,۰۰۰ تومان</label>
-            </div>
+            <p id="noCourierMessage" style="display:none; color:#E53935; font-size:12px; margin-top:5px;">
+                ⚠️ این فروشنده در حال حاضر پیک ندارد.
+            </p>
         </div>
 
         <div class="payment-section" id="addressSection" style="display:none;">
@@ -383,6 +326,26 @@
     </main>
 
     <!-- ================= صفحات فروشنده ================= -->
+    <main id="page-seller-store-settings" class="page hidden">
+        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
+        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">⚙️ تنظیمات فروشگاه</h2>
+
+        <div class="payment-section">
+            <h4>وضعیت پیک فروشگاه:</h4>
+            <label><input type="radio" name="courierStatus" value="no" onchange="updateSellerCourierSettings()"> ❌ پیک ندارم</label>
+            <label><input type="radio" name="courierStatus" value="free" onchange="updateSellerCourierSettings()"> ✅ پیک دارم (ارسال رایگان)</label>
+            <label><input type="radio" name="courierStatus" value="paid" onchange="updateSellerCourierSettings()"> 💰 پیک دارم (با هزینه)</label>
+        </div>
+
+        <div class="payment-section" id="courierCostSection" style="display:none;">
+            <h4>هزینه پیک (تومان):</h4>
+            <p style="font-size:12px; color:#777; margin-bottom:10px;">این مبلغ به صورت ثابت به فاکتور مشتری اضافه می‌شود.</p>
+            <input type="number" class="modal-select" id="courierCostInput" placeholder="مثلاً ۳۰۰۰۰">
+        </div>
+
+        <button class="btn-primary btn-block" onclick="saveSellerSettings()" style="margin-top:20px;">💾 ذخیره تنظیمات</button>
+    </main>
+
     <main id="page-seller-register" class="page hidden">
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📝 ثبت‌نام فروشنده</h2>
@@ -469,26 +432,14 @@
             <button class="btn-primary btn-block" style="margin-top:10px;" onclick="alert('به درگاه پرداخت متصل می‌شود.')">پرداخت آنلاین</button>
         </div>
     </main>
-<!-- ================= صفحه تنظیمات فروشگاه (فروشنده) ================= -->
-<main id="page-seller-store-settings" class="page hidden">
-    <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-    <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">⚙️ تنظیمات فروشگاه</h2>
 
-    <div class="payment-section">
-        <h4>وضعیت پیک فروشگاه:</h4>
-        <label><input type="radio" name="courierStatus" value="no" onchange="updateSellerCourierSettings()"> ❌ پیک ندارم</label>
-        <label><input type="radio" name="courierStatus" value="free" onchange="updateSellerCourierSettings()"> ✅ پیک دارم (ارسال رایگان)</label>
-        <label><input type="radio" name="courierStatus" value="paid" onchange="updateSellerCourierSettings()"> 💰 پیک دارم (با هزینه)</label>
-    </div>
+    <!-- ================= صفحه مدیریت فروشندگان (مدیر) ================= -->
+    <main id="page-admin-sellers" class="page hidden">
+        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
+        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">👨‍💼 مدیریت فروشندگان</h2>
+        <div id="adminSellersContainer"></div>
+    </main>
 
-    <div class="payment-section" id="courierCostSection" style="display:none;">
-        <h4>هزینه پیک (تومان):</h4>
-        <p style="font-size:12px; color:#777; margin-bottom:10px;">این مبلغ به صورت ثابت به فاکتور مشتری اضافه می‌شود.</p>
-        <input type="number" class="modal-select" id="courierCostInput" placeholder="مثلاً ۳۰۰۰۰">
-    </div>
-
-    <button class="btn-primary btn-block" onclick="saveSellerSettings()" style="margin-top:20px;">💾 ذخیره تنظیمات</button>
-</main>
     <!-- ================= مودال انتخاب محل ================= -->
     <div id="locationModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -518,25 +469,39 @@
     </div>
 
     <script>
-        // ================= داده‌های اولیه (دسته‌بندی شده با تخفیف) =================
+        // ================= داده‌های اولیه (دسته‌بندی شده با تخفیف و فروشنده) =================
         const foodCategories = {
             restaurant: [
-                { id: 1, name: 'چلوکباب کوبیده', price: 250000, discount: 15, img: 'https://via.placeholder.com/80' },
-                { id: 2, name: 'قیمه بادمجان', price: 180000, discount: 0, img: 'https://via.placeholder.com/80' },
-                { id: 3, name: 'لوبیا پلو', price: 140000, discount: 30, img: 'https://via.placeholder.com/80' },
-                { id: 4, name: 'زرشک پلو با مرغ', price: 220000, discount: 10, img: 'https://via.placeholder.com/80' }
+                { id: 1, name: 'چلوکباب کوبیده', price: 250000, discount: 15, sellerId: 1, img: 'https://via.placeholder.com/80' },
+                { id: 2, name: 'قیمه بادمجان', price: 180000, discount: 0, sellerId: 1, img: 'https://via.placeholder.com/80' },
+                { id: 3, name: 'لوبیا پلو', price: 140000, discount: 30, sellerId: 2, img: 'https://via.placeholder.com/80' },
+                { id: 4, name: 'زرشک پلو با مرغ', price: 220000, discount: 10, sellerId: 2, img: 'https://via.placeholder.com/80' }
             ],
             catering: [
-                { id: 5, name: 'باقالی پلو با ماهیچه', price: 320000, discount: 20, img: 'https://via.placeholder.com/80' },
-                { id: 6, name: 'عدس پلو مجلسی', price: 200000, discount: 0, img: 'https://via.placeholder.com/80' },
-                { id: 7, name: 'ته‌چین مرغ', price: 240000, discount: 5, img: 'https://via.placeholder.com/80' }
+                { id: 5, name: 'باقالی پلو با ماهیچه', price: 320000, discount: 20, sellerId: 1, img: 'https://via.placeholder.com/80' },
+                { id: 6, name: 'عدس پلو مجلسی', price: 200000, discount: 0, sellerId: 3, img: 'https://via.placeholder.com/80' },
+                { id: 7, name: 'ته‌چین مرغ', price: 240000, discount: 5, sellerId: 3, img: 'https://via.placeholder.com/80' }
             ],
             fastfood: [
-                { id: 8, name: 'برگر دوبل', price: 180000, discount: 25, img: 'https://via.placeholder.com/80' },
-                { id: 9, name: 'پیتزا پپرونی', price: 260000, discount: 0, img: 'https://via.placeholder.com/80' },
-                { id: 10, name: 'ساندویچ فلافل', price: 90000, discount: 10, img: 'https://via.placeholder.com/80' },
-                { id: 11, name: 'هات داگ ویژه', price: 150000, discount: 15, img: 'https://via.placeholder.com/80' }
+                { id: 8, name: 'برگر دوبل', price: 180000, discount: 25, sellerId: 2, img: 'https://via.placeholder.com/80' },
+                { id: 9, name: 'پیتزا پپرونی', price: 260000, discount: 0, sellerId: 2, img: 'https://via.placeholder.com/80' },
+                { id: 10, name: 'ساندویچ فلافل', price: 90000, discount: 10, sellerId: 1, img: 'https://via.placeholder.com/80' },
+                { id: 11, name: 'هات داگ ویژه', price: 150000, discount: 15, sellerId: 3, img: 'https://via.placeholder.com/80' }
             ]
+        };
+
+        // ================= لیست فروشندگان (شبیه‌سازی دیتابیس) =================
+        let sellersList = [
+            { id: 1, name: 'رستوران بهار', license: '123456', status: 'active' },
+            { id: 2, name: 'کترینگ آفتاب', license: '654321', status: 'active' },
+            { id: 3, name: 'فست‌فود ستاره', license: '987654', status: 'active' }
+        ];
+
+        // ================= تنظیمات فروشنده جاری (شبیه‌سازی) =================
+        const sellerInfo = {
+            hasCourier: true,
+            courierIsFree: false,
+            courierCost: 30000
         };
 
         let currentCategory = 'restaurant';
@@ -547,60 +512,8 @@
         // ================= کدهای تخفیف =================
         const coupons = {
             'SAFREH20': { discount: 20, type: 'percent' },
-            'WELCOME50': { discount: 50000, type: 'fixed' },
-            'FREESHIP': { discount: 30000, type: 'fixed' }
+            'WELCOME50': { discount: 50000, type: 'fixed' }
         };
-        // ================= تشخیص موقعیت با GPS =================
-function getLocation() {
-    const locationText = document.getElementById('locationText');
-    
-    if (!navigator.geolocation) {
-        alert('مرورگر شما از GPS پشتیبانی نمی‌کند.');
-        return;
-    }
-
-    locationText.innerText = 'در حال تشخیص...';
-    
-    navigator.geolocation.getCurrentPosition(
-        // موفقیت
-        function(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            // در حالت واقعی، با استفاده از یک API (مثل Nominatim) مختصات را به آدرس تبدیل می‌کنیم
-            // اما برای سادگی، مختصات را نشان می‌دهیم
-            locationText.innerText = `موقعیت شما (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
-            
-            // در اینجا می‌توانید مختصات را به دیتابیس بفرستید
-            console.log('موقعیت GPS:', { lat, lng });
-            
-            // شبیه‌سازی تبدیل مختصات به نام شهر (در حالت واقعی از API استفاده کنید)
-            // برای این نمونه، فرض می‌کنیم کاربر در تهران است
-            setTimeout(() => {
-                locationText.innerText = 'تهران (تشخیص خودکار)';
-            }, 1500);
-        },
-        // خطا
-        function(error) {
-            let msg = 'خطا در تشخیص موقعیت.';
-            if (error.code === error.PERMISSION_DENIED) {
-                msg = 'شما دسترسی به موقعیت را رد کردید.';
-            } else if (error.code === error.POSITION_UNAVAILABLE) {
-                msg = 'اطلاعات موقعیت در دسترس نیست.';
-            } else if (error.code === error.TIMEOUT) {
-                msg = 'زمان تشخیص موقعیت به پایان رسید.';
-            }
-            alert(msg);
-            locationText.innerText = 'انتخاب محل';
-        },
-        // تنظیمات
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        }
-    );
-}
 
         // ================= مدیریت صفحات =================
         function showPage(pageId) {
@@ -614,13 +527,21 @@ function getLocation() {
                 targetPage.classList.add('active');
             }
             if (pageId === 'page-cart') renderCart();
-            if (pageId === 'page-checkout') updateDeliveryCost();
+            if (pageId === 'page-checkout') {
+                setupCourierOptions();
+                updateDeliveryCost();
+            }
         }
 
-        // ================= رندر لیست غذاها با تخفیف =================
+        // ================= رندر لیست غذاها (با فیلتر فروشنده مسدود) =================
         function renderFoodList(category = currentCategory) {
             const container = document.getElementById('foodListContainer');
-            const foods = foodCategories[category] || [];
+            // فیلتر کردن غذاها: فقط غذاهایی که فروشنده‌شان مسدود نشده باشد
+            const foods = (foodCategories[category] || []).filter(food => {
+                const seller = sellersList.find(s => s.id === food.sellerId);
+                return seller && seller.status === 'active';
+            });
+
             container.innerHTML = '';
 
             if (foods.length === 0) {
@@ -670,7 +591,11 @@ function getLocation() {
         function searchFood() {
             const query = document.getElementById('searchInput').value.trim().toLowerCase();
             const container = document.getElementById('foodListContainer');
-            const foods = foodCategories[currentCategory] || [];
+            // فیلتر غذاهای دسته فعال + فروشنده غیر مسدود
+            const foods = (foodCategories[currentCategory] || []).filter(food => {
+                const seller = sellersList.find(s => s.id === food.sellerId);
+                return seller && seller.status === 'active';
+            });
 
             if (query === '') { renderFoodList(currentCategory); return; }
 
@@ -838,17 +763,34 @@ function getLocation() {
         }
 
         // ================= محاسبه هزینه پیک =================
+        function setupCourierOptions() {
+            const courierLabel = document.getElementById('courierLabel');
+            const courierInput = courierLabel.querySelector('input');
+            const courierPriceText = document.getElementById('courierPriceText');
+            const noCourierMessage = document.getElementById('noCourierMessage');
+
+            if (!sellerInfo.hasCourier) {
+                courierInput.disabled = true;
+                courierLabel.classList.add('disabled');
+                courierPriceText.innerText = '';
+                noCourierMessage.style.display = 'block';
+            } else if (sellerInfo.courierIsFree) {
+                courierPriceText.innerText = '(رایگان)';
+                courierPriceText.style.color = '#4CAF50';
+            } else {
+                courierPriceText.innerText = `(هزینه: ${sellerInfo.courierCost.toLocaleString()} تومان)`;
+                courierPriceText.style.color = '#673AB7';
+            }
+        }
+
         function updateDeliveryCost() {
             const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
             const addressSection = document.getElementById('addressSection');
-            const courierOptions = document.getElementById('courierOptions');
             
             if (deliveryType === 'courier') {
                 addressSection.style.display = 'block';
-                courierOptions.style.display = 'block';
             } else {
                 addressSection.style.display = 'none';
-                courierOptions.style.display = 'none';
             }
 
             let cartTotal = 0;
@@ -867,9 +809,8 @@ function getLocation() {
             }
 
             let deliveryCost = 0;
-            if (deliveryType === 'courier') {
-                const courierType = document.querySelector('input[name="courierType"]:checked').value;
-                if (courierType === 'paid') deliveryCost = 30000;
+            if (deliveryType === 'courier' && sellerInfo.hasCourier && !sellerInfo.courierIsFree) {
+                deliveryCost = sellerInfo.courierCost;
             }
 
             const finalTotal = cartTotal + deliveryCost;
@@ -883,6 +824,10 @@ function getLocation() {
             const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
 
             if (deliveryType === 'courier') {
+                if (!sellerInfo.hasCourier) {
+                    alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.');
+                    return;
+                }
                 const address = document.getElementById('deliveryAddress').value.trim();
                 if (!address) {
                     alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.');
@@ -925,10 +870,48 @@ function getLocation() {
         }
         function showSellerPage(page) {
             document.getElementById("userDropdown").classList.remove("show");
-            if (page === 'register') showPage('page-seller-register');
+            if (page === 'store-settings') showPage('page-seller-store-settings');
+            else if (page === 'register') showPage('page-seller-register');
             else if (page === 'add-food') showPage('page-seller-add-food');
             else if (page === 'received-orders') showPage('page-seller-received-orders');
             else if (page === 'subscription') showPage('page-seller-subscription');
+        }
+
+        // ================= تنظیمات پیک فروشنده =================
+        function updateSellerCourierSettings() {
+            const status = document.querySelector('input[name="courierStatus"]:checked').value;
+            const costSection = document.getElementById('courierCostSection');
+            if (status === 'paid') {
+                costSection.style.display = 'block';
+            } else {
+                costSection.style.display = 'none';
+            }
+        }
+
+        function saveSellerSettings() {
+            const status = document.querySelector('input[name="courierStatus"]:checked').value;
+            
+            if (status === 'no') {
+                sellerInfo.hasCourier = false;
+                sellerInfo.courierIsFree = false;
+                sellerInfo.courierCost = 0;
+            } else if (status === 'free') {
+                sellerInfo.hasCourier = true;
+                sellerInfo.courierIsFree = true;
+                sellerInfo.courierCost = 0;
+            } else if (status === 'paid') {
+                const cost = parseInt(document.getElementById('courierCostInput').value);
+                if (!cost || cost < 0) {
+                    alert('لطفاً هزینه پیک را به درستی وارد کنید.');
+                    return;
+                }
+                sellerInfo.hasCourier = true;
+                sellerInfo.courierIsFree = false;
+                sellerInfo.courierCost = cost;
+            }
+
+            alert('✅ تنظیمات فروشگاه با موفقیت ذخیره شد.');
+            showPage('page-home');
         }
 
         // ================= ثبت‌نام فروشنده =================
@@ -950,7 +933,59 @@ function getLocation() {
             showPage('page-home');
         }
 
-        // ================= انتخاب محل =================
+        // ================= پنل مدیریت (مسدودسازی فروشندگان) =================
+        function openAdminPanel() {
+            document.getElementById("userDropdown").classList.remove("show");
+            renderAdminSellers();
+            showPage('page-admin-sellers');
+        }
+
+        function renderAdminSellers() {
+            const container = document.getElementById('adminSellersContainer');
+            container.innerHTML = '';
+
+            sellersList.forEach(seller => {
+                const div = document.createElement('div');
+                div.style.cssText = 'background:#fff; padding:15px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;';
+                
+                const statusText = seller.status === 'active' 
+                    ? '<span style="color:#4CAF50; font-weight:bold;">فعال</span>' 
+                    : '<span style="color:#E53935; font-weight:bold;">مسدود</span>';
+                
+                const btnText = seller.status === 'active' ? '🚫 مسدود کردن' : '✅ فعال کردن';
+                const btnColor = seller.status === 'active' ? '#E53935' : '#4CAF50';
+
+                div.innerHTML = `
+                    <div>
+                        <p style="font-weight:bold;">${seller.name}</p>
+                        <p style="font-size:12px; color:#777;">جواز: ${seller.license}</p>
+                        <p style="font-size:12px;">وضعیت: ${statusText}</p>
+                    </div>
+                    <button onclick="toggleSellerStatus(${seller.id})" 
+                            style="background:${btnColor}; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">
+                        ${btnText}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleSellerStatus(sellerId) {
+            const seller = sellersList.find(s => s.id === sellerId);
+            if (seller) {
+                if (seller.status === 'active') {
+                    seller.status = 'banned';
+                    alert(`فروشنده «${seller.name}» با موفقیت مسدود شد.`);
+                } else {
+                    seller.status = 'active';
+                    alert(`فروشنده «${seller.name}» دوباره فعال شد.`);
+                }
+                renderAdminSellers();
+                renderFoodList(currentCategory); // به‌روزرسانی لیست غذاها در صفحه اصلی
+            }
+        }
+
+        // ================= انتخاب محل و GPS =================
         const locationsData = {
             tehran: ["تهران", "شهریار", "اسلامشهر", "ورامین"],
             isfahan: ["اصفهان", "کاشان", "نجف‌آباد", "خمینی‌شهر"],
@@ -987,6 +1022,28 @@ function getLocation() {
             if (!p.value || !c.value) { alert('لطفاً استان و شهر خود را انتخاب کنید.'); return; }
             document.getElementById('locationText').innerText = c.options[c.selectedIndex].text;
             closeLocationModal();
+        }
+
+        function getLocation() {
+            const locationText = document.getElementById('locationText');
+            if (!navigator.geolocation) {
+                alert('مرورگر شما از GPS پشتیبانی نمی‌کند.');
+                return;
+            }
+            locationText.innerText = 'در حال تشخیص...';
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    locationText.innerText = `موقعیت (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+                    setTimeout(() => { locationText.innerText = 'تهران (تشخیص خودکار)'; }, 1500);
+                },
+                function() {
+                    alert('خطا در تشخیص موقعیت.');
+                    locationText.innerText = 'انتخاب محل';
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
         }
 
         // ================= راه‌اندازی اولیه =================
