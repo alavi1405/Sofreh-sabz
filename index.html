@@ -595,4 +595,468 @@
             // فیلتر غذاهای دسته فعال + فروشنده غیر مسدود
             const foods = (foodCategories[currentCategory] || []).filter(food => {
                 const seller = sellersList.find(s => s.id === food.sellerId);
-                return seller && seller.status === 'acti
+                return seller && seller.status === 'actie';
+            });
+
+            if (query === '') { renderFoodList(currentCategory); return; }
+
+            const results = foods.filter(food => food.name.toLowerCase().includes(query));
+
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px; color:#999;">
+                        <p style="font-size:16px;">🍽️</p>
+                        <p>غذای مورد نظر شما موجود نمی‌باشد.</p>
+                    </div>`;
+                return;
+            }
+
+            results.sort((a, b) => a.price - b.price);
+            container.innerHTML = '';
+            results.forEach(food => {
+                const hasDiscount = food.discount > 0;
+                const finalPrice = hasDiscount ? Math.round(food.price * (1 - food.discount / 100)) : food.price;
+                
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-item';
+                foodItem.onclick = () => openFoodDetails(food);
+                foodItem.innerHTML = `
+                    <div class="food-image-wrapper">
+                        <img src="${food.img}" alt="${food.name}" class="food-img">
+                        ${hasDiscount ? `<span class="discount-badge">${food.discount}٪</span>` : ''}
+                    </div>
+                    <div class="food-details">
+                        <div class="food-name">${food.name}</div>
+                        <div class="food-price-container">
+                            ${hasDiscount 
+                                ? `<span class="old-price">${food.price.toLocaleString()}</span>
+                                   <span class="new-price">${finalPrice.toLocaleString()} تومان</span>`
+                                : `<span class="no-discount-price">${food.price.toLocaleString()} تومان</span>`
+                            }
+                        </div>
+                    </div>`;
+                container.appendChild(foodItem);
+            });
+        }
+
+        // ================= باز کردن جزئیات غذا =================
+        function openFoodDetails(food) {
+            currentFood = food;
+            const hasDiscount = food.discount > 0;
+            const finalPrice = hasDiscount ? Math.round(food.price * (1 - food.discount / 100)) : food.price;
+            
+            document.getElementById('detail-food-name').innerText = food.name;
+            document.getElementById('detail-food-price').innerHTML = hasDiscount 
+                ? `قیمت پایه: <span style="text-decoration:line-through; color:#999;">${food.price.toLocaleString()}</span> <span style="color:#E53935;">${finalPrice.toLocaleString()} تومان</span>`
+                : `قیمت پایه: ${food.price.toLocaleString()} تومان`;
+            document.getElementById('detail-img-element').src = food.img;
+            document.querySelectorAll('.addon').forEach(cb => cb.checked = false);
+            calculateDetailTotal();
+            showPage('page-details');
+        }
+
+        // ================= آکاردئون =================
+        function toggleCategory(header) {
+            const body = header.nextElementSibling;
+            body.classList.toggle('open');
+            const arrow = header.querySelector('span:last-child');
+            arrow.innerText = body.classList.contains('open') ? '▲' : '▼';
+        }
+
+        // ================= محاسبه قیمت در جزئیات =================
+        function calculateDetailTotal() {
+            if (!currentFood) return;
+            const hasDiscount = currentFood.discount > 0;
+            const basePrice = hasDiscount ? Math.round(currentFood.price * (1 - currentFood.discount / 100)) : currentFood.price;
+            
+            let total = basePrice;
+            document.querySelectorAll('.addon:checked').forEach(cb => {
+                total += parseInt(cb.getAttribute('data-price'));
+            });
+            document.getElementById('detail-final-price').innerText = total.toLocaleString();
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('addon')) calculateDetailTotal();
+        });
+
+        // ================= افزودن به سبد =================
+        function addToCart() {
+            if (!currentFood) return;
+            const selectedAddons = [];
+            document.querySelectorAll('.addon:checked').forEach(cb => {
+                selectedAddons.push({ name: cb.getAttribute('data-name'), price: parseInt(cb.getAttribute('data-price')) });
+            });
+            const cartItem = { food: currentFood, addons: selectedAddons };
+            cart.push(cartItem);
+            alert('غذا به سبد خرید اضافه شد.');
+            showPage('page-cart');
+        }
+
+        // ================= رندر سبد خرید =================
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">سبد خرید شما خالی است.</p>';
+                return;
+            }
+            container.innerHTML = '';
+            let grandTotal = 0;
+            
+            cart.forEach((item) => {
+                const hasDiscount = item.food.discount > 0;
+                const finalPrice = hasDiscount ? Math.round(item.food.price * (1 - item.food.discount / 100)) : item.food.price;
+                const itemTotal = finalPrice + item.addons.reduce((sum, a) => sum + a.price, 0);
+                grandTotal += itemTotal;
+                
+                let addonsHtml = item.addons.length > 0 ? item.addons.map(a => `+ ${a.name} (${a.price.toLocaleString()})`).join('<br>') : '';
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `<div><strong>${item.food.name}</strong>${hasDiscount ? ` <small style="color:#E53935;">(${item.food.discount}٪ تخفیف)</small>` : ''}<br><small style="color:#777;">${addonsHtml}</small></div><div>${itemTotal.toLocaleString()} تومان</div>`;
+                container.appendChild(div);
+            });
+
+            let finalTotal = grandTotal;
+            if (appliedCoupon) {
+                if (appliedCoupon.type === 'percent') {
+                    finalTotal = grandTotal - Math.round(grandTotal * (appliedCoupon.discount / 100));
+                } else {
+                    finalTotal = Math.max(0, grandTotal - appliedCoupon.discount);
+                }
+            }
+
+            const totalDiv = document.createElement('div');
+            totalDiv.style.cssText = 'margin-top:15px; font-weight:bold; text-align:left;';
+            totalDiv.innerHTML = `
+                <div>جمع کل: ${grandTotal.toLocaleString()} تومان</div>
+                ${appliedCoupon ? `<div style="color:#4CAF50;">تخفیف: -${(grandTotal - finalTotal).toLocaleString()} تومان</div>` : ''}
+                <div style="font-size:18px; color:#673AB7; margin-top:5px;">قابل پرداخت: ${finalTotal.toLocaleString()} تومان</div>
+            `;
+            container.appendChild(totalDiv);
+        }
+
+        // ================= اعمال کد تخفیف =================
+        function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim().toUpperCase();
+            const message = document.getElementById('couponMessage');
+
+            if (!code) {
+                message.style.color = '#E53935';
+                message.innerText = 'لطفاً کد تخفیف را وارد کنید.';
+                return;
+            }
+
+            if (coupons[code]) {
+                appliedCoupon = { code: code, ...coupons[code] };
+                message.style.color = '#4CAF50';
+                if (appliedCoupon.type === 'percent') {
+                    message.innerText = `✅ کد تخفیف ${appliedCoupon.discount}٪ اعمال شد.`;
+                } else {
+                    message.innerText = `✅ کد تخفیف ${appliedCoupon.discount.toLocaleString()} تومانی اعمال شد.`;
+                }
+                renderCart();
+            } else {
+                message.style.color = '#E53935';
+                message.innerText = '❌ کد تخفیف نامعتبر است.';
+                appliedCoupon = null;
+                renderCart();
+            }
+        }
+
+        // ================= محاسبه هزینه پیک =================
+        function setupCourierOptions() {
+            const courierLabel = document.getElementById('courierLabel');
+            const courierInput = courierLabel.querySelector('input');
+            const courierPriceText = document.getElementById('courierPriceText');
+            const noCourierMessage = document.getElementById('noCourierMessage');
+
+            if (!sellerInfo.hasCourier) {
+                courierInput.disabled = true;
+                courierLabel.classList.add('disabled');
+                courierPriceText.innerText = '';
+                noCourierMessage.style.display = 'block';
+            } else if (sellerInfo.courierIsFree) {
+                courierPriceText.innerText = '(رایگان)';
+                courierPriceText.style.color = '#4CAF50';
+            } else {
+                courierPriceText.innerText = `(هزینه: ${sellerInfo.courierCost.toLocaleString()} تومان)`;
+                courierPriceText.style.color = '#673AB7';
+            }
+        }
+
+        function updateDeliveryCost() {
+            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+            const addressSection = document.getElementById('addressSection');
+            
+            if (deliveryType === 'courier') {
+                addressSection.style.display = 'block';
+            } else {
+                addressSection.style.display = 'none';
+            }
+
+            let cartTotal = 0;
+            cart.forEach(item => {
+                const hasDiscount = item.food.discount > 0;
+                const finalPrice = hasDiscount ? Math.round(item.food.price * (1 - item.food.discount / 100)) : item.food.price;
+                cartTotal += finalPrice + item.addons.reduce((sum, a) => sum + a.price, 0);
+            });
+
+            if (appliedCoupon) {
+                if (appliedCoupon.type === 'percent') {
+                    cartTotal = cartTotal - Math.round(cartTotal * (appliedCoupon.discount / 100));
+                } else {
+                    cartTotal = Math.max(0, cartTotal - appliedCoupon.discount);
+                }
+            }
+
+            let deliveryCost = 0;
+            if (deliveryType === 'courier' && sellerInfo.hasCourier && !sellerInfo.courierIsFree) {
+                deliveryCost = sellerInfo.courierCost;
+            }
+
+            const finalTotal = cartTotal + deliveryCost;
+            document.getElementById('checkoutTotal').innerText = finalTotal.toLocaleString() + ' تومان';
+        }
+
+        // ================= ثبت نهایی سفارش =================
+        function finalizeOrder() {
+            if (cart.length === 0) { alert('سبد خرید شما خالی است!'); return; }
+
+            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+
+            if (deliveryType === 'courier') {
+                if (!sellerInfo.hasCourier) {
+                    alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.');
+                    return;
+                }
+                const address = document.getElementById('deliveryAddress').value.trim();
+                if (!address) {
+                    alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.');
+                    return;
+                }
+            }
+
+            console.log('سفارش ثبت شد:', { items: cart, delivery: deliveryType });
+            showPage('page-contact-seller');
+            cart = [];
+        }
+
+        // ================= راه‌های ارتباطی با فروشنده =================
+        function contactSeller(method) {
+            const sellerPhone = '09121234567';
+            const sellerName = 'رستوران سفره سبز';
+
+            if (method === 'call') {
+                window.location.href = `tel:${sellerPhone}`;
+            } else if (method === 'sms') {
+                window.location.href = `sms:${sellerPhone}?body=سلام، در مورد سفارش خود سوال داشتم.`;
+            } else if (method === 'chat') {
+                alert(`💬 چت آنلاین با ${sellerName}\n\nاین بخش به زودی به یک سیستم چت واقعی متصل می‌شود.`);
+            }
+        }
+
+        // ================= منوی کاربر =================
+        function toggleUserMenu() { document.getElementById("userDropdown").classList.toggle("show"); }
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-btn')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+            }
+        };
+
+        // ================= صفحات مشتری و فروشنده =================
+        function showCustomerPage(page) {
+            document.getElementById("userDropdown").classList.remove("show");
+            if (page === 'orders') showPage('page-customer-orders');
+            else if (page === 'addresses') showPage('page-customer-addresses');
+        }
+        function showSellerPage(page) {
+            document.getElementById("userDropdown").classList.remove("show");
+            if (page === 'store-settings') showPage('page-seller-store-settings');
+            else if (page === 'register') showPage('page-seller-register');
+            else if (page === 'add-food') showPage('page-seller-add-food');
+            else if (page === 'received-orders') showPage('page-seller-received-orders');
+            else if (page === 'subscription') showPage('page-seller-subscription');
+        }
+
+        // ================= تنظیمات پیک فروشنده =================
+        function updateSellerCourierSettings() {
+            const status = document.querySelector('input[name="courierStatus"]:checked').value;
+            const costSection = document.getElementById('courierCostSection');
+            if (status === 'paid') {
+                costSection.style.display = 'block';
+            } else {
+                costSection.style.display = 'none';
+            }
+        }
+
+        function saveSellerSettings() {
+            const status = document.querySelector('input[name="courierStatus"]:checked').value;
+            
+            if (status === 'no') {
+                sellerInfo.hasCourier = false;
+                sellerInfo.courierIsFree = false;
+                sellerInfo.courierCost = 0;
+            } else if (status === 'free') {
+                sellerInfo.hasCourier = true;
+                sellerInfo.courierIsFree = true;
+                sellerInfo.courierCost = 0;
+            } else if (status === 'paid') {
+                const cost = parseInt(document.getElementById('courierCostInput').value);
+                if (!cost || cost < 0) {
+                    alert('لطفاً هزینه پیک را به درستی وارد کنید.');
+                    return;
+                }
+                sellerInfo.hasCourier = true;
+                sellerInfo.courierIsFree = false;
+                sellerInfo.courierCost = cost;
+            }
+
+            alert('✅ تنظیمات فروشگاه با موفقیت ذخیره شد.');
+            showPage('page-home');
+        }
+
+        // ================= ثبت‌نام فروشنده =================
+        function registerSeller() {
+            const nationalId = document.getElementById('sellerNationalId').value.trim();
+            const license = document.getElementById('sellerLicense').value.trim();
+
+            if (nationalId.length !== 10 || isNaN(nationalId)) {
+                alert('لطفاً کد ملی معتبر (۱۰ رقم) وارد کنید.');
+                return;
+            }
+
+            if (!license) {
+                alert('لطفاً شماره جواز کسب را وارد کنید.');
+                return;
+            }
+
+            alert('✅ درخواست ثبت‌نام شما با موفقیت ارسال شد.\n\nمدارک شما در حال بررسی است.');
+            showPage('page-home');
+        }
+
+        // ================= پنل مدیریت (مسدودسازی فروشندگان) =================
+        function openAdminPanel() {
+            document.getElementById("userDropdown").classList.remove("show");
+            renderAdminSellers();
+            showPage('page-admin-sellers');
+        }
+
+        function renderAdminSellers() {
+            const container = document.getElementById('adminSellersContainer');
+            container.innerHTML = '';
+
+            sellersList.forEach(seller => {
+                const div = document.createElement('div');
+                div.style.cssText = 'background:#fff; padding:15px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;';
+                
+                const statusText = seller.status === 'active' 
+                    ? '<span style="color:#4CAF50; font-weight:bold;">فعال</span>' 
+                    : '<span style="color:#E53935; font-weight:bold;">مسدود</span>';
+                
+                const btnText = seller.status === 'active' ? '🚫 مسدود کردن' : '✅ فعال کردن';
+                const btnColor = seller.status === 'active' ? '#E53935' : '#4CAF50';
+
+                div.innerHTML = `
+                    <div>
+                        <p style="font-weight:bold;">${seller.name}</p>
+                        <p style="font-size:12px; color:#777;">جواز: ${seller.license}</p>
+                        <p style="font-size:12px;">وضعیت: ${statusText}</p>
+                    </div>
+                    <button onclick="toggleSellerStatus(${seller.id})" 
+                            style="background:${btnColor}; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">
+                        ${btnText}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleSellerStatus(sellerId) {
+            const seller = sellersList.find(s => s.id === sellerId);
+            if (seller) {
+                if (seller.status === 'active') {
+                    seller.status = 'banned';
+                    alert(`فروشنده «${seller.name}» با موفقیت مسدود شد.`);
+                } else {
+                    seller.status = 'active';
+                    alert(`فروشنده «${seller.name}» دوباره فعال شد.`);
+                }
+                renderAdminSellers();
+                renderFoodList(currentCategory); // به‌روزرسانی لیست غذاها در صفحه اصلی
+            }
+        }
+
+        // ================= انتخاب محل و GPS =================
+        const locationsData = {
+            tehran: ["تهران", "شهریار", "اسلامشهر", "ورامین"],
+            isfahan: ["اصفهان", "کاشان", "نجف‌آباد", "خمینی‌شهر"],
+            fars: ["شیراز", "مرودشت", "کازرون", "جهرم"],
+            khorasan: ["مشهد", "نیشابور", "سبزوار", "تربت حیدریه"]
+        };
+
+        function openLocationModal() { document.getElementById('locationModal').classList.remove('hidden'); }
+        function closeLocationModal() { document.getElementById('locationModal').classList.add('hidden'); }
+
+        function updateCities() {
+            const province = document.getElementById('provinceSelect').value;
+            const citySelect = document.getElementById('citySelect');
+            citySelect.innerHTML = '';
+            if (province && locationsData[province]) {
+                const def = document.createElement('option');
+                def.value = ""; def.text = "-- انتخاب شهر --";
+                citySelect.appendChild(def);
+                locationsData[province].forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city; opt.text = city;
+                    citySelect.appendChild(opt);
+                });
+            } else {
+                const def = document.createElement('option');
+                def.value = ""; def.text = "-- ابتدا استان را انتخاب کنید --";
+                citySelect.appendChild(def);
+            }
+        }
+
+        function confirmLocation() {
+            const p = document.getElementById('provinceSelect');
+            const c = document.getElementById('citySelect');
+            if (!p.value || !c.value) { alert('لطفاً استان و شهر خود را انتخاب کنید.'); return; }
+            document.getElementById('locationText').innerText = c.options[c.selectedIndex].text;
+            closeLocationModal();
+        }
+
+        function getLocation() {
+            const locationText = document.getElementById('locationText');
+            if (!navigator.geolocation) {
+                alert('مرورگر شما از GPS پشتیبانی نمی‌کند.');
+                return;
+            }
+            locationText.innerText = 'در حال تشخیص...';
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    locationText.innerText = `موقعیت (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
+                    setTimeout(() => { locationText.innerText = 'تهران (تشخیص خودکار)'; }, 1500);
+                },
+                function() {
+                    alert('خطا در تشخیص موقعیت.');
+                    locationText.innerText = 'انتخاب محل';
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+    محل';
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        // ================= راه‌اندازی اولیه =================
+        document.addEventListener('DOMContentLoaded', () => { 
+            renderFoodList('restaurant');
+        });
+    </script>
+</body>
+</html>
