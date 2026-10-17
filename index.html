@@ -1,1062 +1,262 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+<!-- ═══════════════════════════════════════════════════
+  🍲 سفره سبز (Sofreh Sabz)
+  شعار: سفره سبز، پلی برای استفاده بهینه از غذا
+  Designed & Developed by alavi1405
+  Copyright © ۱۴۰۵ - All Rights Reserved
+  اثر انگشت دیجیتال: SAFREH-SABZ-1405-ALAVI-A1B2C3D4
+  GitHub: https://github.com/alavi1405/Sofreh-sabz
+═══════════════════════════════════════════════════ -->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سفره سبز | سفارش آنلاین غذا</title>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-    <style>
-        /* ================= تنظیمات کلی ================= */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; }
-        body { background-color: #F3E5F5; color: #333; padding-bottom: 80px; min-height: 100vh; }
-
-        /* ================= هدر ================= */
-        .main-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .app-brand { display: flex; align-items: center; gap: 8px; }
-        .app-brand svg { width: 38px; height: 38px; flex-shrink: 0; }
-        .app-title { font-size: 18px; color: #673AB7; margin: 0; font-weight: bold; white-space: nowrap; }
-
-        /* منوی کاربر */
-        .user-menu-container { position: relative; }
-        .user-btn { background: #F3E5F5; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #673AB7; font-weight: bold; }
-        .dropdown { display: none; position: absolute; right: 0; top: 40px; background: #fff; min-width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); border-radius: 10px; padding: 10px; z-index: 200; }
-        .dropdown.show { display: block; }
-        .dropdown h4 { font-size: 13px; color: #673AB7; margin: 5px 0; }
-        .dropdown a { display: block; padding: 6px 0; text-decoration: none; color: #333; font-size: 13px; cursor: pointer; }
-        .dropdown a:hover { color: #673AB7; }
-        .dropdown hr { border: 0; border-top: 1px solid #eee; margin: 5px 0; }
-
-        /* ================= مدیریت صفحات ================= */
-        .page { padding: 15px; }
-        .hidden { display: none !important; }
-        .active { display: block; }
-
-        /* ================= صفحه اصلی ================= */
-        .top-bar { display: flex; gap: 8px; margin-bottom: 15px; align-items: center; }
-        
-        .search-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 0; }
-        .search-icon { position: absolute; right: 10px; font-size: 16px; color: #673AB7; pointer-events: none; z-index: 1; }
-        .search-box { width: 100%; padding: 10px 35px 10px 10px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 13px; outline: none; transition: border-color 0.3s; }
-        .search-box:focus { border-color: #673AB7; }
-
-        .location-box { flex-shrink: 0; padding: 10px 12px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #673AB7; font-weight: bold; gap: 4px; transition: background 0.3s; white-space: nowrap; }
-        .location-box:hover { background: #F3E5F5; }
-        .location-icon { font-size: 14px; }
-
-        .gps-btn { flex-shrink: 0; background: #fff; border: 1px solid #D1C4E9; border-radius: 10px; padding: 10px 12px; font-size: 16px; cursor: pointer; color: #673AB7; transition: background 0.3s; }
-        .gps-btn:hover { background: #F3E5F5; }
-
-        .categories { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-        .cat-btn { padding: 8px 16px; border: 1px solid #D1C4E9; border-radius: 20px; background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all 0.3s; }
-        .cat-btn.active { background: #673AB7; color: #fff; border-color: #673AB7; }
-        .cat-btn.disabled { background: #E0E0E0; color: #9E9E9E; cursor: not-allowed; border-color: #E0E0E0; }
-
-        /* ================= کارت غذا ================= */
-        .food-list { display: flex; flex-direction: column; gap: 12px; }
-        .food-item { display: flex; background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; }
-        .food-item:hover { transform: translateY(-2px); }
-        .food-image-wrapper { position: relative; flex-shrink: 0; }
-        .food-img { width: 85px; height: 85px; border-radius: 10px; object-fit: cover; background-color: #eee; display: block; }
-        .discount-badge { position: absolute; top: -5px; right: -5px; background: #E53935; color: #fff; font-size: 11px; font-weight: bold; padding: 3px 7px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 2; }
-        .food-details { display: flex; flex-direction: column; flex: 1; justify-content: center; }
-        .food-name { font-size: 15px; font-weight: bold; margin-bottom: 8px; color: #333; line-height: 1.4; }
-        .food-price-container { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .old-price { text-decoration: line-through; color: #999; font-size: 13px; }
-        .new-price { color: #E53935; font-weight: bold; font-size: 15px; }
-        .no-discount-price { color: #673AB7; font-weight: bold; font-size: 15px; }
-
-        /* ================= صفحه جزئیات غذا ================= */
-        .back-btn { background: none; border: none; color: #673AB7; font-size: 14px; cursor: pointer; margin-bottom: 15px; font-weight: bold; }
-        .food-header-details { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-        .detail-img { width: 120px; height: 120px; border-radius: 15px; object-fit: cover; margin-bottom: 10px; }
-        .base-price { color: #673AB7; font-weight: bold; }
-
-        /* آکاردئون افزودنی‌ها */
-        .addon-category { background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
-        .category-header { background-color: #F3E5F5; padding: 12px 15px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #673AB7; }
-        .category-body { display: none; padding: 10px 15px; }
-        .category-body.open { display: block; }
-        .addon-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
-        .addon-item:last-child { border-bottom: none; }
-        .addon-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
-        .addon-price { font-size: 13px; color: #673AB7; font-weight: bold; }
-
-        /* نوار پایین صفحه */
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .total-price { font-size: 16px; font-weight: bold; }
-        .btn-primary { background-color: #673AB7; color: #fff; border: none; padding: 12px 25px; border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: bold; }
-        .btn-block { width: 100%; margin-top: 15px; }
-
-        /* ================= صفحه سبد خرید ================= */
-        .payment-section { background: #fff; padding: 15px; border-radius: 12px; margin-top: 15px; }
-        .payment-section h4 { margin-bottom: 10px; font-size: 14px; }
-        .payment-section label { display: block; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
-        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-
-        /* ================= مودال انتخاب محل ================= */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-overlay.hidden { display: none !important; }
-        .modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 15px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .modal-header h3 { margin: 0; font-size: 16px; color: #673AB7; }
-        .close-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #999; }
-        .modal-body { display: flex; flex-direction: column; }
-        .modal-body label { font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333; }
-        .modal-select { padding: 10px; border: 1px solid #D1C4E9; border-radius: 8px; font-size: 14px; background: #fff; outline: none; font-family: inherit; width: 100%; }
-        .modal-footer { margin-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#16a34a">
+<title>سفره سبز | پلی برای استفاده بهینه از غذا</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Tahoma,sans-serif;background:linear-gradient(180deg,#f0fdf4,#fff);background-attachment:fixed;color:#111827;padding:12px;line-height:1.8;min-height:100vh;padding-bottom:40px}
+header{text-align:center;padding:22px 16px 18px;background:linear-gradient(135deg,#16a34a,#22c55e,#4ade80);color:#fff;border-radius:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(22,163,74,.15);position:relative;overflow:hidden}
+header::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 60%);pointer-events:none}
+.logo-wrap{display:flex;justify-content:center;margin-bottom:10px;position:relative;z-index:1}
+.logo-svg{width:110px;height:110px;opacity:0.8;filter:drop-shadow(0 6px 12px rgba(0,0,0,.15))}
+header h1{font-size:24px;font-weight:800;margin-bottom:6px;position:relative;z-index:1;letter-spacing:.5px}
+header .slogan{font-size:16px;opacity:1;position:relative;z-index:1;font-weight:800;background:rgba(255,255,255,.25);display:inline-block;padding:8px 20px;border-radius:99px;backdrop-filter:blur(10px);text-shadow:0 2px 4px rgba(0,0,0,.15);letter-spacing:.3px}
+.search-wrap{background:#fff;border-radius:16px;padding:6px;box-shadow:0 2px 12px rgba(22,163,74,.08);margin-bottom:12px;display:flex;gap:6px;align-items:center;border:1.5px solid #dcfce7}
+.search-wrap input{flex:1;padding:11px 14px;border:0;background:transparent;font:inherit;font-size:14px;color:#111827;outline:none}
+.search-wrap input::placeholder{color:#9ca3af}
+.search-wrap .search-icon{color:#16a34a;font-size:18px;padding:0 6px}
+.search-wrap button{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:0;border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(22,163,74,.25)}
+.mode-switch{display:flex;background:#fff;border-radius:16px;padding:5px;margin-bottom:12px;box-shadow:0 2px 12px rgba(22,163,74,.08);gap:5px}
+.mode-switch button{flex:1;padding:11px 8px;border:0;background:transparent;font:inherit;font-size:13px;border-radius:12px;cursor:pointer;color:#6b7280;font-weight:600;transition:all .25s}
+.mode-switch button.active{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.3)}
+nav.tabs{display:flex;background:#fff;border-radius:16px;padding:5px;margin-bottom:16px;box-shadow:0 2px 12px rgba(22,163,74,.08);gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:1;min-width:85px;padding:10px 8px;border:0;background:transparent;font:inherit;font-size:12px;border-radius:11px;cursor:pointer;color:#6b7280;white-space:nowrap;transition:all .2s;font-weight:500}
+nav.tabs button.active{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(22,163,74,.3)}
+section.tab{display:none;animation:fadeIn .3s}
+section.tab.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.food-table{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(22,163,74,.08);border:1px solid #dcfce7;margin-bottom:12px}
+.food-row{display:grid;grid-template-columns:80px 1fr auto;gap:10px;padding:12px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .2s;align-items:center;text-decoration:none;color:inherit}
+.food-row:last-child{border-bottom:0}
+.food-row:active{background:#f0fdf4}
+.food-thumb{width:80px;height:80px;border-radius:12px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden;position:relative;flex-shrink:0}
+.food-thumb img{width:100%;height:100%;object-fit:cover}
+.food-thumb .discount-tag{position:absolute;top:4px;right:4px;background:#dc2626;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:99px}
+.food-info{min-width:0;display:flex;flex-direction:column;gap:3px}
+.food-title{font-weight:700;font-size:14px;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-meta{font-size:11px;color:#6b7280;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.food-meta .dot{color:#d1d5db}
+.food-price{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.food-price .old{text-decoration:line-through;color:#9ca3af;font-size:11px}
+.food-price .new{color:#16a34a;font-weight:800;font-size:14px;white-space:nowrap}
+.food-price .stars-mini{color:#f59e0b;font-size:11px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(22,163,74,.08);border:1px solid #dcfce7}
+.card h3{color:#15803d;font-size:15.5px;margin-bottom:6px;font-weight:700}
+.card p{font-size:13px;color:#374151;margin-bottom:4px}
+.price-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap}
+.old-price{text-decoration:line-through;color:#9ca3af;font-size:12.5px}
+.new-price{color:#16a34a;font-weight:800;font-size:17px}
+.discount-badge{background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#dc2626;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:800;border:1px solid #fecaca}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:11.5px}
+.chip{background:#f3f4f6;padding:4px 10px;border-radius:99px;color:#374151;font-weight:500;border:1px solid #e5e7eb}
+.chip.green{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.chip.blue{background:#dbeafe;color:#0969da;border-color:#bfdbfe}
+.chip.red{background:#fee2e2;color:#dc2626;border-color:#fecaca}
+.chip.orange{background:#ffedd5;color:#c2410c;border-color:#fed7aa}
+.chip.gold{background:#fef3c7;color:#92400e;border-color:#fde68a}
+form label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;color:#374151}
+form input,form select,form textarea{width:100%;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font:inherit;font-size:14px;background:#f9fafb;transition:all .2s;color:#111827}
+form input:focus,form select:focus,form textarea:focus{outline:none;border-color:#22c55e;background:#fff;box-shadow:0 0 0 4px rgba(34,197,94,.1)}
+.btn{display:inline-block;padding:12px 20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:0;border-radius:12px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-top:12px;width:100%;transition:all .2s;box-shadow:0 3px 10px rgba(22,163,74,.25)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(22,163,74,.35)}
+.btn.danger{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 3px 10px rgba(220,38,38,.25)}
+.btn.blue{background:linear-gradient(135deg,#0969da,#3b82f6);box-shadow:0 3px 10px rgba(9,105,218,.25)}
+.btn.gray{background:linear-gradient(135deg,#6b7280,#9ca3af)}
+.btn.small{padding:8px 14px;font-size:12px;width:auto;margin-top:8px;display:inline-block}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.empty{text-align:center;color:#9ca3af;font-size:13.5px;padding:40px 20px;line-height:2}
+.empty-icon{font-size:48px;display:block;margin-bottom:10px;opacity:.5}
+.toast{position:fixed;bottom:20px;right:20px;left:20px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;padding:14px 18px;border-radius:14px;font-size:13.5px;text-align:center;font-weight:600;opacity:0;transform:translateY(30px);transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;z-index:9999;box-shadow:0 8px 24px rgba(22,163,74,.35)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.required::after{content:" *";color:#dc2626}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-bg.show{display:flex;animation:fadeIn .2s}
+.modal{background:#fff;border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal h3{color:#15803d;margin-bottom:14px;font-size:17px}
+.stars{color:#f59e0b;font-size:15px;letter-spacing:1px}
+#starPicker{display:flex;gap:10px;font-size:38px;color:#d1d5db;cursor:pointer;padding:8px 0;user-select:none}
+#starPicker span{transition:all .15s}
+#starPicker span.active{color:#f59e0b}
+footer{text-align:center;padding:24px 12px 16px;font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;margin-top:24px;line-height:2}
+footer b{color:#16a34a}
+footer a{color:#0969da;text-decoration:none}
+footer .fingerprint{font-family:monospace;font-size:10px;color:#9ca3af;letter-spacing:1px;margin-top:6px;display:block}
+</style>
 </head>
 <body>
 
-    <!-- ================= هدر اصلی ================= -->
-    <header class="main-header">
-        <div class="user-menu-container">
-            <button class="user-btn" onclick="toggleUserMenu()">👤 حساب کاربری ▼</button>
-            <div class="dropdown" id="userDropdown">
-                <h4>مشتری</h4>
-                <a onclick="showCustomerPage('orders')">📦 سفارش‌های من</a>
-                <a onclick="showCustomerPage('addresses')">📍 آدرس‌های من</a>
-                <hr>
-                <h4>فروشنده</h4>
-                <a onclick="showSellerPage('store-settings')">⚙️ تنظیمات فروشگاه</a>
-                <a onclick="showSellerPage('register')">📝 ثبت‌نام فروشنده</a>
-                <a onclick="showSellerPage('add-food')">🍲 ثبت غذا</a>
-                <a onclick="showSellerPage('received-orders')">📥 سفارش‌های دریافتی</a>
-                <a onclick="showSellerPage('subscription')">💳 اشتراک و پرداخت</a>
-                <hr>
-                <h4>مدیریت</h4>
-                <a onclick="openAdminPanel()">👨‍💼 مدیریت فروشندگان</a>
-            </div>
-        </div>
-        <div class="app-brand">
-            <svg width="38" height="38" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#7E57C2;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#512DA8;stop-opacity:1" />
-                    </linearGradient>
-                    <linearGradient id="bowlGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#FFB74D;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#F57C00;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <path d="M 6 30 L 32 8 L 58 30" fill="none" stroke="url(#roofGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M 12 28 L 12 54 Q 12 58 16 58 L 48 58 Q 52 58 52 54 L 52 28" fill="#F3E5F5" stroke="#7E57C2" stroke-width="3" stroke-linejoin="round"/>
-                <path d="M 22 44 Q 22 54 32 54 Q 42 54 42 44 Z" fill="url(#bowlGrad)" stroke="#E65100" stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M 28 40 Q 30 36 28 32" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round"/>
-                <path d="M 36 40 Q 38 36 36 32" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <h1 class="app-title">سفره سبز</h1>
-        </div>
-    </header>
+<header>
+<div class="logo-wrap">
+<svg class="logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/><stop offset="50%" stop-color="#f97316"/><stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+    <linearGradient id="soupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <linearGradient id="bowlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <path d="M 88 22 Q 92 18 88 14 Q 84 10 88 6" stroke="rgba(255,255,255,0.9)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 96 24 Q 100 20 96 16 Q 92 12 96 8" stroke="rgba(255,255,255,0.7)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <rect x="84" y="30" width="9" height="16" fill="#fff" rx="1.5"/>
+  <rect x="82" y="28" width="13" height="5" fill="#fff" rx="2.5"/>
+  <path d="M 15 70 L 60 34 L 105 70 Z" fill="url(#roofGrad)"/>
+  <path d="M 15 70 L 60 34 L 105 70" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none"/>
+  <path d="M 15 70 L 60 34 L 60 40 L 20 70 Z" fill="rgba(255,255,255,.25)"/>
+  <rect x="30" y="70" width="60" height="14" fill="#fff" opacity=".9"/>
+  <ellipse cx="60" cy="82" rx="30" ry="6" fill="url(#soupGrad)"/>
+  <path d="M 28 82 Q 60 104 92 82 Z" fill="url(#bowlGrad)"/>
+  <path d="M 28 82 Q 60 104 92 82" stroke="rgba(22,163,74,.3)" stroke-width="1.5" fill="none"/>
+  <ellipse cx="60" cy="82" rx="32" ry="5" fill="none" stroke="#fff" stroke-width="2"/>
+  <circle cx="50" cy="81" r="2" fill="#dc2626" opacity=".7"/>
+  <circle cx="65" cy="80" r="1.8" fill="#f59e0b" opacity=".8"/>
+  <circle cx="72" cy="82" r="1.5" fill="#22c55e" opacity=".8"/>
+  <circle cx="44" cy="82" r="1.5" fill="#a16207" opacity=".6"/>
+  <path d="M 50 74 Q 53 70 50 66" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 60 72 Q 63 68 60 64" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 70 74 Q 73 70 70 66" stroke="rgba(255,255,255,.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>
+</div>
+<h1>سفره سبز</h1>
+<p class="slogan">پلی برای استفاده بهینه از غذا</p>
+</header>
 
-    <!-- ================= صفحه اصلی ================= -->
-    <main id="page-home" class="page active">
-        <div class="top-bar">
-            <div class="search-wrapper">
-                <span class="search-icon">🔍</span>
-                <input type="text" class="search-box" id="searchInput" placeholder="جستجوی غذا..." oninput="searchFood()">
-            </div>
-            <div class="location-box" id="locationBtn" onclick="openLocationModal()">
-                <span class="location-icon">📍</span>
-                <span id="locationText">انتخاب محل</span>
-            </div>
-            <button class="gps-btn" onclick="getLocation()" title="تشخیص موقعیت با GPS">🎯</button>
-        </div>
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="searchInput" placeholder="جستجوی غذا، فروشنده یا محل...">
+  <button id="searchBtn">بگرد</button>
+</div>
 
-        <div class="categories">
-            <button class="cat-btn active" id="cat-restaurant" onclick="switchCategory('restaurant')">رستوران</button>
-            <button class="cat-btn" id="cat-catering" onclick="switchCategory('catering')">کترینگ</button>
-            <button class="cat-btn" id="cat-fastfood" onclick="switchCategory('fastfood')">فست فود</button>
-            <button class="cat-btn disabled">غذای خانگی (به زودی)</button>
-        </div>
+<div class="mode-switch">
+<button id="modeCustomer" class="active" data-mode="customer">👤 مشتری</button>
+<button id="modeSeller" data-mode="seller">🏪 فروشنده</button>
+</div>
 
-        <div class="food-list" id="foodListContainer"></div>
-    </main>
+<nav class="tabs" id="tabsCustomer">
+<button class="active" data-tab="foods">🍽️ غذاها</button>
+<button data-tab="cart">🛒 سبد <span id="cartCount" style="background:#dc2626;color:white;padding:1px 7px;border-radius:99px;font-size:10px;margin-right:2px;display:none">0</span></button>
+<button data-tab="myorders">📦 سفارش‌ها</button>
+</nav>
 
-    <!-- ================= صفحه جزئیات غذا ================= -->
-    <main id="page-details" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <div class="food-header-details">
-            <img src="https://via.placeholder.com/150" alt="غذا" class="detail-img" id="detail-img-element">
-            <h2 id="detail-food-name">چلوکباب کوبیده</h2>
-            <p id="detail-food-price" class="base-price">قیمت پایه: ۲۵۰,۰۰۰ تومان</p>
-        </div>
+<nav class="tabs" id="tabsSeller" style="display:none">
+<button class="active" data-tab="newlisting">➕ آگهی</button>
+<button data-tab="newseller">🏪 فروشنده</button>
+<button data-tab="sellerorders">📥 سفارش‌ها</button>
+<button data-tab="mysellers">👥 فروشندگان</button>
+</nav>
 
-        <h3>افزودنی‌های خود را انتخاب کنید:</h3>
+<section id="tab-foods" class="tab active"><div id="foodsList"></div></section>
+<section id="tab-cart" class="tab"><div id="cartList"></div><div id="cartSummary"></div></section>
+<section id="tab-myorders" class="tab"><div id="myOrdersList"></div></section>
 
-        <div class="addon-category">
-            <div class="category-header" onclick="toggleCategory(this)"><span>🥤 نوشیدنی‌ها</span><span>▼</span></div>
-            <div class="category-body">
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="آب معدنی" data-price="5000"> آب معدنی</label><span class="addon-price">۵,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="کوکا کولا" data-price="25000"> کوکا کولا</label><span class="addon-price">۲۵,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="پپسی" data-price="25000"> پپسی</label><span class="addon-price">۲۵,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="دوغ" data-price="15000"> دوغ</label><span class="addon-price">۱۵,۰۰۰ تومان</span></div>
-            </div>
-        </div>
+<section id="tab-newlisting" class="tab">
+<div class="card">
+<h3>➕ ثبت آگهی غذا</h3>
+<form id="listingForm">
+<label class="required">نام غذا</label><input type="text" name="title" required placeholder="مثلاً: قیمه نثار">
+<label class="required">فروشنده</label><select name="sellerId" id="sellerSelect" required><option value="">— انتخاب فروشنده —</option></select>
+<label>لینک عکس غذا (اختیاری)</label><input type="url" name="image" placeholder="https://...">
+<label>توضیحات</label><textarea name="description" rows="2" placeholder="مواد اولیه، وزن و..."></textarea>
+<label class="required">قیمت اصلی (تومان)</label><input type="number" name="originalPrice" required min="0" placeholder="150000">
+<label class="required">قیمت با تخفیف (تومان)</label><input type="number" name="discountedPrice" required min="0" placeholder="90000">
+<label class="required">تعداد پرس موجود</label><input type="number" name="quantity" required min="1" value="1">
+<label class="required">نوع تحویل</label><select name="deliveryType" required><option value="pickup">فقط حضوری</option><option value="courier_free">پیک رایگان</option><option value="courier_paid">پیک با هزینه</option><option value="both">هر دو</option></select>
+<label>هزینه پیک (تومان)</label><input type="number" name="courierCost" min="0" value="0">
+<label class="required">مدت آماده‌سازی</label><select name="deliveryTime" required><option value="15">۱۵ دقیقه</option><option value="30" selected>۳۰ دقیقه</option><option value="45">۴۵ دقیقه</option><option value="60">۱ ساعت</option><option value="120">۲ ساعت</option><option value="240">۴ ساعت</option></select>
+<button type="submit" class="btn">ثبت آگهی ✅</button>
+</form>
+</div>
+</section>
 
-        <div class="addon-category">
-            <div class="category-header" onclick="toggleCategory(this)"><span>🥣 سس‌ها</span><span>▼</span></div>
-            <div class="category-body">
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سس مایونز" data-price="3000"> سس مایونز</label><span class="addon-price">۳,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سس مخصوص" data-price="5000"> سس مخصوص</label><span class="addon-price">۵,۰۰۰ تومان</span></div>
-            </div>
-        </div>
+<section id="tab-newseller" class="tab">
+<div class="card">
+<h3>🏪 ثبت‌نام فروشنده</h3>
+<form id="sellerForm">
+<label class="required">نام کسب‌وکار / آشپز</label><input type="text" name="name" required placeholder="مثلاً: رستوران بهار">
+<label class="required">نوع</label><select name="type" id="sellerType" required><option value="home">آشپز خانگی</option><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option></select>
+<label>شماره تماس</label><input type="tel" name="phone" placeholder="09121234567">
+<label id="licenseLabel" class="required">شماره جواز کسب</label><input type="text" name="license" id="licenseInput" placeholder="مثلاً: ۱۲۳۴۵۶/ب">
+<label class="required">محل ارائه (آدرس)</label><textarea name="address" id="addressInput" required rows="2" placeholder="مثلاً: تهران، ونک"></textarea>
+<button type="submit" class="btn">ثبت فروشنده ✅</button>
+</form>
+</div>
+</section>
 
-        <div class="addon-category">
-            <div class="category-header" onclick="toggleCategory(this)"><span>🥗 سالادها</span><span>▼</span></div>
-            <div class="category-body">
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سالاد فصل" data-price="25000"> سالاد فصل</label><span class="addon-price">۲۵,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سالاد شیرازی" data-price="30000"> سالاد شیرازی</label><span class="addon-price">۳۰,۰۰۰ تومان</span></div>
-            </div>
-        </div>
+<section id="tab-sellerorders" class="tab"><div id="sellerOrdersList"></div></section>
+<section id="tab-mysellers" class="tab"><div class="card"><h3>👥 فروشندگان ثبت‌شده</h3><div id="sellersList"></div></div></section>
 
-        <div class="addon-category">
-            <div class="category-header" onclick="toggleCategory(this)"><span>🍞 نان اضافه</span><span>▼</span></div>
-            <div class="category-body">
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="نان بربری" data-price="5000"> نان بربری</label><span class="addon-price">۵,۰۰۰ تومان</span></div>
-                <div class="addon-item"><label><input type="checkbox" class="addon" data-name="نان لواش" data-price="3000"> نان لواش</label><span class="addon-price">۳,۰۰۰ تومان</span></div>
-            </div>
-        </div>
+<div class="modal-bg" id="orderModal"><div class="modal">
+<h3>🛒 ثبت سفارش</h3><div id="orderFoodInfo"></div>
+<form id="orderForm">
+<label class="required">نام و نام خانوادگی</label><input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
+<label class="required">شماره تماس</label><input type="tel" name="customerPhone" required placeholder="09121234567">
+<label class="required">آدرس تحویل</label><textarea name="customerAddress" required rows="2"></textarea>
+<label>توضیحات</label><textarea name="note" rows="2" placeholder="مثلاً: بدون پیاز"></textarea>
+<button type="submit" class="btn">ثبت سفارش نهایی ✅</button>
+<button type="button" class="btn danger" id="closeOrderModal">انصراف</button>
+</form>
+</div></div>
 
-        <div class="bottom-bar">
-            <div class="total-price">جمع: <span id="detail-final-price">۲۵۰,۰۰۰</span> تومان</div>
-            <button class="btn-primary" onclick="addToCart()">افزودن به سبد</button>
-        </div>
-    </main>
+<div class="modal-bg" id="reviewModal"><div class="modal">
+<h3>💬 ثبت نظر و امتیاز</h3><div id="reviewFoodInfo"></div>
+<form id="reviewForm">
+<label class="required">نام شما</label><input type="text" name="customerName" required placeholder="مثلاً: علی رضایی">
+<label class="required">امتیاز شما</label>
+<div id="starPicker"><span data-star="1">★</span><span data-star="2">★</span><span data-star="3">★</span><span data-star="4">★</span><span data-star="5">★</span></div>
+<input type="hidden" name="rating" id="ratingInput" required>
+<label class="required">نظر شما</label><textarea name="text" required rows="3" placeholder="تجربه‌ات از این غذا چطور بود؟"></textarea>
+<button type="submit" class="btn">ثبت نظر ✅</button>
+<button type="button" class="btn danger" id="closeReviewModal">انصراف</button>
+</form>
+</div></div>
 
-    <!-- ================= صفحه سبد خرید ================= -->
-    <main id="page-cart" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2>سبد خرید شما</h2>
-        <div id="cart-items-container"></div>
-        
-        <div class="payment-section" style="margin-top:15px;">
-            <h4>کد تخفیف:</h4>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="couponCode" class="modal-select" style="flex:1;" placeholder="مثلاً SAFREH20">
-                <button class="btn-primary" onclick="applyCoupon()" style="padding:10px 15px;">اعمال</button>
-            </div>
-            <p id="couponMessage" style="font-size:12px; margin-top:8px; color:#4CAF50;"></p>
-        </div>
+<div class="modal-bg" id="commentsModal"><div class="modal">
+<h3>📖 نظرات مشتریان</h3><div id="commentsList"></div>
+<button type="button" class="btn danger" id="closeCommentsModal">بستن</button>
+</div></div>
 
-        <button class="btn-primary btn-block" onclick="showPage('page-checkout')">ادامه و تأیید نهایی</button>
-    </main>
+<div class="modal-bg" id="foodDetailModal"><div class="modal">
+<div id="foodDetailContent"></div>
+<button type="button" class="btn danger" id="closeFoodDetail">بستن</button>
+</div></div>
 
-    <!-- ================= صفحه تأیید نهایی سفارش ================= -->
-    <main id="page-checkout" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-cart')">⬅ بازگشت به سبد</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📋 تأیید نهایی سفارش</h2>
-
-        <div class="payment-section">
-            <h4>نحوه دریافت سفارش:</h4>
-            <label><input type="radio" name="delivery" value="pickup" checked onchange="updateDeliveryCost()"> 🏃 حضوری (خودم مراجعه می‌کنم)</label>
-            <label id="courierLabel"><input type="radio" name="delivery" value="courier" onchange="updateDeliveryCost()"> 🛵 ارسال با پیک فروشنده <span id="courierPriceText"></span></label>
-            
-            <p id="noCourierMessage" style="display:none; color:#E53935; font-size:12px; margin-top:5px;">
-                ⚠️ این فروشنده در حال حاضر پیک ندارد.
-            </p>
-        </div>
-
-        <div class="payment-section" id="addressSection" style="display:none;">
-            <h4>آدرس تحویل:</h4>
-            <input type="text" class="modal-select" placeholder="آدرس دقیق خود را وارد کنید..." id="deliveryAddress">
-        </div>
-
-        <div class="payment-section">
-            <h4>روش پرداخت:</h4>
-            <label><input type="radio" name="payment" value="online" checked> 💳 پرداخت اینترنتی (آنلاین)</label>
-            <label><input type="radio" name="payment" value="cash"> 💵 پرداخت در محل (نقدی/کارتخوان)</label>
-        </div>
-
-        <div style="background:#fff; padding:15px; border-radius:12px; margin-top:15px; text-align:center;">
-            <p style="font-size:14px;">جمع کل قابل پرداخت:</p>
-            <p style="font-size:20px; font-weight:bold; color:#673AB7;" id="checkoutTotal">۰ تومان</p>
-        </div>
-
-        <button class="btn-primary btn-block" onclick="finalizeOrder()" style="margin-top:20px;">✅ ثبت نهایی سفارش</button>
-    </main>
-
-    <!-- ================= صفحه ارتباط با فروشنده ================= -->
-    <main id="page-contact-seller" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت به خانه</button>
-        <h2 style="text-align:center; color:#4CAF50; margin-bottom:20px;">✅ سفارش شما ثبت شد</h2>
-        
-        <div style="background:#FFF3E0; padding:15px; border-radius:12px; margin-bottom:15px;">
-            <p style="font-size:14px; color:#E65100; text-align:center;">
-                ⚠️ لطفاً هنگام تحویل غذا، از سلامت و تازگی آن اطمینان حاصل کنید.
-            </p>
-        </div>
-
-        <div style="background:#fff; padding:15px; border-radius:12px;">
-            <h4 style="text-align:center; margin-bottom:15px; color:#673AB7;">راه‌های ارتباط با فروشنده</h4>
-            <button class="btn-primary btn-block" style="margin-bottom:10px; background:#4CAF50;" onclick="contactSeller('call')">📞 تماس تلفنی</button>
-            <button class="btn-primary btn-block" style="margin-bottom:10px; background:#2196F3;" onclick="contactSeller('chat')">💬 چت آنلاین</button>
-            <button class="btn-primary btn-block" style="background:#FF9800;" onclick="contactSeller('sms')">✉️ ارسال پیامک</button>
-        </div>
-    </main>
-
-    <!-- ================= صفحات مشتری ================= -->
-    <main id="page-customer-orders" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📦 سفارش‌های من</h2>
-        <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px;">
-            <p><strong>سفارش شماره ۱۲۳۴</strong></p>
-            <p style="color:#777; font-size:13px;">چلوکباب کوبیده - ۲۵۰,۰۰۰ تومان</p>
-            <p style="color:#4CAF50; font-size:12px;">✅ تحویل داده شده</p>
-        </div>
-        <div style="background:#fff; padding:15px; border-radius:12px;">
-            <p><strong>سفارش شماره ۱۲۳۵</strong></p>
-            <p style="color:#777; font-size:13px;">پیتزا پپرونی - ۲۶۰,۰۰۰ تومان</p>
-            <p style="color:#FF9800; font-size:12px;">⏳ در حال آماده‌سازی</p>
-        </div>
-    </main>
-
-    <main id="page-customer-addresses" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📍 آدرس‌های من</h2>
-        <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px;">
-            <p><strong>خانه</strong></p>
-            <p style="color:#777; font-size:13px;">تهران، خیابان ولیعصر، کوچه بهار، پلاک ۱۲</p>
-        </div>
-        <div style="background:#fff; padding:15px; border-radius:12px;">
-            <p><strong>محل کار</strong></p>
-            <p style="color:#777; font-size:13px;">تهران، سعادت‌آباد، بلوار دریا، پلاک ۵</p>
-        </div>
-    </main>
-
-    <!-- ================= صفحات فروشنده ================= -->
-    <main id="page-seller-store-settings" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">⚙️ تنظیمات فروشگاه</h2>
-
-        <div class="payment-section">
-            <h4>وضعیت پیک فروشگاه:</h4>
-            <label><input type="radio" name="courierStatus" value="no" onchange="updateSellerCourierSettings()"> ❌ پیک ندارم</label>
-            <label><input type="radio" name="courierStatus" value="free" onchange="updateSellerCourierSettings()"> ✅ پیک دارم (ارسال رایگان)</label>
-            <label><input type="radio" name="courierStatus" value="paid" onchange="updateSellerCourierSettings()"> 💰 پیک دارم (با هزینه)</label>
-        </div>
-
-        <div class="payment-section" id="courierCostSection" style="display:none;">
-            <h4>هزینه پیک (تومان):</h4>
-            <p style="font-size:12px; color:#777; margin-bottom:10px;">این مبلغ به صورت ثابت به فاکتور مشتری اضافه می‌شود.</p>
-            <input type="number" class="modal-select" id="courierCostInput" placeholder="مثلاً ۳۰۰۰۰">
-        </div>
-
-        <button class="btn-primary btn-block" onclick="saveSellerSettings()" style="margin-top:20px;">💾 ذخیره تنظیمات</button>
-    </main>
-
-    <main id="page-seller-register" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📝 ثبت‌نام فروشنده</h2>
-
-        <div class="payment-section">
-            <h4>اطلاعات هویتی:</h4>
-            <label style="font-size:14px;">نام و نام خانوادگی:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً علی رضایی">
-            
-            <label style="font-size:14px;">کد ملی:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="۱۰ رقم" maxlength="10" id="sellerNationalId">
-            
-            <label style="font-size:14px;">شماره تماس:</label>
-            <input type="text" class="modal-select" placeholder="۰۹۱۲۳۴۵۶۷۸۹">
-        </div>
-
-        <div class="payment-section">
-            <h4>اطلاعات کسب‌وکار:</h4>
-            <label style="font-size:14px;">نام کسب‌وکار:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً رستوران بهار">
-            
-            <label style="font-size:14px;">شماره جواز کسب:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً ۱۲۳۴۵۶" id="sellerLicense">
-            
-            <label style="font-size:14px;">آدرس دقیق:</label>
-            <input type="text" class="modal-select" placeholder="استان، شهر، خیابان...">
-        </div>
-
-        <div class="payment-section">
-            <h4>بارگذاری مدارک:</h4>
-            <label style="font-size:14px;">عکس جواز کسب:</label>
-            <input type="file" accept="image/*" style="margin-bottom:10px; padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
-            
-            <label style="font-size:14px;">عکس کارت ملی:</label>
-            <input type="file" accept="image/*" style="padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
-        </div>
-
-        <button class="btn-primary btn-block" onclick="registerSeller()" style="margin-top:20px;">📤 ارسال درخواست ثبت‌نام</button>
-    </main>
-
-    <main id="page-seller-add-food" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">🍲 ثبت غذای جدید</h2>
-        <div class="payment-section">
-            <label style="font-size:14px; font-weight:bold;">نام غذا:</label>
-            <input type="text" class="modal-select" style="margin-top:5px;" placeholder="مثلاً چلوکباب">
-            
-            <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">قیمت (تومان):</label>
-            <input type="number" class="modal-select" style="margin-top:5px;" placeholder="مثلاً ۲۵۰۰۰۰">
-            
-            <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">درصد تخفیف:</label>
-            <input type="number" class="modal-select" style="margin-top:5px;" placeholder="مثلاً ۱۵">
-            
-            <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">آپلود عکس غذا:</label>
-            <input type="file" accept="image/*" style="margin-top:5px; padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
-            
-            <button class="btn-primary btn-block" style="margin-top:20px;" onclick="alert('غذای جدید با موفقیت ثبت شد!')">ثبت غذا</button>
-        </div>
-    </main>
-
-    <main id="page-seller-received-orders" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📥 سفارش‌های دریافتی</h2>
-        <div style="background:#fff; padding:15px; border-radius:12px;">
-            <p><strong>سفارش جدید از آقای رضایی</strong></p>
-            <p style="color:#777; font-size:13px;">لوبیا پلو - ۱۴۰,۰۰۰ تومان</p>
-            <p style="color:#2196F3; font-size:12px;">🆕 در انتظار تایید</p>
-        </div>
-    </main>
-
-    <main id="page-seller-subscription" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">💳 اشتراک و پرداخت</h2>
-        <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px;">
-            <p><strong>پلن طلایی</strong> (پیشنهادی)</p>
-            <p style="color:#777; font-size:13px;">نمایش در بالای لیست + نشان ویژه</p>
-            <p style="color:#673AB7; font-weight:bold;">۳۰۰,۰۰۰ تومان / ماهانه</p>
-            <button class="btn-primary btn-block" style="margin-top:10px;" onclick="alert('به درگاه پرداخت متصل می‌شود.')">پرداخت آنلاین</button>
-        </div>
-        <div style="background:#fff; padding:15px; border-radius:12px;">
-            <p><strong>پلن برنزی</strong></p>
-            <p style="color:#777; font-size:13px;">نمایش عادی در لیست</p>
-            <p style="color:#673AB7; font-weight:bold;">۱۰۰,۰۰۰ تومان / ماهانه</p>
-            <button class="btn-primary btn-block" style="margin-top:10px;" onclick="alert('به درگاه پرداخت متصل می‌شود.')">پرداخت آنلاین</button>
-        </div>
-    </main>
-
-    <!-- ================= صفحه مدیریت فروشندگان (مدیر) ================= -->
-    <main id="page-admin-sellers" class="page hidden">
-        <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
-        <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">👨‍💼 مدیریت فروشندگان</h2>
-        <div id="adminSellersContainer"></div>
-    </main>
-
-    <!-- ================= مودال انتخاب محل ================= -->
-    <div id="locationModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📍 انتخاب محل</h3>
-                <button onclick="closeLocationModal()" class="close-btn">✖</button>
-            </div>
-            <div class="modal-body">
-                <label for="provinceSelect">استان:</label>
-                <select id="provinceSelect" class="modal-select" onchange="updateCities()">
-                    <option value="">-- انتخاب استان --</option>
-                    <option value="tehran">تهران</option>
-                    <option value="isfahan">اصفهان</option>
-                    <option value="fars">فارس</option>
-                    <option value="khorasan">خراسان رضوی</option>
-                </select>
-
-                <label for="citySelect" style="margin-top: 15px;">شهر:</label>
-                <select id="citySelect" class="modal-select">
-                    <option value="">-- ابتدا استان را انتخاب کنید --</option>
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-primary btn-block" onclick="confirmLocation()">تایید محل</button>
-            </div>
-        </div>
+<div class="modal-bg" id="healthModal">
+  <div class="modal">
+    <div style="text-align:center;padding:10px">
+      <div style="font-size:56px;margin-bottom:12px">🛡️</div>
+      <h3 style="color:#15803d;font-size:18px;margin-bottom:14px">سفارش شما ثبت شد!</h3>
+      <div style="background:#fef3c7;border:2px solid #fbbf24;border-radius:14px;padding:16px;margin-bottom:16px;text-align:right">
+        <p style="font-weight:700;color:#92400e;margin-bottom:8px">⚠️ هشدار مهم:</p>
+        <p style="font-size:14px;color:#78350f;line-height:2">لطفاً <b>قبل از تحویل غذا</b>، از <b>سلامت و تازگی</b> آن اطمینان حاصل کنید.</p>
+      </div>
+      <button type="button" class="btn" onclick="closeHealthModal()">متوجه شدم ✅</button>
     </div>
+  </div>
+</div>
 
-    <script>
-        // ================= داده‌های اولیه (دسته‌بندی شده با تخفیف و فروشنده) =================
-        const foodCategories = {
-            restaurant: [
-                { id: 1, name: 'چلوکباب کوبیده', price: 250000, discount: 15, sellerId: 1, img: 'https://via.placeholder.com/80' },
-                { id: 2, name: 'قیمه بادمجان', price: 180000, discount: 0, sellerId: 1, img: 'https://via.placeholder.com/80' },
-                { id: 3, name: 'لوبیا پلو', price: 140000, discount: 30, sellerId: 2, img: 'https://via.placeholder.com/80' },
-                { id: 4, name: 'زرشک پلو با مرغ', price: 220000, discount: 10, sellerId: 2, img: 'https://via.placeholder.com/80' }
-            ],
-            catering: [
-                { id: 5, name: 'باقالی پلو با ماهیچه', price: 320000, discount: 20, sellerId: 1, img: 'https://via.placeholder.com/80' },
-                { id: 6, name: 'عدس پلو مجلسی', price: 200000, discount: 0, sellerId: 3, img: 'https://via.placeholder.com/80' },
-                { id: 7, name: 'ته‌چین مرغ', price: 240000, discount: 5, sellerId: 3, img: 'https://via.placeholder.com/80' }
-            ],
-            fastfood: [
-                { id: 8, name: 'برگر دوبل', price: 180000, discount: 25, sellerId: 2, img: 'https://via.placeholder.com/80' },
-                { id: 9, name: 'پیتزا پپرونی', price: 260000, discount: 0, sellerId: 2, img: 'https://via.placeholder.com/80' },
-                { id: 10, name: 'ساندویچ فلافل', price: 90000, discount: 10, sellerId: 1, img: 'https://via.placeholder.com/80' },
-                { id: 11, name: 'هات داگ ویژه', price: 150000, discount: 15, sellerId: 3, img: 'https://via.placeholder.com/80' }
-            ]
-        };
+<div class="toast" id="toast"></div>
 
-        // ================= لیست فروشندگان (شبیه‌سازی دیتابیس) =================
-        let sellersList = [
-            { id: 1, name: 'رستوران بهار', license: '123456', status: 'active' },
-            { id: 2, name: 'کترینگ آفتاب', license: '654321', status: 'active' },
-            { id: 3, name: 'فست‌فود ستاره', license: '987654', status: 'active' }
-        ];
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
 
-        // ================= تنظیمات فروشنده جاری (شبیه‌سازی) =================
-        const sellerInfo = {
-            hasCourier: true,
-            courierIsFree: false,
-            courierCost: 30000
-        };
-
-        let currentCategory = 'restaurant';
-        let cart = [];
-        let currentFood = null;
-        let appliedCoupon = null;
-
-        // ================= کدهای تخفیف =================
-        const coupons = {
-            'SAFREH20': { discount: 20, type: 'percent' },
-            'WELCOME50': { discount: 50000, type: 'fixed' }
-        };
-
-        // ================= مدیریت صفحات =================
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.add('hidden');
-                page.classList.remove('active');
-            });
-            const targetPage = document.getElementById(pageId);
-            if (targetPage) {
-                targetPage.classList.remove('hidden');
-                targetPage.classList.add('active');
-            }
-            if (pageId === 'page-cart') renderCart();
-            if (pageId === 'page-checkout') {
-                setupCourierOptions();
-                updateDeliveryCost();
-            }
-        }
-
-        // ================= رندر لیست غذاها (با فیلتر فروشنده مسدود) =================
-        function renderFoodList(category = currentCategory) {
-            const container = document.getElementById('foodListContainer');
-            // فیلتر کردن غذاها: فقط غذاهایی که فروشنده‌شان مسدود نشده باشد
-            const foods = (foodCategories[category] || []).filter(food => {
-                const seller = sellersList.find(s => s.id === food.sellerId);
-                return seller && seller.status === 'active';
-            });
-
-            container.innerHTML = '';
-
-            if (foods.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">غذایی در این دسته موجود نیست.</p>';
-                return;
-            }
-
-            foods.forEach(food => {
-                const hasDiscount = food.discount > 0;
-                const finalPrice = hasDiscount ? Math.round(food.price * (1 - food.discount / 100)) : food.price;
-
-                const foodItem = document.createElement('div');
-                foodItem.className = 'food-item';
-                foodItem.onclick = () => openFoodDetails(food);
-                
-                foodItem.innerHTML = `
-                    <div class="food-image-wrapper">
-                        <img src="${food.img}" alt="${food.name}" class="food-img">
-                        ${hasDiscount ? `<span class="discount-badge">${food.discount}٪</span>` : ''}
-                    </div>
-                    <div class="food-details">
-                        <div class="food-name">${food.name}</div>
-                        <div class="food-price-container">
-                            ${hasDiscount 
-                                ? `<span class="old-price">${food.price.toLocaleString()}</span>
-                                   <span class="new-price">${finalPrice.toLocaleString()} تومان</span>`
-                                : `<span class="no-discount-price">${food.price.toLocaleString()} تومان</span>`
-                            }
-                        </div>
-                    </div>`;
-                container.appendChild(foodItem);
-            });
-        }
-
-        // ================= تغییر دسته‌بندی =================
-        function switchCategory(category) {
-            currentCategory = category;
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById(`cat-${category}`);
-            if (activeBtn) activeBtn.classList.add('active');
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) searchInput.value = '';
-            renderFoodList(category);
-        }
-
-        // ================= جستجوی غذا =================
-        function searchFood() {
-            const query = document.getElementById('searchInput').value.trim().toLowerCase();
-            const container = document.getElementById('foodListContainer');
-            // فیلتر غذاهای دسته فعال + فروشنده غیر مسدود
-            const foods = (foodCategories[currentCategory] || []).filter(food => {
-                const seller = sellersList.find(s => s.id === food.sellerId);
-                return seller && seller.status === 'actie';
-            });
-
-            if (query === '') { renderFoodList(currentCategory); return; }
-
-            const results = foods.filter(food => food.name.toLowerCase().includes(query));
-
-            if (results.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:40px 20px; color:#999;">
-                        <p style="font-size:16px;">🍽️</p>
-                        <p>غذای مورد نظر شما موجود نمی‌باشد.</p>
-                    </div>`;
-                return;
-            }
-
-            results.sort((a, b) => a.price - b.price);
-            container.innerHTML = '';
-            results.forEach(food => {
-                const hasDiscount = food.discount > 0;
-                const finalPrice = hasDiscount ? Math.round(food.price * (1 - food.discount / 100)) : food.price;
-                
-                const foodItem = document.createElement('div');
-                foodItem.className = 'food-item';
-                foodItem.onclick = () => openFoodDetails(food);
-                foodItem.innerHTML = `
-                    <div class="food-image-wrapper">
-                        <img src="${food.img}" alt="${food.name}" class="food-img">
-                        ${hasDiscount ? `<span class="discount-badge">${food.discount}٪</span>` : ''}
-                    </div>
-                    <div class="food-details">
-                        <div class="food-name">${food.name}</div>
-                        <div class="food-price-container">
-                            ${hasDiscount 
-                                ? `<span class="old-price">${food.price.toLocaleString()}</span>
-                                   <span class="new-price">${finalPrice.toLocaleString()} تومان</span>`
-                                : `<span class="no-discount-price">${food.price.toLocaleString()} تومان</span>`
-                            }
-                        </div>
-                    </div>`;
-                container.appendChild(foodItem);
-            });
-        }
-
-        // ================= باز کردن جزئیات غذا =================
-        function openFoodDetails(food) {
-            currentFood = food;
-            const hasDiscount = food.discount > 0;
-            const finalPrice = hasDiscount ? Math.round(food.price * (1 - food.discount / 100)) : food.price;
-            
-            document.getElementById('detail-food-name').innerText = food.name;
-            document.getElementById('detail-food-price').innerHTML = hasDiscount 
-                ? `قیمت پایه: <span style="text-decoration:line-through; color:#999;">${food.price.toLocaleString()}</span> <span style="color:#E53935;">${finalPrice.toLocaleString()} تومان</span>`
-                : `قیمت پایه: ${food.price.toLocaleString()} تومان`;
-            document.getElementById('detail-img-element').src = food.img;
-            document.querySelectorAll('.addon').forEach(cb => cb.checked = false);
-            calculateDetailTotal();
-            showPage('page-details');
-        }
-
-        // ================= آکاردئون =================
-        function toggleCategory(header) {
-            const body = header.nextElementSibling;
-            body.classList.toggle('open');
-            const arrow = header.querySelector('span:last-child');
-            arrow.innerText = body.classList.contains('open') ? '▲' : '▼';
-        }
-
-        // ================= محاسبه قیمت در جزئیات =================
-        function calculateDetailTotal() {
-            if (!currentFood) return;
-            const hasDiscount = currentFood.discount > 0;
-            const basePrice = hasDiscount ? Math.round(currentFood.price * (1 - currentFood.discount / 100)) : currentFood.price;
-            
-            let total = basePrice;
-            document.querySelectorAll('.addon:checked').forEach(cb => {
-                total += parseInt(cb.getAttribute('data-price'));
-            });
-            document.getElementById('detail-final-price').innerText = total.toLocaleString();
-        }
-
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('addon')) calculateDetailTotal();
-        });
-
-        // ================= افزودن به سبد =================
-        function addToCart() {
-            if (!currentFood) return;
-            const selectedAddons = [];
-            document.querySelectorAll('.addon:checked').forEach(cb => {
-                selectedAddons.push({ name: cb.getAttribute('data-name'), price: parseInt(cb.getAttribute('data-price')) });
-            });
-            const cartItem = { food: currentFood, addons: selectedAddons };
-            cart.push(cartItem);
-            alert('غذا به سبد خرید اضافه شد.');
-            showPage('page-cart');
-        }
-
-        // ================= رندر سبد خرید =================
-        function renderCart() {
-            const container = document.getElementById('cart-items-container');
-            if (cart.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#999;">سبد خرید شما خالی است.</p>';
-                return;
-            }
-            container.innerHTML = '';
-            let grandTotal = 0;
-            
-            cart.forEach((item) => {
-                const hasDiscount = item.food.discount > 0;
-                const finalPrice = hasDiscount ? Math.round(item.food.price * (1 - item.food.discount / 100)) : item.food.price;
-                const itemTotal = finalPrice + item.addons.reduce((sum, a) => sum + a.price, 0);
-                grandTotal += itemTotal;
-                
-                let addonsHtml = item.addons.length > 0 ? item.addons.map(a => `+ ${a.name} (${a.price.toLocaleString()})`).join('<br>') : '';
-                const div = document.createElement('div');
-                div.className = 'cart-item';
-                div.innerHTML = `<div><strong>${item.food.name}</strong>${hasDiscount ? ` <small style="color:#E53935;">(${item.food.discount}٪ تخفیف)</small>` : ''}<br><small style="color:#777;">${addonsHtml}</small></div><div>${itemTotal.toLocaleString()} تومان</div>`;
-                container.appendChild(div);
-            });
-
-            let finalTotal = grandTotal;
-            if (appliedCoupon) {
-                if (appliedCoupon.type === 'percent') {
-                    finalTotal = grandTotal - Math.round(grandTotal * (appliedCoupon.discount / 100));
-                } else {
-                    finalTotal = Math.max(0, grandTotal - appliedCoupon.discount);
-                }
-            }
-
-            const totalDiv = document.createElement('div');
-            totalDiv.style.cssText = 'margin-top:15px; font-weight:bold; text-align:left;';
-            totalDiv.innerHTML = `
-                <div>جمع کل: ${grandTotal.toLocaleString()} تومان</div>
-                ${appliedCoupon ? `<div style="color:#4CAF50;">تخفیف: -${(grandTotal - finalTotal).toLocaleString()} تومان</div>` : ''}
-                <div style="font-size:18px; color:#673AB7; margin-top:5px;">قابل پرداخت: ${finalTotal.toLocaleString()} تومان</div>
-            `;
-            container.appendChild(totalDiv);
-        }
-
-        // ================= اعمال کد تخفیف =================
-        function applyCoupon() {
-            const code = document.getElementById('couponCode').value.trim().toUpperCase();
-            const message = document.getElementById('couponMessage');
-
-            if (!code) {
-                message.style.color = '#E53935';
-                message.innerText = 'لطفاً کد تخفیف را وارد کنید.';
-                return;
-            }
-
-            if (coupons[code]) {
-                appliedCoupon = { code: code, ...coupons[code] };
-                message.style.color = '#4CAF50';
-                if (appliedCoupon.type === 'percent') {
-                    message.innerText = `✅ کد تخفیف ${appliedCoupon.discount}٪ اعمال شد.`;
-                } else {
-                    message.innerText = `✅ کد تخفیف ${appliedCoupon.discount.toLocaleString()} تومانی اعمال شد.`;
-                }
-                renderCart();
-            } else {
-                message.style.color = '#E53935';
-                message.innerText = '❌ کد تخفیف نامعتبر است.';
-                appliedCoupon = null;
-                renderCart();
-            }
-        }
-
-        // ================= محاسبه هزینه پیک =================
-        function setupCourierOptions() {
-            const courierLabel = document.getElementById('courierLabel');
-            const courierInput = courierLabel.querySelector('input');
-            const courierPriceText = document.getElementById('courierPriceText');
-            const noCourierMessage = document.getElementById('noCourierMessage');
-
-            if (!sellerInfo.hasCourier) {
-                courierInput.disabled = true;
-                courierLabel.classList.add('disabled');
-                courierPriceText.innerText = '';
-                noCourierMessage.style.display = 'block';
-            } else if (sellerInfo.courierIsFree) {
-                courierPriceText.innerText = '(رایگان)';
-                courierPriceText.style.color = '#4CAF50';
-            } else {
-                courierPriceText.innerText = `(هزینه: ${sellerInfo.courierCost.toLocaleString()} تومان)`;
-                courierPriceText.style.color = '#673AB7';
-            }
-        }
-
-        function updateDeliveryCost() {
-            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
-            const addressSection = document.getElementById('addressSection');
-            
-            if (deliveryType === 'courier') {
-                addressSection.style.display = 'block';
-            } else {
-                addressSection.style.display = 'none';
-            }
-
-            let cartTotal = 0;
-            cart.forEach(item => {
-                const hasDiscount = item.food.discount > 0;
-                const finalPrice = hasDiscount ? Math.round(item.food.price * (1 - item.food.discount / 100)) : item.food.price;
-                cartTotal += finalPrice + item.addons.reduce((sum, a) => sum + a.price, 0);
-            });
-
-            if (appliedCoupon) {
-                if (appliedCoupon.type === 'percent') {
-                    cartTotal = cartTotal - Math.round(cartTotal * (appliedCoupon.discount / 100));
-                } else {
-                    cartTotal = Math.max(0, cartTotal - appliedCoupon.discount);
-                }
-            }
-
-            let deliveryCost = 0;
-            if (deliveryType === 'courier' && sellerInfo.hasCourier && !sellerInfo.courierIsFree) {
-                deliveryCost = sellerInfo.courierCost;
-            }
-
-            const finalTotal = cartTotal + deliveryCost;
-            document.getElementById('checkoutTotal').innerText = finalTotal.toLocaleString() + ' تومان';
-        }
-
-        // ================= ثبت نهایی سفارش =================
-        function finalizeOrder() {
-            if (cart.length === 0) { alert('سبد خرید شما خالی است!'); return; }
-
-            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
-
-            if (deliveryType === 'courier') {
-                if (!sellerInfo.hasCourier) {
-                    alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.');
-                    return;
-                }
-                const address = document.getElementById('deliveryAddress').value.trim();
-                if (!address) {
-                    alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.');
-                    return;
-                }
-            }
-
-            console.log('سفارش ثبت شد:', { items: cart, delivery: deliveryType });
-            showPage('page-contact-seller');
-            cart = [];
-        }
-
-        // ================= راه‌های ارتباطی با فروشنده =================
-        function contactSeller(method) {
-            const sellerPhone = '09121234567';
-            const sellerName = 'رستوران سفره سبز';
-
-            if (method === 'call') {
-                window.location.href = `tel:${sellerPhone}`;
-            } else if (method === 'sms') {
-                window.location.href = `sms:${sellerPhone}?body=سلام، در مورد سفارش خود سوال داشتم.`;
-            } else if (method === 'chat') {
-                alert(`💬 چت آنلاین با ${sellerName}\n\nاین بخش به زودی به یک سیستم چت واقعی متصل می‌شود.`);
-            }
-        }
-
-        // ================= منوی کاربر =================
-        function toggleUserMenu() { document.getElementById("userDropdown").classList.toggle("show"); }
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-btn')) {
-                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
-            }
-        };
-
-        // ================= صفحات مشتری و فروشنده =================
-        function showCustomerPage(page) {
-            document.getElementById("userDropdown").classList.remove("show");
-            if (page === 'orders') showPage('page-customer-orders');
-            else if (page === 'addresses') showPage('page-customer-addresses');
-        }
-        function showSellerPage(page) {
-            document.getElementById("userDropdown").classList.remove("show");
-            if (page === 'store-settings') showPage('page-seller-store-settings');
-            else if (page === 'register') showPage('page-seller-register');
-            else if (page === 'add-food') showPage('page-seller-add-food');
-            else if (page === 'received-orders') showPage('page-seller-received-orders');
-            else if (page === 'subscription') showPage('page-seller-subscription');
-        }
-
-        // ================= تنظیمات پیک فروشنده =================
-        function updateSellerCourierSettings() {
-            const status = document.querySelector('input[name="courierStatus"]:checked').value;
-            const costSection = document.getElementById('courierCostSection');
-            if (status === 'paid') {
-                costSection.style.display = 'block';
-            } else {
-                costSection.style.display = 'none';
-            }
-        }
-
-        function saveSellerSettings() {
-            const status = document.querySelector('input[name="courierStatus"]:checked').value;
-            
-            if (status === 'no') {
-                sellerInfo.hasCourier = false;
-                sellerInfo.courierIsFree = false;
-                sellerInfo.courierCost = 0;
-            } else if (status === 'free') {
-                sellerInfo.hasCourier = true;
-                sellerInfo.courierIsFree = true;
-                sellerInfo.courierCost = 0;
-            } else if (status === 'paid') {
-                const cost = parseInt(document.getElementById('courierCostInput').value);
-                if (!cost || cost < 0) {
-                    alert('لطفاً هزینه پیک را به درستی وارد کنید.');
-                    return;
-                }
-                sellerInfo.hasCourier = true;
-                sellerInfo.courierIsFree = false;
-                sellerInfo.courierCost = cost;
-            }
-
-            alert('✅ تنظیمات فروشگاه با موفقیت ذخیره شد.');
-            showPage('page-home');
-        }
-
-        // ================= ثبت‌نام فروشنده =================
-        function registerSeller() {
-            const nationalId = document.getElementById('sellerNationalId').value.trim();
-            const license = document.getElementById('sellerLicense').value.trim();
-
-            if (nationalId.length !== 10 || isNaN(nationalId)) {
-                alert('لطفاً کد ملی معتبر (۱۰ رقم) وارد کنید.');
-                return;
-            }
-
-            if (!license) {
-                alert('لطفاً شماره جواز کسب را وارد کنید.');
-                return;
-            }
-
-            alert('✅ درخواست ثبت‌نام شما با موفقیت ارسال شد.\n\nمدارک شما در حال بررسی است.');
-            showPage('page-home');
-        }
-
-        // ================= پنل مدیریت (مسدودسازی فروشندگان) =================
-        function openAdminPanel() {
-            document.getElementById("userDropdown").classList.remove("show");
-            renderAdminSellers();
-            showPage('page-admin-sellers');
-        }
-
-        function renderAdminSellers() {
-            const container = document.getElementById('adminSellersContainer');
-            container.innerHTML = '';
-
-            sellersList.forEach(seller => {
-                const div = document.createElement('div');
-                div.style.cssText = 'background:#fff; padding:15px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;';
-                
-                const statusText = seller.status === 'active' 
-                    ? '<span style="color:#4CAF50; font-weight:bold;">فعال</span>' 
-                    : '<span style="color:#E53935; font-weight:bold;">مسدود</span>';
-                
-                const btnText = seller.status === 'active' ? '🚫 مسدود کردن' : '✅ فعال کردن';
-                const btnColor = seller.status === 'active' ? '#E53935' : '#4CAF50';
-
-                div.innerHTML = `
-                    <div>
-                        <p style="font-weight:bold;">${seller.name}</p>
-                        <p style="font-size:12px; color:#777;">جواز: ${seller.license}</p>
-                        <p style="font-size:12px;">وضعیت: ${statusText}</p>
-                    </div>
-                    <button onclick="toggleSellerStatus(${seller.id})" 
-                            style="background:${btnColor}; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px;">
-                        ${btnText}
-                    </button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function toggleSellerStatus(sellerId) {
-            const seller = sellersList.find(s => s.id === sellerId);
-            if (seller) {
-                if (seller.status === 'active') {
-                    seller.status = 'banned';
-                    alert(`فروشنده «${seller.name}» با موفقیت مسدود شد.`);
-                } else {
-                    seller.status = 'active';
-                    alert(`فروشنده «${seller.name}» دوباره فعال شد.`);
-                }
-                renderAdminSellers();
-                renderFoodList(currentCategory); // به‌روزرسانی لیست غذاها در صفحه اصلی
-            }
-        }
-
-        // ================= انتخاب محل و GPS =================
-        const locationsData = {
-            tehran: ["تهران", "شهریار", "اسلامشهر", "ورامین"],
-            isfahan: ["اصفهان", "کاشان", "نجف‌آباد", "خمینی‌شهر"],
-            fars: ["شیراز", "مرودشت", "کازرون", "جهرم"],
-            khorasan: ["مشهد", "نیشابور", "سبزوار", "تربت حیدریه"]
-        };
-
-        function openLocationModal() { document.getElementById('locationModal').classList.remove('hidden'); }
-        function closeLocationModal() { document.getElementById('locationModal').classList.add('hidden'); }
-
-        function updateCities() {
-            const province = document.getElementById('provinceSelect').value;
-            const citySelect = document.getElementById('citySelect');
-            citySelect.innerHTML = '';
-            if (province && locationsData[province]) {
-                const def = document.createElement('option');
-                def.value = ""; def.text = "-- انتخاب شهر --";
-                citySelect.appendChild(def);
-                locationsData[province].forEach(city => {
-                    const opt = document.createElement('option');
-                    opt.value = city; opt.text = city;
-                    citySelect.appendChild(opt);
-                });
-            } else {
-                const def = document.createElement('option');
-                def.value = ""; def.text = "-- ابتدا استان را انتخاب کنید --";
-                citySelect.appendChild(def);
-            }
-        }
-
-        function confirmLocation() {
-            const p = document.getElementById('provinceSelect');
-            const c = document.getElementById('citySelect');
-            if (!p.value || !c.value) { alert('لطفاً استان و شهر خود را انتخاب کنید.'); return; }
-            document.getElementById('locationText').innerText = c.options[c.selectedIndex].text;
-            closeLocationModal();
-        }
-
-        function getLocation() {
-            const locationText = document.getElementById('locationText');
-            if (!navigator.geolocation) {
-                alert('مرورگر شما از GPS پشتیبانی نمی‌کند.');
-                return;
-            }
-            locationText.innerText = 'در حال تشخیص...';
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    locationText.innerText = `موقعیت (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
-                    setTimeout(() => { locationText.innerText = 'تهران (تشخیص خودکار)'; }, 1500);
-                },
-                function() {
-                    alert('خطا در تشخیص موقعیت.');
-                    locationText.innerText = 'انتخاب محل';
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-
-    محل';
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-
-        // ================= راه‌اندازی اولیه =================
-        document.addEventListener('DOMContentLoaded', () => { 
-            renderFoodList('restaurant');
-        });
-    </script>
 </body>
 </html>
