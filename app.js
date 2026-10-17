@@ -1,74 +1,13 @@
-/* ═══════════════════════════════════════════════════
-   سفره سبز (Sofreh Sabz) - app.js
-   Designed & Developed by alavi1405
-   Copyright © ۱۴۰۵ - All Rights Reserved
-   اثر انگشت: SAFREH-SABZ-1405-ALAVI-A1B2C3D4
-═══════════════════════════════════════════════════ */
-
-const DB = {
-  get sellers() { return JSON.parse(localStorage.getItem('safreh_sellers') || '[]'); },
-  set sellers(v) { localStorage.setItem('safreh_sellers', JSON.stringify(v)); },
-  get listings() { return JSON.parse(localStorage.getItem('safreh_listings') || '[]'); },
-  set listings(v) { localStorage.setItem('safreh_listings', JSON.stringify(v)); },
-  get orders() { return JSON.parse(localStorage.getItem('safreh_orders') || '[]'); },
-  set orders(v) { localStorage.setItem('safreh_orders', JSON.stringify(v)); },
-  get cart() { return JSON.parse(localStorage.getItem('safreh_cart') || '[]'); },
-  set cart(v) { localStorage.setItem('safreh_cart', JSON.stringify(v)); }
-};
-
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-
-function toast(msg, isError) {
-  const t = $('#toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.toggle('error', !!isError);
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
+function toast(msg, isError) { const t = $('#toast'); if (!t) return; t.textContent = msg; t.classList.toggle('error', !!isError); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
 function toman(n) { return Number(n).toLocaleString('fa-IR'); }
-
-function calcDiscount(oldP, newP) {
-  if (!oldP || oldP <= newP) return 0;
-  return Math.round((1 - newP / oldP) * 100);
-}
-
-function typeLabel(t) {
-  return { home: 'خانگی', restaurant: 'رستوران', fastfood: 'فست‌فود', catering: 'کترینگ' }[t] || t;
-}
-
-function renderStars(rating) {
-  const r = Number(rating) || 0;
-  const full = Math.floor(r);
-  const half = r - full >= 0.5;
-  let s = '';
-  for (let i = 0; i < 5; i++) {
-    if (i < full) s += '★';
-    else if (i === full && half) s += '⯨';
-    else s += '☆';
-  }
-  return s;
-}
-
-function getComments(id) { return JSON.parse(localStorage.getItem('safreh_comments_' + id) || '[]'); }
-function saveComments(id, c) { localStorage.setItem('safreh_comments_' + id, JSON.stringify(c)); }
-
-function recalcRating(id) {
-  const cs = getComments(id);
-  const l = DB.listings.find(x => x.id === id);
-  if (!l) return;
-  if (!cs.length) { l.rating = 0; l.ratingCount = 0; }
-  else {
-    const sum = cs.reduce((s, c) => s + c.rating, 0);
-    l.rating = (sum / cs.length).toFixed(1);
-    l.ratingCount = cs.length;
-  }
-  DB.listings = DB.listings;
-}
+function calcDiscount(oldP, newP) { if (!oldP || oldP <= newP) return 0; return Math.round((1 - newP / oldP) * 100); }
+function typeLabel(t) { return { home: 'خانگی', restaurant: 'رستوران', fastfood: 'فست‌فود', catering: 'کترینگ' }[t] || t; }
+function renderStars(rating) { const r = Number(rating) || 0; const full = Math.floor(r); const half = r - full >= 0.5; let s = ''; for (let i = 0; i < 5; i++) { if (i < full) s += '★'; else if (i === full && half) s += '⯨'; else s += '☆'; } return s; }
 
 let currentMode = 'customer';
+let searchQuery = '';
 
 $$('.mode-switch button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -76,21 +15,13 @@ $$('.mode-switch button').forEach(btn => {
     btn.classList.add('active');
     currentMode = btn.dataset.mode;
     if (currentMode === 'customer') {
-      $('#tabsCustomer').style.display = 'flex';
-      $('#tabsSeller').style.display = 'none';
-      $$('#tabsCustomer button').forEach(b => b.classList.remove('active'));
-      $$('section.tab').forEach(s => s.classList.remove('active'));
-      $('#tabsCustomer button[data-tab="foods"]').classList.add('active');
-      $('#tab-foods').classList.add('active');
-      renderFoods();
+      $('#tabsCustomer').style.display = 'flex'; $('#tabsSeller').style.display = 'none';
+      $$('#tabsCustomer button').forEach(b => b.classList.remove('active')); $$('section.tab').forEach(s => s.classList.remove('active'));
+      $('#tabsCustomer button[data-tab="foods"]').classList.add('active'); $('#tab-foods').classList.add('active'); loadFoods();
     } else {
-      $('#tabsCustomer').style.display = 'none';
-      $('#tabsSeller').style.display = 'flex';
-      $$('#tabsSeller button').forEach(b => b.classList.remove('active'));
-      $$('section.tab').forEach(s => s.classList.remove('active'));
-      $('#tabsSeller button[data-tab="newlisting"]').classList.add('active');
-      $('#tab-newlisting').classList.add('active');
-      fillSellerSelect();
+      $('#tabsCustomer').style.display = 'none'; $('#tabsSeller').style.display = 'flex';
+      $$('#tabsSeller button').forEach(b => b.classList.remove('active')); $$('section.tab').forEach(s => s.classList.remove('active'));
+      $('#tabsSeller button[data-tab="newlisting"]').classList.add('active'); $('#tab-newlisting').classList.add('active'); loadSellerSelect();
     }
   });
 });
@@ -98,643 +29,161 @@ $$('.mode-switch button').forEach(btn => {
 $$('nav.tabs').forEach(nav => {
   nav.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
-      nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      $$('section.tab').forEach(s => s.classList.remove('active'));
-      $('#tab-' + btn.dataset.tab).classList.add('active');
+      nav.querySelectorAll('button').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      $$('section.tab').forEach(s => s.classList.remove('active')); $('#tab-' + btn.dataset.tab).classList.add('active');
       const t = btn.dataset.tab;
-      if (t === 'foods') renderFoods();
-      if (t === 'cart') renderCart();
-      if (t === 'myorders') renderMyOrders();
-      if (t === 'newlisting') fillSellerSelect();
-      if (t === 'sellerorders') renderSellerOrders();
-      if (t === 'mysellers') renderSellers();
+      if (t === 'foods') loadFoods(); if (t === 'cart') renderCart(); if (t === 'myorders') loadMyOrders();
+      if (t === 'newlisting') loadSellerSelect(); if (t === 'sellerorders') loadSellerOrders(); if (t === 'mysellers') loadSellers();
     });
   });
 });
 
-let searchQuery = '';
-/* ═══════════ تماس و چت امن ═══════════ */
-window.contactSeller = function(listingId, method) {
-  const l = DB.listings.find(x => x.id === listingId);
-  if (!l) { toast('❌ غذا پیدا نشد', true); return; }
-  const s = DB.sellers.find(x => x.id === l.sellerId);
-  if (!s) { toast('❌ فروشنده پیدا نشد', true); return; }
-  if (!s.phone) { toast('❌ فروشنده شماره تماس ثبت نکرده', true); return; }
+const searchInp = $('#searchInput');
+if (searchInp) searchInp.addEventListener('input', e => { searchQuery = e.target.value.trim().toLowerCase(); loadFoods(); });
+const searchBtn = $('#searchBtn');
+if (searchBtn) searchBtn.addEventListener('click', () => { searchQuery = ($('#searchInput')?.value || '').trim().toLowerCase(); loadFoods(); });
 
-  const phone = s.phone.replace(/[^0-9]/g, '');
-  const message = `سلام 👋\nاز اپ سفره سبز مزاحم می‌شم.\nدرباره‌ی «${l.title}» سوال داشتم.\nممنون! 🍲`;
-
-  if (method === 'whatsapp') {
-    // واتساپ (شماره با 98 شروع می‌شه برای ایران)
-    let waPhone = phone;
-    if (waPhone.startsWith('0')) waPhone = '98' + waPhone.slice(1);
-    window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(message)}`, '_blank');
-    toast('✅ واتساپ باز شد');
-  } else if (method === 'sms') {
-    // پیامک
-    window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
-    toast('✅ پیامک باز شد');
-  } else if (method === 'call') {
-    // تماس تلفنی
-    window.location.href = `tel:${phone}`;
-    toast('✅ در حال تماس...');
-  } else if (method === 'telegram') {
-    // تلگرام
-    let tgPhone = phone.startsWith('0') ? '+98' + phone.slice(1) : phone;
-    window.open(`https://t.me/${tgPhone}`, '_blank');
-    toast('✅ تلگرام باز شد');
-  }
-};
-function renderFoods() {
-  const items = DB.listings;
-  const sellers = DB.sellers;
-  const wrap = $('#foodsList');
-  if (!wrap) return;
-
-  let filtered = items;
+async function loadFoods() {
+  const wrap = $('#foodsList'); if (!wrap) return; wrap.innerHTML = '<div class="empty">⏳ در حال دریافت...</div>';
+  const { data: listings, error } = await db.from('listings').select('*').order('created_at', { ascending: false });
+  if (error) { wrap.innerHTML = '<div class="empty">❌ خطا در دریافت</div>'; return; }
+  const { data: sellers } = await db.from('sellers').select('*');
+  let filtered = listings || [];
   if (searchQuery) {
-    filtered = items.filter(l => {
-      const s = sellers.find(x => x.id === l.sellerId);
-      const text = (l.title + ' ' + (l.description || '') + ' ' + (s ? s.name + ' ' + s.address : '')).toLowerCase();
-      return text.includes(searchQuery);
-    });
+    filtered = filtered.filter(l => { const s = (sellers || []).find(x => x.id === l.seller_id); const text = (l.title + ' ' + (l.description || '') + ' ' + (s ? s.name + ' ' + s.address : '')).toLowerCase(); return text.includes(searchQuery); });
   }
-
-  if (!filtered.length) {
-    wrap.innerHTML = '<div class="empty"><span class="empty-icon">🍽️</span>هنوز آگهی‌ای ثبت نشده.<br>اگه فروشنده‌ای، از حالت فروشنده غذا اضافه کن!</div>';
-    return;
-  }
-
-  wrap.innerHTML = '<div class="food-table">' + filtered.slice().reverse().map(l => {
-    const s = sellers.find(x => x.id === l.sellerId);
-    const disc = calcDiscount(l.originalPrice, l.discountedPrice);
-    const out = l.quantity <= 0;
-    const rating = l.rating || 0;
-    const img = l.image
-      ? `<img src="${l.image}" alt="${l.title}" onerror="this.outerHTML='🍲'">`
-      : '🍲';
-    return `
-      <div class="food-row" onclick="openFoodDetail('${l.id}')">
-        <div class="food-thumb">
-          ${img}
-          ${disc ? `<span class="discount-tag">${disc}٪</span>` : ''}
-        </div>
-        <div class="food-info">
-          <div class="food-title">${l.title}</div>
-          <div class="food-meta">
-            <span>🏪 ${s ? s.name : 'ناشناس'}</span>
-            <span class="dot">•</span>
-            <span>📍 ${s ? (s.address || '').slice(0,22) : '—'}</span>
-          </div>
-          <div class="food-meta">
-            <span>⏱️ ${l.deliveryTime} دقیقه</span>
-            <span class="dot">•</span>
-            <span>📦 ${out ? 'تمام شد' : l.quantity + ' پرس'}</span>
-          </div>
-        </div>
-        <div class="food-price">
-          <span class="old">${toman(l.originalPrice)}</span>
-          <span class="new">${toman(l.discountedPrice)} ت</span>
-          <span class="stars-mini">${renderStars(rating)} (${l.ratingCount || 0})</span>
-        </div>
-      </div>`;
+  if (!filtered.length) { wrap.innerHTML = `<div class="empty"><span class="empty-icon">🍽️</span>${searchQuery ? 'نتیجه‌ای پیدا نشد' : 'هنوز آگهی‌ای نیست.'}</div>`; return; }
+  wrap.innerHTML = '<div class="food-table">' + filtered.map(l => {
+    const s = (sellers || []).find(x => x.id === l.seller_id); const disc = calcDiscount(l.original_price, l.discounted_price); const out = l.quantity <= 0; const rating = l.rating || 0;
+    const img = l.image ? `<img src="${l.image}" onerror="this.outerHTML='🍲'">` : '🍲';
+    return `<div class="food-row" onclick="openFoodDetail('${l.id}')"><div class="food-thumb">${img}${disc ? `<span class="discount-tag">${disc}٪</span>` : ''}</div><div class="food-info"><div class="food-title">${l.title}</div><div class="food-meta"><span>🏪 ${s ? s.name : 'ناشناس'}</span><span class="dot">•</span><span>📍 ${s ? (s.address || '').slice(0,20) : '—'}</span></div><div class="food-meta"><span>⏱️ ${l.delivery_time} دقیقه</span><span class="dot">•</span><span>📦 ${out ? 'تمام شد' : l.quantity + ' پرس'}</span></div></div><div class="food-price"><span class="old">${toman(l.original_price)}</span><span class="new">${toman(l.discounted_price)} ت</span><span class="stars-mini">${renderStars(rating)} (${l.rating_count || 0})</span></div></div>`;
   }).join('') + '</div>';
 }
-window.openFoodDetail = function(id) {
-  const l = DB.listings.find(x => x.id === id);
+
+window.openFoodDetail = async function(id) {
+  const { data: l } = await db.from('listings').select('*').eq('id', id).single();
+  const { data: s } = await db.from('sellers').select('*').eq('id', l.seller_id).single();
   if (!l) return;
-  const s = DB.sellers.find(x => x.id === l.sellerId);
-  const disc = calcDiscount(l.originalPrice, l.discountedPrice);
-  const out = l.quantity <= 0;
-  const img = l.image
-    ? `<img src="${l.image}" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px" onerror="this.style.display='none'">`
-    : `<div style="width:100%;height:140px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:12px">🍲</div>`;
-
+  const disc = calcDiscount(l.original_price, l.discounted_price); const out = l.quantity <= 0;
+  const img = l.image ? `<img src="${l.image}" style="width:100%;height:180px;object-fit:cover;border-radius:12px;margin-bottom:12px">` : `<div style="width:100%;height:140px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:12px">🍲</div>`;
   const sellerPhone = s && s.phone ? s.phone : '';
-  const contactButtons = sellerPhone ? `
-    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px;margin-top:12px">
-      <p style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">📞 راه‌های تماس با فروشنده:</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <button class="btn small" style="background:linear-gradient(135deg,#25D366,#128C7E);margin:0" onclick="contactSeller('${l.id}','whatsapp')">💬 واتساپ</button>
-        <button class="btn small blue" style="margin:0" onclick="contactSeller('${l.id}','telegram')">✈️ تلگرام</button>
-        <button class="btn small" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin:0" onclick="contactSeller('${l.id}','sms')">📨 پیامک</button>
-        <button class="btn small danger" style="margin:0" onclick="contactSeller('${l.id}','call')">📞 تماس</button>
-      </div>
-      <p style="font-size:11px;color:#6b7280;text-align:center;margin-top:8px">🔒 پیام از قبل نوشته شده — فقط ارسال کن</p>
-    </div>
-  ` : `<div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:10px;margin-top:12px">
-    <p style="font-size:12px;color:#dc2626;text-align:center">⚠️ فروشنده شماره تماس ثبت نکرده</p>
-  </div>`;
-
-  $('#foodDetailContent').innerHTML = `
-    ${img}
-    <h3 style="color:#15803d;font-size:18px;margin-bottom:8px">${l.title}</h3>
-    <p style="font-size:13px;color:#374151;margin-bottom:8px">${l.description || ''}</p>
-    <div class="price-row">
-      <span class="old-price">${toman(l.originalPrice)} ت</span>
-      <span class="new-price">${toman(l.discountedPrice)} ت</span>
-      ${disc ? `<span class="discount-badge">${disc}٪ تخفیف</span>` : ''}
-    </div>
-    <div class="meta" style="margin-bottom:10px">
-      <span class="chip ${out ? 'red' : 'green'}">📦 ${out ? 'تمام شد' : l.quantity + ' پرس'}</span>
-      <span class="chip">⏱️ ${l.deliveryTime} دقیقه</span>
-      <span class="chip blue">🏪 ${s ? s.name : 'ناشناس'}</span>
-      <span class="chip">📍 ${s ? s.address : '—'}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:600">⭐ امتیاز:</span>
-      <span class="stars">${renderStars(l.rating || 0)}</span>
-      <span style="font-size:12px;color:#6b7280">(${l.ratingCount || 0} نظر)</span>
-    </div>
-    ${contactButtons}
-    <div style="display:flex;gap:6px;margin-top:12px">
-      <button class="btn small blue" style="flex:1;margin:0" onclick="openReviewModal('${l.id}');closeFoodDetail()">💬 ثبت نظر</button>
-      <button class="btn small gray" style="flex:1;margin:0" onclick="openCommentsModal('${l.id}')">📖 نظرات</button>
-    </div>
-    ${out
-      ? `<button class="btn" disabled style="margin-top:12px">❌ ناموجود</button>`
-      : `<button class="btn" onclick="addToCart('${l.id}');closeFoodDetail()" style="margin-top:12px">🛒 افزودن به سبد</button>`}
-  `;
+  const contactButtons = sellerPhone ? `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:12px;margin-top:12px"><p style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:8px">📞 راه‌های تماس:</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><button class="btn small" style="background:linear-gradient(135deg,#25D366,#128C7E);margin:0" onclick="contactSeller('${l.id}','whatsapp')">💬 واتساپ</button><button class="btn small blue" style="margin:0" onclick="contactSeller('${l.id}','telegram')">✈️ تلگرام</button><button class="btn small" style="background:linear-gradient(135deg,#f59e0b,#d97706);margin:0" onclick="contactSeller('${l.id}','sms')">📨 پیامک</button><button class="btn small danger" style="margin:0" onclick="contactSeller('${l.id}','call')">📞 تماس</button></div></div>` : '';
+  $('#foodDetailContent').innerHTML = `${img}<h3 style="color:#15803d;font-size:18px;margin-bottom:8px">${l.title}</h3><p style="font-size:13px;color:#374151;margin-bottom:8px">${l.description || ''}</p><div class="price-row"><span class="old-price">${toman(l.original_price)} ت</span><span class="new-price">${toman(l.discounted_price)} ت</span>${disc ? `<span class="discount-badge">${disc}٪ تخفیف</span>` : ''}</div><div class="meta" style="margin-bottom:10px"><span class="chip ${out ? 'red' : 'green'}">📦 ${out ? 'تمام شد' : l.quantity + ' پرس'}</span><span class="chip">⏱️ ${l.delivery_time} دقیقه</span><span class="chip blue">🏪 ${s ? s.name : 'ناشناس'}</span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:13px;font-weight:600">⭐ امتیاز:</span><span class="stars">${renderStars(l.rating || 0)}</span><span style="font-size:12px;color:#6b7280">(${l.rating_count || 0} نظر)</span></div>${contactButtons}<button class="btn small blue" onclick="openReviewModal('${l.id}');closeFoodDetail()" style="margin-top:10px">💬 ثبت نظر</button><button class="btn small gray" onclick="openCommentsModal('${l.id}')">📖 نظرات</button>${out ? `<button class="btn" disabled>❌ ناموجود</button>` : `<button class="btn" onclick="addToCart('${l.id}');closeFoodDetail()" style="margin-top:12px">🛒 افزودن به سبد</button>`}`;
   $('#foodDetailModal').classList.add('show');
 };
+window.closeFoodDetail = function() { $('#foodDetailModal').classList.remove('show'); };
+$('#closeFoodDetail')?.addEventListener('click', closeFoodDetail);
 
-const closeFoodDetailBtn = $('#closeFoodDetail');
-if (closeFoodDetailBtn) closeFoodDetailBtn.addEventListener('click', closeFoodDetail);
-
-window.addToCart = function(listingId) {
-  const listing = DB.listings.find(l => l.id === listingId);
-  if (!listing) return;
-  if (listing.quantity <= 0) { toast('❌ این غذا موجود نیست', true); return; }
-  const cart = DB.cart;
-  const existing = cart.find(c => c.listingId === listingId);
-  if (existing) {
-    if (existing.qty >= listing.quantity) { toast('❌ بیشتر از موجودی نمی‌تونی', true); return; }
-    existing.qty++;
-  } else {
-    cart.push({ listingId, qty: 1 });
-  }
-  DB.cart = cart;
-  updateCartCount();
-  toast('✅ به سبد اضافه شد');
+window.contactSeller = async function(listingId, method) {
+  const { data: l } = await db.from('listings').select('*').eq('id', listingId).single();
+  const { data: s } = await db.from('sellers').select('*').eq('id', l.seller_id).single();
+  if (!s || !s.phone) { toast('❌ فروشنده شماره ندارد', true); return; }
+  const phone = s.phone.replace(/[^0-9]/g, ''); const message = `سلام 👋\nاز اپ سفره سبز مزاحم می‌شم.\nدرباره‌ی «${l.title}» سوال داشتم.\nممنون! 🍲`;
+  if (method === 'whatsapp') { let wa = phone.startsWith('0') ? '98' + phone.slice(1) : phone; window.open(`https://wa.me/${wa}?text=${encodeURIComponent(message)}`, '_blank'); }
+  else if (method === 'sms') window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
+  else if (method === 'call') window.location.href = `tel:${phone}`;
+  else if (method === 'telegram') window.open(`https://t.me/+98${phone.slice(1)}`, '_blank');
 };
 
-function updateCartCount() {
-  const count = DB.cart.reduce((s, c) => s + c.qty, 0);
-  const el = $('#cartCount');
-  if (!el) return;
-  el.textContent = count;
-  el.style.display = count ? 'inline-block' : 'none';
-}
-
-window.changeQty = function(listingId, delta) {
-  const cart = DB.cart;
-  const item = cart.find(c => c.listingId === listingId);
-  if (!item) return;
-  const l = DB.listings.find(x => x.id === listingId);
-  const newQty = item.qty + delta;
-  if (newQty <= 0) { removeFromCart(listingId); return; }
-  if (newQty > l.quantity) { toast('❌ بیشتر از موجودی', true); return; }
-  item.qty = newQty;
-  DB.cart = cart;
-  updateCartCount();
-  renderCart();
+function getCart() { return JSON.parse(localStorage.getItem('safreh_cart') || '[]'); }
+function setCart(v) { localStorage.setItem('safreh_cart', JSON.stringify(v)); updateCartCount(); }
+window.addToCart = async function(id) {
+  const { data: l } = await db.from('listings').select('*').eq('id', id).single();
+  if (!l || l.quantity <= 0) { toast('❌ ناموجود', true); return; }
+  const cart = getCart(); const existing = cart.find(c => c.listingId === id);
+  if (existing) existing.qty++; else cart.push({ listingId: id, qty: 1 });
+  setCart(cart); toast('✅ به سبد اضافه شد');
 };
+function updateCartCount() { const count = getCart().reduce((s, c) => s + c.qty, 0); const el = $('#cartCount'); if (el) { el.textContent = count; el.style.display = count ? 'inline-block' : 'none'; } }
+window.changeQty = function(id, delta) { let cart = getCart(); const item = cart.find(c => c.listingId === id); if (!item) return; item.qty += delta; if (item.qty <= 0) cart = cart.filter(c => c.listingId !== id); setCart(cart); renderCart(); };
+window.removeFromCart = function(id) { setCart(getCart().filter(c => c.listingId !== id)); renderCart(); };
 
-window.removeFromCart = function(listingId) {
-  DB.cart = DB.cart.filter(c => c.listingId !== listingId);
-  updateCartCount();
-  renderCart();
-};
-
-function renderCart() {
-  const cart = DB.cart;
-  const listings = DB.listings;
-  const sellers = DB.sellers;
-  const wrap = $('#cartList');
-  const summary = $('#cartSummary');
-  if (!wrap) return;
-  if (!cart.length) {
-    wrap.innerHTML = '<div class="empty"><span class="empty-icon">🛒</span>سبد خریدت خالیه</div>';
-    summary.innerHTML = '';
-    return;
-  }
-  let total = 0, totalOriginal = 0;
+async function renderCart() {
+  const cart = getCart(); const wrap = $('#cartList'); const summary = $('#cartSummary');
+  if (!cart.length) { wrap.innerHTML = '<div class="empty"><span class="empty-icon">🛒</span>سبد خالیه</div>'; summary.innerHTML = ''; return; }
+  const { data: listings } = await db.from('listings').select('*'); let total = 0, totalOrig = 0;
   wrap.innerHTML = cart.map(c => {
-    const l = listings.find(x => x.id === c.listingId);
-    if (!l) return '';
-    const s = sellers.find(x => x.id === l.sellerId);
-    total += l.discountedPrice * c.qty;
-    totalOriginal += l.originalPrice * c.qty;
-    return `
-      <div class="card">
-        <h3>${l.title}</h3>
-        <p style="font-size:12px">🏪 ${s ? s.name : 'ناشناس'}</p>
-        <div class="price-row">
-          <span class="new-price">${toman(l.discountedPrice)} ت</span>
-          <span style="font-size:12px;color:#6b7280">× ${c.qty} = ${toman(l.discountedPrice * c.qty)} ت</span>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-          <button class="btn small blue" onclick="changeQty('${l.id}', -1)">−</button>
-          <b>${c.qty}</b>
-          <button class="btn small" onclick="changeQty('${l.id}', 1)">+</button>
-          <button class="btn small danger" onclick="removeFromCart('${l.id}')">حذف</button>
-        </div>
-      </div>`;
+    const l = (listings || []).find(x => x.id === c.listingId); if (!l) return '';
+    total += l.discounted_price * c.qty; totalOrig += l.original_price * c.qty;
+    return `<div class="card"><h3>${l.title}</h3><div class="price-row"><span class="new-price">${toman(l.discounted_price)} ت</span><span style="font-size:12px">× ${c.qty} = ${toman(l.discounted_price * c.qty)} ت</span></div><div style="display:flex;gap:8px;margin-top:6px"><button class="btn small blue" onclick="changeQty('${l.id}',-1)">−</button><b>${c.qty}</b><button class="btn small" onclick="changeQty('${l.id}',1)">+</button><button class="btn small danger" onclick="removeFromCart('${l.id}')">حذف</button></div></div>`;
   }).join('');
-  const savings = totalOriginal - total;
-  summary.innerHTML = `
-    <div class="card" style="background:#f0fdf4">
-      <h3>💰 جمع سفارش</h3>
-      <p>مجموع: <span class="old-price">${toman(totalOriginal)} ت</span></p>
-      <p style="color:#16a34a;font-weight:800">قابل پرداخت: ${toman(total)} ت</p>
-      ${savings > 0 ? `<p style="color:#dc2626;font-size:12px">🎉 صرفه‌جویی: ${toman(savings)} ت</p>` : ''}
-      <button class="btn" onclick="openOrderModal()">✅ نهایی کردن</button>
-    </div>`;
+  summary.innerHTML = `<div class="card" style="background:#f0fdf4"><p style="color:#16a34a;font-weight:800">قابل پرداخت: ${toman(total)} ت</p><button class="btn" onclick="openOrderModal()">✅ نهایی کردن</button></div>`;
 }
 
-window.openOrderModal = function() {
-  if (!DB.cart.length) return;
-  const listings = DB.listings;
-  let total = 0;
-  const info = DB.cart.map(c => {
-    const l = listings.find(x => x.id === c.listingId);
-    if (!l) return '';
-    total += l.discountedPrice * c.qty;
-    return `<div style="font-size:12px;color:#374151">🍽️ ${l.title} × ${c.qty} = ${toman(l.discountedPrice * c.qty)} ت</div>`;
-  }).join('');
-  $('#orderFoodInfo').innerHTML = `
-    <div style="background:#f0fdf4;padding:10px;border-radius:10px;margin-bottom:10px">
-      ${info}
-      <div style="border-top:1px solid #dcfce7;margin-top:8px;padding-top:8px;font-weight:700;color:#16a34a">
-        جمع: ${toman(total)} تومان
-      </div>
-    </div>`;
-  $('#orderModal').classList.add('show');
-};
-
-const closeOrderModalBtn = $('#closeOrderModal');
-if (closeOrderModalBtn) closeOrderModalBtn.addEventListener('click', () => $('#orderModal').classList.remove('show'));
-
-const orderFormEl = $('#orderForm');
-if (orderFormEl) {
-  orderFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    const data = Object.fromEntries(f);
-    const listings = DB.listings;
-    const newOrders = [];
-    DB.cart.forEach(c => {
-      const l = listings.find(x => x.id === c.listingId);
-      if (!l) return;
-      l.quantity = Math.max(0, l.quantity - c.qty);
-      l.orderCount = (l.orderCount || 0) + c.qty;
-      newOrders.push({
-        id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
-        listingId: l.id,
-        listingTitle: l.title,
-        sellerId: l.sellerId,
-        sellerName: (DB.sellers.find(s => s.id === l.sellerId) || {}).name || 'ناشناس',
-        qty: c.qty,
-        unitPrice: l.discountedPrice,
-        totalPrice: l.discountedPrice * c.qty,
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
-        customerAddress: data.customerAddress,
-        note: data.note || '',
-        status: 'pending',
-        createdAt: Date.now()
-      });
-    });
-    DB.listings = listings;
-    const orders = DB.orders;
-    orders.push(...newOrders);
-    DB.orders = orders;
-    DB.cart = [];
-    updateCartCount();
-    $('#orderModal').classList.remove('show');
-    e.target.reset();
-    toast('✅ سفارش ثبت شد!');
-    $$('#tabsCustomer button').forEach(b => b.classList.remove('active'));
-    $$('section.tab').forEach(s => s.classList.remove('active'));
-    $('#tabsCustomer button[data-tab="myorders"]').classList.add('active');
-    $('#tab-myorders').classList.add('active');
-    renderMyOrders();
-  });
-}
-
-function renderMyOrders() {
-  const orders = DB.orders.slice().reverse();
-  const wrap = $('#myOrdersList');
-  if (!wrap) return;
-  if (!orders.length) {
-    wrap.innerHTML = '<div class="empty"><span class="empty-icon">📦</span>هنوز سفارشی ثبت نکردی</div>';
-    return;
+window.openOrderModal = function() { $('#orderModal').classList.add('show'); };
+$('#closeOrderModal')?.addEventListener('click', () => $('#orderModal').classList.remove('show'));
+$('#orderForm')?.addEventListener('submit', async e => {
+  e.preventDefault(); const f = new FormData(e.target); const data = Object.fromEntries(f); const cart = getCart();
+  const { data: listings } = await db.from('listings').select('*'); const newOrders = [];
+  for (const c of cart) {
+    const l = listings.find(x => x.id === c.listingId); if (!l) continue;
+    const { data: s } = await db.from('sellers').select('name, phone').eq('id', l.seller_id).single();
+    newOrders.push({ id: Date.now().toString() + Math.random().toString(36).slice(2, 6), listing_id: l.id, listing_title: l.title, seller_id: l.seller_id, seller_name: s?.name || 'ناشناس', seller_phone: s?.phone || '', qty: c.qty, unit_price: l.discounted_price, total_price: l.discounted_price * c.qty, customer_name: data.customerName, customer_phone: data.customerPhone, customer_address: data.customerAddress, note: data.note || '', status: 'pending', created_at: Date.now() });
+    await db.from('listings').update({ quantity: l.quantity - c.qty }).eq('id', l.id);
   }
-  const statusMap = {
-    pending: { label: '⏳ در انتظار', cls: 'orange' },
-    accepted: { label: '✅ تأیید شده', cls: 'green' },
-    delivering: { label: '🛵 در حال ارسال', cls: 'blue' },
-    delivered: { label: '🎉 تحویل داده شد', cls: 'green' },
-    rejected: { label: '❌ رد شده', cls: 'red' }
-  };
-  wrap.innerHTML = orders.map(o => {
-    const st = statusMap[o.status] || statusMap.pending;
-    return `
-      <div class="card">
-        <h3>${o.listingTitle}</h3>
-        <div class="meta">
-          <span class="chip ${st.cls}">${st.label}</span>
-          <span class="chip">🏪 ${o.sellerName}</span>
-          <span class="chip green">📦 ${o.qty} پرس</span>
-        </div>
-        <p style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:700">مبلغ: ${toman(o.totalPrice)} تومان</p>
-        <div style="font-size:11px;color:#9ca3af;margin-top:4px">${new Date(o.createdAt).toLocaleString('fa-IR')}</div>
-      </div>`;
-  }).join('');
-}
-
-function renderSellerOrders() {
-  const orders = DB.orders.slice().reverse();
-  const wrap = $('#sellerOrdersList');
-  if (!wrap) return;
-  if (!orders.length) {
-    wrap.innerHTML = '<div class="empty"><span class="empty-icon">📥</span>هنوز سفارشی دریافت نکردی</div>';
-    return;
-  }
-  const statusMap = {
-    pending: '⏳ در انتظار',
-    accepted: '✅ تأیید شده',
-    delivering: '🛵 در حال ارسال',
-    delivered: '🎉 تحویل شده',
-    rejected: '❌ رد شده'
-  };
-  wrap.innerHTML = orders.map(o => `
-    <div class="card">
-      <h3>${o.listingTitle}</h3>
-      <div class="meta">
-        <span class="chip orange">${statusMap[o.status]}</span>
-        <span class="chip green">📦 ${o.qty} پرس</span>
-        <span class="chip blue">💰 ${toman(o.totalPrice)} ت</span>
-      </div>
-      <div style="margin-top:10px;font-size:13px;background:#f9fafb;padding:10px;border-radius:10px">
-        <p>👤 <b>${o.customerName}</b></p>
-        <p>📞 <a href="tel:${o.customerPhone}" style="color:#0969da">${o.customerPhone}</a></p>
-        <p>📍 ${o.customerAddress}</p>
-        ${o.note ? `<p>📝 ${o.note}</p>` : ''}
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-        <button class="btn small" onclick="updateOrderStatus('${o.id}','accepted')">✅ تأیید</button>
-        <button class="btn small blue" onclick="updateOrderStatus('${o.id}','delivering')">🛵 ارسال</button>
-        <button class="btn small" style="background:linear-gradient(135deg,#15803d,#16a34a)" onclick="updateOrderStatus('${o.id}','delivered')">🎉 تحویل</button>
-        <button class="btn small danger" onclick="updateOrderStatus('${o.id}','rejected')">❌ رد</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-window.updateOrderStatus = function(orderId, status) {
-  const orders = DB.orders;
-  const o = orders.find(x => x.id === orderId);
-  if (!o) return;
-  o.status = status;
-  DB.orders = orders;
-  toast('✅ وضعیت به‌روزرسانی شد');
-  renderSellerOrders();
-};
-
-function fillSellerSelect() {
-  const sel = $('#sellerSelect');
-  if (!sel) return;
-  const sellers = DB.sellers;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— انتخاب فروشنده —</option>' +
-    sellers.map(s => `<option value="${s.id}">${s.name} (${typeLabel(s.type)})</option>`).join('');
-  sel.value = cur;
-}
-
-const listingFormEl = $('#listingForm');
-if (listingFormEl) {
-  listingFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    const data = Object.fromEntries(f);
-    const item = {
-      id: Date.now().toString(),
-      title: data.title,
-      sellerId: data.sellerId,
-      description: data.description || '',
-      image: data.image || '',
-      originalPrice: Number(data.originalPrice),
-      discountedPrice: Number(data.discountedPrice),
-      quantity: Number(data.quantity),
-      deliveryType: data.deliveryType,
-      courierCost: Number(data.courierCost) || 0,
-      deliveryTime: Number(data.deliveryTime),
-      orderCount: 0,
-      rating: 0,
-      ratingCount: 0,
-      createdAt: Date.now()
-    };
-    if (item.discountedPrice > item.originalPrice) {
-      toast('❌ قیمت تخفیف نمی‌تونه بیشتر از اصلی باشه', true);
-      return;
-    }
-    const arr = DB.listings;
-    arr.push(item);
-    DB.listings = arr;
-    e.target.reset();
-    toast('✅ آگهی ثبت شد!');
-  });
-}
-
-function updateLicenseField() {
-  const sellerTypeEl = $('#sellerType');
-  if (!sellerTypeEl) return;
-  const type = sellerTypeEl.value;
-  const needs = ['restaurant', 'fastfood', 'catering'].includes(type);
-  const label = $('#licenseLabel');
-  const input = $('#licenseInput');
-  if (!label || !input) return;
-  if (needs) {
-    label.textContent = 'شماره جواز کسب (وزارت بهداشت)';
-    label.classList.add('required');
-    input.required = true;
-  } else {
-    label.textContent = 'شماره جواز (اختیاری)';
-    label.classList.remove('required');
-    input.required = false;
-  }
-}
-
-const sellerTypeEl = $('#sellerType');
-if (sellerTypeEl) {
-  sellerTypeEl.addEventListener('change', updateLicenseField);
-  updateLicenseField();
-}
-
-const gpsBtnEl = $('#gpsBtn');
-if (gpsBtnEl) {
-  gpsBtnEl.addEventListener('click', () => {
-    const status = $('#gpsStatus');
-    if (!status) return;
-    if (!navigator.geolocation) { status.textContent = '❌ GPS پشتیبانی نمی‌شه'; return; }
-    status.textContent = '⏳ در حال دریافت...';
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        $('#latInput').value = pos.coords.latitude.toFixed(6);
-        $('#lngInput').value = pos.coords.longitude.toFixed(6);
-        status.textContent = `✅ ثبت شد (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
-      },
-      () => { status.textContent = '❌ دسترسی رد شد'; }
-    );
-  });
-}
-
-const sellerFormEl = $('#sellerForm');
-if (sellerFormEl) {
-  sellerFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    const data = Object.fromEntries(f);
-    const seller = {
-      id: Date.now().toString(),
-      name: data.name,
-      type: data.type,
-      phone: data.phone || '',
-      license: data.license || '',
-      address: data.address,
-      lat: data.lat || '',
-      lng: data.lng || '',
-      createdAt: Date.now()
-    };
-    const arr = DB.sellers;
-    arr.push(seller);
-    DB.sellers = arr;
-    e.target.reset();
-    updateLicenseField();
-    $('#gpsStatus').textContent = '';
-    toast('✅ فروشنده ثبت شد!');
-    renderSellers();
-    fillSellerSelect();
-  });
-}
-
-function renderSellers() {
-  const wrap = $('#sellersList');
-  if (!wrap) return;
-  const arr = DB.sellers;
-  if (!arr.length) { wrap.innerHTML = '<div class="empty">هنوز فروشنده‌ای نیست.</div>'; return; }
-  wrap.innerHTML = arr.slice().reverse().map(s => `
-    <div style="border-bottom:1px solid #eee;padding:10px 0">
-      <b>${s.name}</b> <span class="chip green">${typeLabel(s.type)}</span>
-      ${s.license ? `<span class="chip">📜 ${s.license}</span>` : ''}
-      <p style="font-size:12px;color:#6b7280;margin-top:4px">📍 ${s.address}${s.lat ? ` (${s.lat}, ${s.lng})` : ''}</p>
-      ${s.phone ? `<p style="font-size:12px;color:#6b7280">📞 ${s.phone}</p>` : ''}
-    </div>
-  `).join('');
-}
-
-let currentReviewListingId = null;
-let currentRating = 0;
-
-window.openReviewModal = function(listingId) {
-  currentReviewListingId = listingId;
-  currentRating = 0;
-  const l = DB.listings.find(x => x.id === listingId);
-  if (!l) return;
-  $('#reviewFoodInfo').innerHTML = `<div style="background:#f0fdf4;padding:10px;border-radius:10px;margin-bottom:10px;font-size:13px">🍽️ <b>${l.title}</b></div>`;
-  updateStarPicker();
-  $('#ratingInput').value = '';
-  $('#reviewModal').classList.add('show');
-};
-
-function updateStarPicker() {
-  $$('#starPicker span').forEach(s => {
-    const v = Number(s.dataset.star);
-    s.style.color = v <= currentRating ? '#f59e0b' : '#d1d5db';
-  });
-}
-
-$$('#starPicker span').forEach(s => {
-  s.addEventListener('click', () => {
-    currentRating = Number(s.dataset.star);
-    $('#ratingInput').value = currentRating;
-    updateStarPicker();
-  });
+  await db.from('orders').insert(newOrders); setCart([]); $('#orderModal').classList.remove('show'); e.target.reset(); showHealthModal();
 });
 
-const closeReviewModalBtn = $('#closeReviewModal');
-if (closeReviewModalBtn) closeReviewModalBtn.addEventListener('click', () => $('#reviewModal').classList.remove('show'));
+window.showHealthModal = function() { $('#healthModal').classList.add('show'); };
+window.closeHealthModal = function() { $('#healthModal').classList.remove('show'); $$('#tabsCustomer button').forEach(b => b.classList.remove('active')); $$('section.tab').forEach(s => s.classList.remove('active')); $('#tabsCustomer button[data-tab="myorders"]').classList.add('active'); $('#tab-myorders').classList.add('active'); loadMyOrders(); toast('✅ سفارش ثبت شد!'); };
 
-const reviewFormEl = $('#reviewForm');
-if (reviewFormEl) {
-  reviewFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    if (!currentRating) { toast('❌ لطفاً امتیاز بده', true); return; }
-    const f = new FormData(e.target);
-    const data = Object.fromEntries(f);
-    const comment = {
-      id: Date.now().toString(),
-      name: data.customerName,
-      rating: Number(data.rating),
-      text: data.text,
-      createdAt: Date.now()
-    };
-    const comments = getComments(currentReviewListingId);
-    comments.push(comment);
-    saveComments(currentReviewListingId, comments);
-    recalcRating(currentReviewListingId);
-    e.target.reset();
-    currentRating = 0;
-    updateStarPicker();
-    $('#reviewModal').classList.remove('show');
-    toast('✅ نظر ثبت شد!');
-    renderFoods();
-  });
+async function loadMyOrders() {
+  const wrap = $('#myOrdersList'); if (!wrap) return;
+  const { data: orders } = await db.from('orders').select('*').order('created_at', { ascending: false });
+  if (!orders || !orders.length) { wrap.innerHTML = '<div class="empty">📦 هنوز سفارشی ثبت نکردی</div>'; return; }
+  wrap.innerHTML = orders.map(o => `<div class="card"><h3>${o.listing_title}</h3><div class="meta"><span class="chip orange">${o.status}</span><span class="chip">📦 ${o.qty} پرس</span></div><p style="margin-top:8px;font-weight:700;color:#16a34a">${toman(o.total_price)} ت</p></div>`).join('');
 }
 
-window.openCommentsModal = function(listingId) {
-  const comments = getComments(listingId).slice().reverse();
+async function loadSellerOrders() {
+  const wrap = $('#sellerOrdersList'); if (!wrap) return;
+  const { data: orders } = await db.from('orders').select('*').order('created_at', { ascending: false });
+  if (!orders || !orders.length) { wrap.innerHTML = '<div class="empty">📥 سفارشی نیست</div>'; return; }
+  wrap.innerHTML = orders.map(o => `<div class="card"><h3>${o.listing_title}</h3><div class="meta"><span class="chip orange">${o.status}</span><span class="chip green">📦 ${o.qty}</span></div><div style="font-size:13px;background:#f9fafb;padding:10px;border-radius:10px;margin-top:8px"><p>👤 ${o.customer_name}</p><p>📞 ${o.customer_phone}</p><p>📍 ${o.customer_address}</p></div></div>`).join('');
+}
+
+async function loadSellerSelect() {
+  const sel = $('#sellerSelect'); if (!sel) return;
+  const { data: sellers } = await db.from('sellers').select('*');
+  sel.innerHTML = '<option value="">— انتخاب —</option>' + (sellers || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+$('#sellerForm')?.addEventListener('submit', async e => {
+  e.preventDefault(); const data = Object.fromEntries(new FormData(e.target));
+  await db.from('sellers').insert([{ id: Date.now().toString(), name: data.name, type: data.type, phone: data.phone || '', license: data.license || '', address: data.address, created_at: Date.now() }]);
+  e.target.reset(); toast('✅ فروشنده ثبت شد'); loadSellers();
+});
+
+$('#listingForm')?.addEventListener('submit', async e => {
+  e.preventDefault(); const data = Object.fromEntries(new FormData(e.target));
+  await db.from('listings').insert([{ id: Date.now().toString(), title: data.title, seller_id: data.sellerId, description: data.description || '', image: data.image || '', original_price: Number(data.originalPrice), discounted_price: Number(data.discountedPrice), quantity: Number(data.quantity), delivery_type: data.deliveryType, courier_cost: Number(data.courierCost) || 0, delivery_time: Number(data.deliveryTime), created_at: Date.now() }]);
+  e.target.reset(); toast('✅ آگهی ثبت شد');
+});
+
+async function loadSellers() {
+  const wrap = $('#sellersList'); if (!wrap) return;
+  const { data: sellers } = await db.from('sellers').select('*');
+  wrap.innerHTML = (sellers || []).map(s => `<div style="padding:10px;border-bottom:1px solid #eee"><b>${s.name}</b> - ${s.phone || ''}</div>`).join('');
+}
+
+let currentReviewId = null, currentRating = 0;
+window.openReviewModal = function(id) { currentReviewId = id; currentRating = 0; updateStarPicker(); $('#reviewModal').classList.add('show'); };
+function updateStarPicker() { $$('#starPicker span').forEach(s => { s.style.color = Number(s.dataset.star) <= currentRating ? '#f59e0b' : '#d1d5db'; }); }
+$$('#starPicker span').forEach(s => s.addEventListener('click', () => { currentRating = Number(s.dataset.star); $('#ratingInput').value = currentRating; updateStarPicker(); }));
+$('#closeReviewModal')?.addEventListener('click', () => $('#reviewModal').classList.remove('show'));
+
+$('#reviewForm')?.addEventListener('submit', async e => {
+  e.preventDefault(); const data = Object.fromEntries(new FormData(e.target));
+  await db.from('comments').insert([{ listing_id: currentReviewId, customer_name: data.customerName, rating: currentRating, text: data.text, created_at: Date.now() }]);
+  $('#reviewModal').classList.remove('show'); toast('✅ نظر ثبت شد');
+});
+
+window.openCommentsModal = async function(id) {
+  const { data: comments } = await db.from('comments').select('*').eq('listing_id', id);
   const wrap = $('#commentsList');
-  if (!wrap) return;
-  if (!comments.length) { wrap.innerHTML = '<div class="empty">هنوز نظری نیست. اولین نفر باش!</div>'; }
-  else {
-    wrap.innerHTML = comments.map(c => `
-      <div style="border-bottom:1px solid #eaeef2;padding:10px 0">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <b style="font-size:14px">👤 ${c.name}</b>
-          <span class="stars">${renderStars(c.rating)}</span>
-        </div>
-        <p style="font-size:13px;color:#374151;margin-top:4px">${c.text}</p>
-        <p style="font-size:11px;color:#9ca3af;margin-top:4px">${new Date(c.createdAt).toLocaleString('fa-IR')}</p>
-      </div>
-    `).join('');
-  }
+  wrap.innerHTML = (comments || []).length ? comments.map(c => `<div style="padding:10px;border-bottom:1px solid #eee"><b>${c.customer_name}</b> - ${renderStars(c.rating)}<br>${c.text}</div>`).join('') : '<div class="empty">نظری نیست</div>';
   $('#commentsModal').classList.add('show');
 };
-
-const closeCommentsModalBtn = $('#closeCommentsModal');
-if (closeCommentsModalBtn) closeCommentsModalBtn.addEventListener('click', () => $('#commentsModal').classList.remove('show'));
-
-const searchInputEl = $('#searchInput');
-if (searchInputEl) {
-  searchInputEl.addEventListener('input', e => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    renderFoods();
-  });
-}
-const searchBtnEl = $('#searchBtn');
-if (searchBtnEl) {
-  searchBtnEl.addEventListener('click', () => {
-    searchQuery = $('#searchInput').value.trim().toLowerCase();
-    renderFoods();
-  });
-}
-
-/* ═══════════ شروع ═══════════ */
-updateCartCount();
-renderFoods();
+$('#closeCommentsModal')?.addEventListener('click', () => $('#commentsModal').classList.remove('show'));
 
 document.body.insertAdjacentHTML('beforeend', `
   <footer>
@@ -744,3 +193,6 @@ document.body.insertAdjacentHTML('beforeend', `
     <span class="fingerprint">SAFREH-SABZ-1405-ALAVI-A1B2C3D4</span>
   </footer>
 `);
+
+updateCartCount();
+loadFoods();
