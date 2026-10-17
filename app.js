@@ -104,9 +104,9 @@ $$('nav.tabs').forEach(nav => {
 });
 
 // ============ نمایش غذاها ============
-function renderFoods() {
-  const items = DB.listings;
-  const sellers = DB.sellers;
+async function renderFoods() {
+  const { data: items, error } = await db.from('listings').select('*').order('created_at', { ascending: false });
+const { data: sellers } = await db.from('sellers').select('*');
   const wrap = $('#foodsList');
   if (!wrap) return;
   if (!items.length) {
