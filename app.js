@@ -2,6 +2,14 @@
 //   سفره سبز (Sofreh Sabz) - app.js (نسخه کامل)
 // ═══════════════════════════════════════════════════
 
+// ================= اتصال به دیتابیس آنلاین (Supabase) =================
+// این بخش جایگزین حافظه محلی (localStorage) شده است
+const SUPABASE_URL = "https://znblebezgplnzjexdjx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_vCrEbmQ7YalZ9_rvnPIrqA_hBGL_TI_";
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// تعریف یک DB شبیه‌سازی‌شده تا کدهای پایین‌تر اپت بدون خطا کار کنن
 const DB = {
   get sellers() { return JSON.parse(localStorage.getItem('safreh_sellers') || '[]'); },
   set sellers(v) { localStorage.setItem('safreh_sellers', JSON.stringify(v)); },
