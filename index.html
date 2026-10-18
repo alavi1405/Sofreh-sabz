@@ -740,34 +740,26 @@
 
         // ================= ثبت غذای جدید در دیتابیس =================
         async function addFoodToDB() {
-            const title = document.getElementById('foodTitle').value.trim();
-            const price = Number(document.getElementById('foodPrice').value);
-            const discount = Number(document.getElementById('foodDiscount').value) || 0;
-            const fileInput = document.getElementById('foodImage');
+    alert("۱. دکمه کلیک شد!");
+    const title = document.getElementById('foodTitle').value.trim();
+    const price = Number(document.getElementById('foodPrice').value);
+    
+    if (!title || !price) { alert('لطفاً نام و قیمت را وارد کنید.'); return; }
+    
+    alert("۲. در حال ارسال به دیتابیس...");
+    
+    const { data, error } = await db.from('listings').insert([{
+        id: Date.now().toString(), title: title, original_price: price,
+        discounted_price: price, quantity: 10, image: '', created_at: Date.now()
+    }]);
 
-            if (!title || !price) { alert('لطفاً نام و قیمت را وارد کنید.'); return; }
-
-            let imageBase64 = '';
-            if (fileInput.files[0]) {
-                imageBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result);
-                    reader.readAsDataURL(fileInput.files[0]);
-                });
-            }
-
-            const discountedPrice = price - (price * discount / 100);
-
-            const { error } = await db.from('listings').insert([{
-                id: Date.now().toString(), title: title, original_price: price,
-                discounted_price: discountedPrice, quantity: 10, image: imageBase64, created_at: Date.now()
-            }]);
-
-            if (error) { alert('خطای دیتابیس: ' + error.message); return; }
-            alert('✅ غذا با موفقیت ثبت شد!');
-            showPage('page-home');
-            renderFoodList();
-        }
+    if (error) {
+        alert("❌ خطای دیتابیس: " + error.message);
+    } else {
+        alert("✅ با موفقیت ذخیره شد!");
+        renderFoodList();
+    }
+}
 
         async function openAdminPanel() {
             document.getElementById("userDropdown").classList.remove("show");
