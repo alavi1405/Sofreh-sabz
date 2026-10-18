@@ -9,11 +9,13 @@
         /* ================= تنظیمات کلی ================= */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', Tahoma, Arial, sans-serif; }
         body { background-color: #F3E5F5; color: #333; padding-bottom: 80px; min-height: 100vh; }
+
         /* ================= هدر ================= */
         .main-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .app-brand { display: flex; align-items: center; gap: 8px; }
         .app-brand svg { width: 38px; height: 38px; flex-shrink: 0; }
         .app-title { font-size: 18px; color: #673AB7; margin: 0; font-weight: bold; white-space: nowrap; }
+
         /* منوی کاربر */
         .user-menu-container { position: relative; }
         .user-btn { background: #F3E5F5; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; color: #673AB7; font-weight: bold; }
@@ -23,25 +25,32 @@
         .dropdown a { display: block; padding: 6px 0; text-decoration: none; color: #333; font-size: 13px; cursor: pointer; }
         .dropdown a:hover { color: #673AB7; }
         .dropdown hr { border: 0; border-top: 1px solid #eee; margin: 5px 0; }
+
         /* ================= مدیریت صفحات ================= */
         .page { padding: 15px; }
         .hidden { display: none !important; }
         .active { display: block; }
+
         /* ================= صفحه اصلی ================= */
         .top-bar { display: flex; gap: 8px; margin-bottom: 15px; align-items: center; }
+        
         .search-wrapper { flex: 1; position: relative; display: flex; align-items: center; min-width: 0; }
         .search-icon { position: absolute; right: 10px; font-size: 16px; color: #673AB7; pointer-events: none; z-index: 1; }
         .search-box { width: 100%; padding: 10px 35px 10px 10px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 13px; outline: none; transition: border-color 0.3s; }
         .search-box:focus { border-color: #673AB7; }
+
         .location-box { flex-shrink: 0; padding: 10px 12px; border: 1px solid #D1C4E9; border-radius: 10px; background: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #673AB7; font-weight: bold; gap: 4px; transition: background 0.3s; white-space: nowrap; }
         .location-box:hover { background: #F3E5F5; }
         .location-icon { font-size: 14px; }
+
         .gps-btn { flex-shrink: 0; background: #fff; border: 1px solid #D1C4E9; border-radius: 10px; padding: 10px 12px; font-size: 16px; cursor: pointer; color: #673AB7; transition: background 0.3s; }
         .gps-btn:hover { background: #F3E5F5; }
+
         .categories { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
         .cat-btn { padding: 8px 16px; border: 1px solid #D1C4E9; border-radius: 20px; background: #fff; font-size: 13px; white-space: nowrap; cursor: pointer; transition: all 0.3s; }
         .cat-btn.active { background: #673AB7; color: #fff; border-color: #673AB7; }
         .cat-btn.disabled { background: #E0E0E0; color: #9E9E9E; cursor: not-allowed; border-color: #E0E0E0; }
+
         /* ================= کارت غذا ================= */
         .food-list { display: flex; flex-direction: column; gap: 12px; }
         .food-item { display: flex; background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; }
@@ -55,11 +64,13 @@
         .old-price { text-decoration: line-through; color: #999; font-size: 13px; }
         .new-price { color: #E53935; font-weight: bold; font-size: 15px; }
         .no-discount-price { color: #673AB7; font-weight: bold; font-size: 15px; }
+
         /* ================= صفحه جزئیات غذا ================= */
         .back-btn { background: none; border: none; color: #673AB7; font-size: 14px; cursor: pointer; margin-bottom: 15px; font-weight: bold; }
         .food-header-details { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
         .detail-img { width: 120px; height: 120px; border-radius: 15px; object-fit: cover; margin-bottom: 10px; }
         .base-price { color: #673AB7; font-weight: bold; }
+
         /* آکاردئون افزودنی‌ها */
         .addon-category { background: #fff; border: 1px solid #eee; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
         .category-header { background-color: #F3E5F5; padding: 12px 15px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #673AB7; }
@@ -69,16 +80,19 @@
         .addon-item:last-child { border-bottom: none; }
         .addon-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
         .addon-price { font-size: 13px; color: #673AB7; font-weight: bold; }
+
         /* نوار پایین صفحه */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .total-price { font-size: 16px; font-weight: bold; }
         .btn-primary { background-color: #673AB7; color: #fff; border: none; padding: 12px 25px; border-radius: 10px; font-size: 15px; cursor: pointer; font-weight: bold; }
         .btn-block { width: 100%; margin-top: 15px; }
+
         /* ================= صفحه سبد خرید ================= */
         .payment-section { background: #fff; padding: 15px; border-radius: 12px; margin-top: 15px; }
         .payment-section h4 { margin-bottom: 10px; font-size: 14px; }
         .payment-section label { display: block; margin-bottom: 8px; font-size: 14px; cursor: pointer; }
         .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+
         /* ================= مودال انتخاب محل ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-overlay.hidden { display: none !important; }
@@ -149,12 +163,14 @@
             </div>
             <button class="gps-btn" onclick="getLocation()" title="تشخیص موقعیت با GPS">🎯</button>
         </div>
+
         <div class="categories">
             <button class="cat-btn active" id="cat-restaurant" onclick="switchCategory('restaurant')">رستوران</button>
             <button class="cat-btn" id="cat-catering" onclick="switchCategory('catering')">کترینگ</button>
             <button class="cat-btn" id="cat-fastfood" onclick="switchCategory('fastfood')">فست فود</button>
             <button class="cat-btn disabled">غذای خانگی (به زودی)</button>
         </div>
+
         <div class="food-list" id="foodListContainer"></div>
     </main>
 
@@ -166,7 +182,9 @@
             <h2 id="detail-food-name">چلوکباب کوبیده</h2>
             <p id="detail-food-price" class="base-price">قیمت پایه: ۲۵۰,۰۰۰ تومان</p>
         </div>
+
         <h3>افزودنی‌های خود را انتخاب کنید:</h3>
+
         <div class="addon-category">
             <div class="category-header" onclick="toggleCategory(this)"><span>🥤 نوشیدنی‌ها</span><span>▼</span></div>
             <div class="category-body">
@@ -176,6 +194,7 @@
                 <div class="addon-item"><label><input type="checkbox" class="addon" data-name="دوغ" data-price="15000"> دوغ</label><span class="addon-price">۱۵,۰۰۰ تومان</span></div>
             </div>
         </div>
+
         <div class="addon-category">
             <div class="category-header" onclick="toggleCategory(this)"><span>🥣 سس‌ها</span><span>▼</span></div>
             <div class="category-body">
@@ -183,6 +202,7 @@
                 <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سس مخصوص" data-price="5000"> سس مخصوص</label><span class="addon-price">۵,۰۰۰ تومان</span></div>
             </div>
         </div>
+
         <div class="addon-category">
             <div class="category-header" onclick="toggleCategory(this)"><span>🥗 سالادها</span><span>▼</span></div>
             <div class="category-body">
@@ -190,6 +210,7 @@
                 <div class="addon-item"><label><input type="checkbox" class="addon" data-name="سالاد شیرازی" data-price="30000"> سالاد شیرازی</label><span class="addon-price">۳۰,۰۰۰ تومان</span></div>
             </div>
         </div>
+
         <div class="addon-category">
             <div class="category-header" onclick="toggleCategory(this)"><span>🍞 نان اضافه</span><span>▼</span></div>
             <div class="category-body">
@@ -197,6 +218,7 @@
                 <div class="addon-item"><label><input type="checkbox" class="addon" data-name="نان لواش" data-price="3000"> نان لواش</label><span class="addon-price">۳,۰۰۰ تومان</span></div>
             </div>
         </div>
+
         <div class="bottom-bar">
             <div class="total-price">جمع: <span id="detail-final-price">۲۵۰,۰۰۰</span> تومان</div>
             <button class="btn-primary" onclick="addToCart()">افزودن به سبد</button>
@@ -208,6 +230,7 @@
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
         <h2>سبد خرید شما</h2>
         <div id="cart-items-container"></div>
+        
         <div class="payment-section" style="margin-top:15px;">
             <h4>کد تخفیف:</h4>
             <div style="display:flex; gap:8px;">
@@ -216,6 +239,7 @@
             </div>
             <p id="couponMessage" style="font-size:12px; margin-top:8px; color:#4CAF50;"></p>
         </div>
+
         <button class="btn-primary btn-block" onclick="showPage('page-checkout')">ادامه و تأیید نهایی</button>
     </main>
 
@@ -223,25 +247,33 @@
     <main id="page-checkout" class="page hidden">
         <button class="back-btn" onclick="showPage('page-cart')">⬅ بازگشت به سبد</button>
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📋 تأیید نهایی سفارش</h2>
+
         <div class="payment-section">
             <h4>نحوه دریافت سفارش:</h4>
             <label><input type="radio" name="delivery" value="pickup" checked onchange="updateDeliveryCost()"> 🏃 حضوری (خودم مراجعه می‌کنم)</label>
             <label id="courierLabel"><input type="radio" name="delivery" value="courier" onchange="updateDeliveryCost()"> 🛵 ارسال با پیک فروشنده <span id="courierPriceText"></span></label>
-            <p id="noCourierMessage" style="display:none; color:#E53935; font-size:12px; margin-top:5px;">⚠️ این فروشنده در حال حاضر پیک ندارد.</p>
+            
+            <p id="noCourierMessage" style="display:none; color:#E53935; font-size:12px; margin-top:5px;">
+                ⚠️ این فروشنده در حال حاضر پیک ندارد.
+            </p>
         </div>
+
         <div class="payment-section" id="addressSection" style="display:none;">
             <h4>آدرس تحویل:</h4>
             <input type="text" class="modal-select" placeholder="آدرس دقیق خود را وارد کنید..." id="deliveryAddress">
         </div>
+
         <div class="payment-section">
             <h4>روش پرداخت:</h4>
             <label><input type="radio" name="payment" value="online" checked> 💳 پرداخت اینترنتی (آنلاین)</label>
             <label><input type="radio" name="payment" value="cash"> 💵 پرداخت در محل (نقدی/کارتخوان)</label>
         </div>
+
         <div style="background:#fff; padding:15px; border-radius:12px; margin-top:15px; text-align:center;">
             <p style="font-size:14px;">جمع کل قابل پرداخت:</p>
             <p style="font-size:20px; font-weight:bold; color:#673AB7;" id="checkoutTotal">۰ تومان</p>
         </div>
+
         <button class="btn-primary btn-block" onclick="finalizeOrderToDB()" style="margin-top:20px;">✅ ثبت نهایی سفارش</button>
     </main>
 
@@ -249,9 +281,13 @@
     <main id="page-contact-seller" class="page hidden">
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت به خانه</button>
         <h2 style="text-align:center; color:#4CAF50; margin-bottom:20px;">✅ سفارش شما ثبت شد</h2>
+        
         <div style="background:#FFF3E0; padding:15px; border-radius:12px; margin-bottom:15px;">
-            <p style="font-size:14px; color:#E65100; text-align:center;">⚠️ لطفاً هنگام تحویل غذا، از سلامت و تازگی آن اطمینان حاصل کنید.</p>
+            <p style="font-size:14px; color:#E65100; text-align:center;">
+                ⚠️ لطفاً هنگام تحویل غذا، از سلامت و تازگی آن اطمینان حاصل کنید.
+            </p>
         </div>
+
         <div style="background:#fff; padding:15px; border-radius:12px;">
             <h4 style="text-align:center; margin-bottom:15px; color:#673AB7;">راه‌های ارتباط با فروشنده</h4>
             <button class="btn-primary btn-block" style="margin-bottom:10px; background:#4CAF50;" onclick="contactSeller('call')">📞 تماس تلفنی</button>
@@ -270,56 +306,74 @@
     <main id="page-customer-addresses" class="page hidden">
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📍 آدرس‌های من</h2>
-        <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px;"><p><strong>خانه</strong></p><p style="color:#777; font-size:13px;">تهران، خیابان ولیعصر، کوچه بهار، پلاک ۱۲</p></div>
-        <div style="background:#fff; padding:15px; border-radius:12px;"><p><strong>محل کار</strong></p><p style="color:#777; font-size:13px;">تهران، سعادت‌آباد، بلوار دریا، پلاک ۵</p></div>
+        <div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:10px;">
+            <p><strong>خانه</strong></p>
+            <p style="color:#777; font-size:13px;">تهران، خیابان ولیعصر، کوچه بهار، پلاک ۱۲</p>
+        </div>
+        <div style="background:#fff; padding:15px; border-radius:12px;">
+            <p><strong>محل کار</strong></p>
+            <p style="color:#777; font-size:13px;">تهران، سعادت‌آباد، بلوار دریا، پلاک ۵</p>
+        </div>
     </main>
 
     <!-- ================= صفحات فروشنده ================= -->
     <main id="page-seller-store-settings" class="page hidden">
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">⚙️ تنظیمات فروشگاه</h2>
+
         <div class="payment-section">
             <h4>وضعیت پیک فروشگاه:</h4>
             <label><input type="radio" name="courierStatus" value="no" onchange="updateSellerCourierSettings()"> ❌ پیک ندارم</label>
             <label><input type="radio" name="courierStatus" value="free" onchange="updateSellerCourierSettings()"> ✅ پیک دارم (ارسال رایگان)</label>
             <label><input type="radio" name="courierStatus" value="paid" onchange="updateSellerCourierSettings()"> 💰 پیک دارم (با هزینه)</label>
         </div>
+
         <div class="payment-section" id="courierCostSection" style="display:none;">
             <h4>هزینه پیک (تومان):</h4>
             <p style="font-size:12px; color:#777; margin-bottom:10px;">این مبلغ به صورت ثابت به فاکتور مشتری اضافه می‌شود.</p>
             <input type="number" class="modal-select" id="courierCostInput" placeholder="مثلاً ۳۰۰۰۰">
         </div>
+
         <button class="btn-primary btn-block" onclick="saveSellerSettings()" style="margin-top:20px;">💾 ذخیره تنظیمات</button>
     </main>
 
     <main id="page-seller-register" class="page hidden">
         <button class="back-btn" onclick="showPage('page-home')">⬅ بازگشت</button>
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">📝 ثبت‌نام فروشنده</h2>
+
         <div class="payment-section">
             <h4>اطلاعات هویتی:</h4>
             <label style="font-size:14px;">نام و نام خانوادگی:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً علی رضایی" id="regFullName">
+            <input type="text" class="modal-select" style="margin-bottom:10px;" id="regFullName" placeholder="مثلاً علی رضایی">
+            
             <label style="font-size:14px;">کد ملی:</label>
             <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="۱۰ رقم" maxlength="10" id="sellerNationalId">
+            
             <label style="font-size:14px;">شماره تماس:</label>
             <input type="text" class="modal-select" placeholder="۰۹۱۲۳۴۵۶۷۸۹" id="regPhone">
         </div>
+
         <div class="payment-section">
             <h4>اطلاعات کسب‌وکار:</h4>
             <label style="font-size:14px;">نام کسب‌وکار:</label>
-            <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً رستوران بهار" id="regBusinessName">
+            <input type="text" class="modal-select" style="margin-bottom:10px;" id="regBusinessName" placeholder="مثلاً رستوران بهار">
+            
             <label style="font-size:14px;">شماره جواز کسب:</label>
             <input type="text" class="modal-select" style="margin-bottom:10px;" placeholder="مثلاً ۱۲۳۴۵۶" id="sellerLicense">
+            
             <label style="font-size:14px;">آدرس دقیق:</label>
             <input type="text" class="modal-select" placeholder="استان، شهر، خیابان..." id="regAddress">
         </div>
+
         <div class="payment-section">
             <h4>بارگذاری مدارک:</h4>
             <label style="font-size:14px;">عکس جواز کسب:</label>
             <input type="file" accept="image/*" style="margin-bottom:10px; padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
+            
             <label style="font-size:14px;">عکس کارت ملی:</label>
             <input type="file" accept="image/*" style="padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
         </div>
+
         <button class="btn-primary btn-block" onclick="registerSellerToDB()" style="margin-top:20px;">📤 ارسال درخواست ثبت‌نام</button>
     </main>
 
@@ -328,13 +382,13 @@
         <h2 style="text-align:center; color:#673AB7; margin-bottom:20px;">🍲 ثبت غذای جدید</h2>
         <div class="payment-section">
             <label style="font-size:14px; font-weight:bold;">نام غذا:</label>
-            <input type="text" class="modal-select" style="margin-top:5px;" placeholder="مثلاً چلوکباب" id="foodTitle">
+            <input type="text" class="modal-select" style="margin-top:5px;" id="foodTitle" placeholder="مثلاً چلوکباب">
             
             <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">قیمت (تومان):</label>
-            <input type="number" class="modal-select" style="margin-top:5px;" placeholder="مثلاً ۲۵۰۰۰۰" id="foodPrice">
+            <input type="number" class="modal-select" style="margin-top:5px;" id="foodPrice" placeholder="مثلاً ۲۵۰۰۰۰">
             
             <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">درصد تخفیف:</label>
-            <input type="number" class="modal-select" style="margin-top:5px;" placeholder="مثلاً ۱۵" id="foodDiscount">
+            <input type="number" class="modal-select" style="margin-top:5px;" id="foodDiscount" placeholder="مثلاً ۱۵">
             
             <label style="font-size:14px; font-weight:bold; margin-top:15px; display:block;">آپلود عکس غذا:</label>
             <input type="file" accept="image/*" id="foodImage" style="margin-top:5px; padding:8px; border:1px dashed #D1C4E9; border-radius:8px; width:100%;">
@@ -401,10 +455,10 @@
         </div>
     </div>
 
-    <!-- ================= اتصال به دیتابیس و منطق اپلیکیشن ================= -->
+    <!-- ================= اسکریپت‌های اتصال به دیتابیس ================= -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ۱. تنظیمات اتصال به Supabase
+        // ۱. تنظیمات اتصال به Supabase (آدرس اصلاح شد)
         const SUPABASE_URL = "https://znblebezgplnzjexdjx.supabase.co";
         const SUPABASE_KEY = "sb_publishable_vCrEbmQ7YalZ9_rvnPIrqA_hBGL_TI_";
         const { createClient } = supabase;
@@ -415,7 +469,6 @@
         let currentFood = null;
         let appliedCoupon = null;
         const sellerInfo = { hasCourier: true, courierIsFree: false, courierCost: 30000 };
-
         const coupons = { 'SAFREH20': { discount: 20, type: 'percent' }, 'WELCOME50': { discount: 50000, type: 'fixed' } };
 
         // ================= مدیریت صفحات =================
@@ -512,8 +565,7 @@
             if (!currentFood) return;
             const selectedAddons = [];
             document.querySelectorAll('.addon:checked').forEach(cb => { selectedAddons.push({ name: cb.getAttribute('data-name'), price: parseInt(cb.getAttribute('data-price')) }); });
-            const cartItem = { food: currentFood, addons: selectedAddons };
-            cart.push(cartItem);
+            cart.push({ food: currentFood, addons: selectedAddons });
             alert('غذا به سبد خرید اضافه شد.');
             showPage('page-cart');
         }
@@ -524,23 +576,19 @@
             if (cart.length === 0) { container.innerHTML = '<p style="text-align:center; color:#999;">سبد خرید شما خالی است.</p>'; return; }
             container.innerHTML = '';
             let grandTotal = 0;
-            
             cart.forEach((item) => {
                 const itemTotal = item.food.discounted_price + item.addons.reduce((sum, a) => sum + a.price, 0);
                 grandTotal += itemTotal;
                 let addonsHtml = item.addons.length > 0 ? item.addons.map(a => `+ ${a.name} (${a.price.toLocaleString()})`).join('<br>') : '';
-                const div = document.createElement('div');
-                div.className = 'cart-item';
+                const div = document.createElement('div'); div.className = 'cart-item';
                 div.innerHTML = `<div><strong>${item.food.title}</strong><br><small style="color:#777;">${addonsHtml}</small></div><div>${itemTotal.toLocaleString()} تومان</div>`;
                 container.appendChild(div);
             });
-
             let finalTotal = grandTotal;
             if (appliedCoupon) {
                 if (appliedCoupon.type === 'percent') finalTotal = grandTotal - Math.round(grandTotal * (appliedCoupon.discount / 100));
                 else finalTotal = Math.max(0, grandTotal - appliedCoupon.discount);
             }
-
             const totalDiv = document.createElement('div');
             totalDiv.style.cssText = 'margin-top:15px; font-weight:bold; text-align:left;';
             totalDiv.innerHTML = `<div>جمع کل: ${grandTotal.toLocaleString()} تومان</div>${appliedCoupon ? `<div style="color:#4CAF50;">تخفیف: -${(grandTotal - finalTotal).toLocaleString()} تومان</div>` : ''}<div style="font-size:18px; color:#673AB7; margin-top:5px;">قابل پرداخت: ${finalTotal.toLocaleString()} تومان</div>`;
@@ -567,7 +615,6 @@
             const courierInput = courierLabel.querySelector('input');
             const courierPriceText = document.getElementById('courierPriceText');
             const noCourierMessage = document.getElementById('noCourierMessage');
-
             if (!sellerInfo.hasCourier) {
                 courierInput.disabled = true; courierLabel.classList.add('disabled'); courierPriceText.innerText = ''; noCourierMessage.style.display = 'block';
             } else if (sellerInfo.courierIsFree) {
@@ -582,7 +629,6 @@
             const addressSection = document.getElementById('addressSection');
             if (deliveryType === 'courier') addressSection.style.display = 'block';
             else addressSection.style.display = 'none';
-
             let cartTotal = 0;
             cart.forEach(item => { cartTotal += item.food.discounted_price + item.addons.reduce((sum, a) => sum + a.price, 0); });
             if (appliedCoupon) {
@@ -597,16 +643,13 @@
         // ================= ثبت نهایی سفارش در دیتابیس =================
         async function finalizeOrderToDB() {
             if (cart.length === 0) { alert('سبد خرید شما خالی است!'); return; }
-
             const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
             let address = 'مراجعه حضوری';
-
             if (deliveryType === 'courier') {
-                if (!sellerInfo.hasCourier) { alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.'); return; }
+                if (!sellerInfo.hasCourier) { alert('این فروشنده پیک ندارد.'); return; }
                 address = document.getElementById('deliveryAddress').value.trim();
-                if (!address) { alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.'); return; }
+                if (!address) { alert('لطفاً آدرس دقیق خود را وارد کنید.'); return; }
             }
-
             let finalTotal = 0;
             cart.forEach(item => { finalTotal += item.food.discounted_price + item.addons.reduce((sum, a) => sum + a.price, 0); });
             if (appliedCoupon) {
@@ -615,7 +658,6 @@
             }
             if (deliveryType === 'courier' && sellerInfo.hasCourier && !sellerInfo.courierIsFree) finalTotal += sellerInfo.courierCost;
 
-            // ارسال به Supabase
             const { error } = await db.from('orders').insert([{
                 id: Date.now().toString(),
                 listing_title: cart[0].food.title,
@@ -626,14 +668,11 @@
             }]);
 
             if (error) { alert('خطای دیتابیس: ' + error.message); return; }
-
             alert('✅ سفارش شما در دیتابیس ثبت شد!');
             showPage('page-contact-seller');
-            cart = [];
-            appliedCoupon = null;
+            cart = []; appliedCoupon = null;
         }
 
-        // ================= ارتباط با فروشنده =================
         function contactSeller(method) {
             const sellerPhone = '09121234567';
             if (method === 'call') window.location.href = `tel:${sellerPhone}`;
@@ -660,7 +699,6 @@
             else if (page === 'subscription') showPage('page-seller-subscription');
         }
 
-        // ================= تنظیمات پیک فروشنده =================
         function updateSellerCourierSettings() {
             const status = document.querySelector('input[name="courierStatus"]:checked').value;
             document.getElementById('courierCostSection').style.display = status === 'paid' ? 'block' : 'none';
@@ -696,7 +734,7 @@
             }]);
 
             if (error) { alert('خطای دیتابیس: ' + error.message); return; }
-            alert('✅ درخواست ثبت‌نام شما با موفقیت در دیتابیس ارسال شد.');
+            alert('✅ درخواست ثبت‌نام شما در دیتابیس ارسال شد.');
             showPage('page-home');
         }
 
@@ -731,7 +769,6 @@
             renderFoodList();
         }
 
-        // ================= پنل مدیریت =================
         async function openAdminPanel() {
             document.getElementById("userDropdown").classList.remove("show");
             showPage('page-admin-sellers');
@@ -742,7 +779,6 @@
             container.innerHTML = (sellers || []).map(s => `<div class="payment-section"><p style="font-weight:bold;">${s.name}</p><p style="font-size:12px; color:#777;">جواز: ${s.license}</p></div>`).join('');
         }
 
-        // ================= سفارش‌های مشتری و فروشنده =================
         async function loadCustomerOrders() {
             const container = document.getElementById('customer-orders-list');
             const { data: orders } = await db.from('orders').select('*').order('created_at', { ascending: false });
@@ -787,7 +823,6 @@
             );
         }
 
-        // راه‌اندازی اولیه
         document.addEventListener('DOMContentLoaded', () => { renderFoodList('restaurant'); });
     </script>
 </body>
