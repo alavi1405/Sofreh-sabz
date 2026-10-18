@@ -364,22 +364,50 @@ function fillSellerSelect() {
   sel.innerHTML = '<option value="">— انتخاب —</option>' + DB.sellers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 }
 
-$('#sellerForm')?.addEventListener('submit', e => {
+$$('#sellerForm')?.addEventListener('submit', async e => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
-  const sellers = DB.sellers;
-  sellers.push({ id: Date.now().toString(), name: data.name, phone: data.phone, address: data.address });
-  DB.sellers = sellers;
-  e.target.reset(); toast('✅ فروشنده ثبت شد'); renderSellers(); fillSellerSelect();
+  
+  const { error } = await db.from('sellers').insert([{
+    id: Date.now().toString(),
+    name: data.name,
+    phone: data.phone || '',
+    address: data.address || '',
+    created_at: Date.now()
+  }]);
+
+  if (error) {
+    toast('❌ خطا در ثبت فروشنده', true);
+    return;
+  }
+
+  e.target.reset(); 
+  toast('✅ فروشنده ثبت شد');
+  renderSellers();
 });
-  // ارسال اطلاعات به دیتابیس آنلاین (Supabase)
+
+$('#listingForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  
+  // آپلود عکس (تبدیل به فرمت متنی)
+  let imageBase64 = '';
+  const fileInput = e.target.querySelector('input[type="file"]');
+  if (fileInput && fileInput.files[0]) {
+    imageBase64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(fileInput.files[0]);
+    });
+  }
+
   const { error } = await db.from('listings').insert([{
     id: Date.now().toString(),
-    title: data.title,
+    title: data.title || data.name,
     original_price: Number(data.originalPrice || data.price || 0),
     discounted_price: Number(data.discountedPrice || data.price || 0),
     quantity: Number(data.quantity || 1),
-    image: data.image || '',
+    image: imageBase64,
     created_at: Date.now()
   }]);
 
@@ -388,6 +416,9 @@ $('#sellerForm')?.addEventListener('submit', e => {
     return;
   }
 
+  e.target.reset(); 
+  toast('✅ غذا با موفقیت در دیتابیس ثبت شد');
+  renderFoods();
 });
   
 function renderSellers() {
