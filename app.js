@@ -372,20 +372,24 @@ $('#sellerForm')?.addEventListener('submit', e => {
   DB.sellers = sellers;
   e.target.reset(); toast('✅ فروشنده ثبت شد'); renderSellers(); fillSellerSelect();
 });
+  // ارسال اطلاعات به دیتابیس آنلاین (Supabase)
+  const { error } = await db.from('listings').insert([{
+    id: Date.now().toString(),
+    title: data.title,
+    original_price: Number(data.originalPrice || data.price || 0),
+    discounted_price: Number(data.discountedPrice || data.price || 0),
+    quantity: Number(data.quantity || 1),
+    image: data.image || '',
+    created_at: Date.now()
+  }]);
 
-$('#listingForm')?.addEventListener('submit', e => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(e.target));
-  const listings = DB.listings;
-  listings.push({
-    id: Date.now().toString(), title: data.title, sellerId: data.sellerId,
-    originalPrice: Number(data.originalPrice), discountedPrice: Number(data.discountedPrice),
-    quantity: Number(data.quantity), deliveryTime: 30, createdAt: Date.now()
-  });
-  DB.listings = listings;
-  e.target.reset(); toast('✅ آگهی ثبت شد');
+  if (error) {
+    toast('❌ خطا در ثبت غذا: ' + error.message, true);
+    return;
+  }
+
 });
-
+  
 function renderSellers() {
   const wrap = $('#sellersList');
   if (!wrap) return;
