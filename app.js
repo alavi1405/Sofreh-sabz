@@ -1,11 +1,12 @@
-// ═══════════════════════════════════════════════════════════════
-//   سفره سبز (Sofreh Sabz) - app.js
-//   نسخه نهایی، حرفه‌ای و متصل به دیتابیس Supabase
-// ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   سفره سبز (Sofreh Sabz) - app.js
+   نسخه نهایی، حرفه‌ای، متصل به دیتابیس و بدون باگ
+═══════════════════════════════════════════════════ */
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
+// ابزارهای کمکی
 function toast(msg, isError) {
   const t = $('#toast');
   if (!t) return;
@@ -22,21 +23,14 @@ function renderStars(rating) { const r = Number(rating) || 0; const full = Math.
 let searchQuery = '';
 let currentFoodId = null;
 
-// ═══════════════════════════════════════════════════════════════
-//   ۱. نمایش غذاها (از دیتابیس آنلاین)
-// ═══════════════════════════════════════════════════════════════
+// ═══════════ ۱. نمایش غذاها ═══════════
 async function renderFoods() {
   const wrap = $('#foodsList');
   if (!wrap) return;
   wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#6b7280">در حال دریافت...</div>';
   
-  // دریافت غذاها از Supabase
   const { data: listings, error } = await db.from('listings').select('*').order('created_at', { ascending: false });
-  
-  if (error) { 
-    wrap.innerHTML = '<div style="text-align:center;color:red">خطا در اتصال به دیتابیس</div>'; 
-    return; 
-  }
+  if (error) { wrap.innerHTML = '<div style="text-align:center;color:red">خطا در اتصال به دیتابیس</div>'; return; }
 
   let filtered = listings || [];
   if (searchQuery) {
@@ -67,16 +61,13 @@ async function renderFoods() {
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════════
-//   ۲. ثبت غذای جدید (پنل فروشنده)
-// ═══════════════════════════════════════════════════════════════
+// ═══════════ ۲. ثبت غذای جدید ═══════════
 const listingForm = $('#listingForm');
 if (listingForm) {
   listingForm.addEventListener('submit', async e => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target));
     
-    // تبدیل عکس به فرمت قابل ذخیره در دیتابیس (Base64)
     let imageBase64 = '';
     const fileInput = e.target.querySelector('input[type="file"]');
     if (fileInput && fileInput.files[0]) {
@@ -87,12 +78,10 @@ if (listingForm) {
       });
     }
 
-    // محاسبه قیمت با تخفیف
     const originalPrice = Number(data.originalPrice || data.price || 0);
     const discountPercent = Number(data.discount || 0);
     const discountedPrice = originalPrice - (originalPrice * discountPercent / 100);
 
-    // ارسال به دیتابیس Supabase
     const { error } = await db.from('listings').insert([{
       id: Date.now().toString(),
       title: data.title || data.name,
@@ -105,7 +94,6 @@ if (listingForm) {
 
     if (error) {
       alert('خطای دیتابیس (ثبت غذا): ' + error.message);
-      toast('❌ خطا در ثبت غذا', true);
       return;
     }
 
@@ -115,26 +103,32 @@ if (listingForm) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-//   ۳. ثبت فروشنده جدید
-// ═══════════════════════════════════════════════════════════════
+// ═══════════ ۳. ثبت فروشنده جدید (با اعتبارسنجی) ═══════════
 const sellerForm = $('#sellerForm');
 if (sellerForm) {
   sellerForm.addEventListener('submit', async e => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target));
     
+    // اعتبارسنجی کد ملی (اگر فیلدش وجود داشت)
+    if (data.nationalCode) {
+      if (data.nationalCode.length !== 10 || isNaN(data.nationalCode)) {
+        toast('❌ کد ملی باید ۱۰ رقم باشد', true);
+        return;
+      }
+    }
+
     const { error } = await db.from('sellers').insert([{
       id: Date.now().toString(),
       name: data.name,
       phone: data.phone || '',
+      national_code: data.nationalCode || '',
       address: data.address || '',
       created_at: Date.now()
     }]);
 
     if (error) {
       alert('خطای دیتابیس (ثبت فروشنده): ' + error.message);
-      toast('❌ خطا در ثبت فروشنده', true);
       return;
     }
 
@@ -143,9 +137,7 @@ if (sellerForm) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-//   ۴. جزئیات غذا و ثبت سفارش (پنل خریدار)
-// ═══════════════════════════════════════════════════════════════
+// ═══════════ ۴. جزئیات غذا و سفارش ═══════════
 window.openFoodDetail = async function(id) {
   currentFoodId = id;
   const { data: l } = await db.from('listings').select('*').eq('id', id).single();
@@ -197,7 +189,6 @@ if (orderForm) {
 
     if (error) {
       alert('خطای دیتابیس (ثبت سفارش): ' + error.message);
-      toast('❌ خطا در ثبت سفارش', true);
       return;
     }
 
@@ -211,11 +202,8 @@ if (orderForm) {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-//   ۵. ابزارهای کمکی (جستجو، بستن مودال)
-// ═══════════════════════════════════════════════════════════════
+// ابزارها
 window.closeModal = function(id) { $('#' + id).classList.remove('show'); };
-
 const searchInp = $('#searchInput');
 if (searchInp) {
   searchInp.addEventListener('input', e => {
@@ -224,5 +212,4 @@ if (searchInp) {
   });
 }
 
-// شروع اپلیکیشن
 renderFoods();
