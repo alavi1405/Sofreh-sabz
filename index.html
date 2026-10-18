@@ -817,28 +817,58 @@
             document.getElementById('checkoutTotal').innerText = finalTotal.toLocaleString() + ' تومان';
         }
 
-        // ================= ثبت نهایی سفارش =================
-        function finalizeOrder() {
-            if (cart.length === 0) { alert('سبد خرید شما خالی است!'); return; }
+        // ============ ثبت نهایی سفارش (متصل به دیتابیس) ============
+async function finalizeOrder() {
+  if (cart.length === 0) { 
+    alert('سبد خرید شما خالی است!'); 
+    return; 
+  }
 
-            const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
+  const deliveryType = document.querySelector('input[name="delivery"]:checked').value;
 
-            if (deliveryType === 'courier') {
-                if (!sellerInfo.hasCourier) {
-                    alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.');
-                    return;
-                }
-                const address = document.getElementById('deliveryAddress').value.trim();
-                if (!address) {
-                    alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.');
-                    return;
-                }
-            }
+  if (deliveryType === 'courier') {
+    if (!sellerInfo.hasCourier) {
+      alert('این فروشنده پیک ندارد. لطفاً حضوری مراجعه کنید.');
+      return;
+    }
+    const address = document.getElementById('deliveryAddress').value.trim();
+    if (!address) {
+      alert('لطفاً آدرس دقیق خود را برای ارسال با پیک وارد کنید.');
+      return;
+    }
+  }
 
-            console.log('سفارش ثبت شد:', { items: cart, delivery: deliveryType });
-            showPage('page-contact-seller');
-            cart = [];
-        }
+  // گرفتن اطلاعات غذاهایی که توی سبد هست
+  const firstFood = cart[0].food;
+  let totalPrice = 0;
+  cart.forEach(item => {
+    const hasDiscount = item.food.discount > 0;
+    const finalPrice = hasDiscount ? Math.round(item.food.price * (1 - item.food.discount / 100)) : item.food.price;
+    totalPrice += finalPrice + item.addons.reduce((sum, a) => sum + a.price, 0);
+  });
+
+  // ارسال به دیتابیس Supabase
+  const { error } = await db.from('orders').insert([{
+    id: Date.now().toString(),
+    listing_id: firstFood.id ? firstFood.id.toString() : '0',
+    listing_title: firstFood.name,
+    total_price: totalPrice,
+    customer_name: 'مشتری', 
+    customer_phone: 'ثبت نشده',
+    customer_address: deliveryType === 'courier' ? document.getElementById('deliveryAddress').value.trim() : 'مراجعه حضوری',
+    status: 'pending',
+    created_at: Date.now()
+  }]);
+
+  if (error) {
+    alert('خطای دیتابیس (ثبت سفارش): ' + error.message);
+    return;
+  }
+
+  // اگر موفق بود
+  showPage('page-contact-seller');
+  cart = []; // خالی کردن سبد
+}
 
         // ================= راه‌های ارتباطی با فروشنده =================
         function contactSeller(method) {
@@ -915,7 +945,47 @@
         }
 
         // ================= ثبت‌نام فروشنده =================
-        function registerSeller() {
+        window.registerSellerFromHTML = async function() {
+  const container = $('#page-seller-register');
+  const inputs = container.querySelectorAll('input');
+  
+  const fullName = inputs[0].value.trim();
+  const nationalCode = inputs[1].value.trim();
+  const phone = inputs[2].value.trim();
+  const businessName = inputs[3].value.trim();
+  const license = inputs[4].value.trim();
+  const address = inputs[5].value.trim();
+
+  // اعتبارسنجی دقیق کد ملی (فقط اگه خالی نباشه چک می‌کنه)
+  if (nationalCode && (nationalCode.length !== 10 || isNaN(nationalCode))) {
+    alert('❌ خطا: کد ملی باید دقیقاً ۱۰ رقم و فقط عدد باشد.');
+    return;
+  }
+  
+  if (!fullName || !businessName || !license) {
+    alert('❌ لطفاً تمام فیلدهای ستاره‌دار را پر کنید.');
+    return;
+  }
+
+  const { error } = await db.from('sellers').insert([{
+    id: Date.now().toString(),
+    name: businessName,
+    owner_name: fullName,
+    national_code: nationalCode || '',
+    phone: phone,
+    license: license,
+    address: address,
+    created_at: Date.now()
+  }]);
+
+  if (error) {
+    alert('خطای دیتابیس (ثبت فروشنده): ' + error.message);
+    return;
+  }
+
+  alert('✅ درخواست ثبت‌نام شما با موفقیت ارسال شد.');
+  showPage('page-home');
+};
             const nationalId = document.getElementById('sellerNationalId').value.trim();
             const license = document.getElementById('sellerLicense').value.trim();
 
