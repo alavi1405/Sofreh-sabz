@@ -195,6 +195,7 @@ function addCart(id) {
 }
 function updateCartCount() {
   $('#cartCount').textContent = state.cart.reduce((a,x) => a + x.qty, 0).toLocaleString('fa-IR');
+  localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
 }
 function renderCart() {
   const wrap = $('#cartList');
