@@ -1,0 +1,26 @@
+{
+  "name": "سفره سبز",
+  "short_name": "سفره سبز",
+  "description": "غذاهای تخفیف‌دار از فروشندگان نزدیک شما",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f8f4",
+  "theme_color": "#16834a",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icons/icon.svg",         "sizes": "any",     "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/maskable.svg",     "sizes": "any",     "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "icons/icon-192.png",     "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png",     "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "غذاها",         "url": "./?v=foods"  },
+    { "name": "سبد خرید",       "url": "./?v=cart"   },
+    { "name": "پیگیری سفارش",  "url": "./?v=orders" }
+  ]
+}
