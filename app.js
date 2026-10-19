@@ -783,7 +783,6 @@ function wireOtp() {
   $('#otpPhone').addEventListener('keydown', (e) => { if (e.key === 'Enter') OTP.requestOtp(); });
   OTP.restore();
 }
-
 async function init() {
   if (!window.supabase?.createClient) {
     connection('کتابخانه Supabase بارگذاری نشد؛ اینترنت یا CDN را بررسی کنید.', true);
@@ -798,13 +797,20 @@ async function init() {
       if (!$('#view-admin').classList.contains('hidden')) renderAdminView();
     });
   });
+
+  // بازیابی سبد خرید از حافظه مرورگر
+  try {
+    state.cart = JSON.parse(localStorage.getItem('sofreh_cart') || '[]');
+  } catch(e) { state.cart = []; }
+  updateCartCount();
+
   await loadData();
   await refreshAuth();
   wireOtp();
   const v = new URLSearchParams(location.search).get('v');
   if (v) showView(v);
 }
-
+  
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
 }
