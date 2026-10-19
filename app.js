@@ -1,11 +1,11 @@
 /* ============================================================
-   سفره سبز — v3 unified client
+   سفره سبز — v3 unified client (Final)
    ============================================================ */
 (() => {
 'use strict';
 
 const SUPABASE_URL = 'https://znblebezgplnzjexdjjx.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_vCrEbmQ7YalZ9_rvnPlrqA_hBGL_TlY';
+const SUPABASE_KEY = 'sb_publishable_vCrEbmQ7YalZ9_rvnPIrqA_hBGL_TI_';
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 const $  = (s) => document.querySelector(s);
@@ -63,6 +63,7 @@ function notice(msg, error = false) {
 }
 function connection(msg, error = false) {
   const el = $('#connection');
+  if(!el) return;
   el.textContent = msg;
   el.classList.toggle('error', error);
 }
@@ -81,10 +82,10 @@ async function loadData() {
   try {
     const [sr, fr] = await Promise.all([
       state.db.from('sellers')
-        .select('id,name,phone,address,type,image_url,latitude,longitude,courier_mode,courier_cost')
+        .select('id,name,phone,address,type,image_url,latitude,longitude,courier_mode,courier_cost,subscription_until')
         .eq('is_active', true).order('created_at',{ascending:false}),
       state.db.from('listings')
-        .select('id,seller_id,title,description,category,original_price,discounted_price,quantity,delivery_minutes,image_url,created_at')
+        .select('id,seller_id,title,description,category,original_price,discounted_price,quantity,delivery_minutes,image_url,drinks,created_at')
         .eq('is_active', true).gt('quantity', 0).order('created_at',{ascending:false}),
     ]);
     if (sr.error) throw sr.error;
@@ -95,8 +96,8 @@ async function loadData() {
     renderFoods();
   } catch (err) {
     console.error(err);
-    connection('اتصال به دیتابیس برقرار نشد. schema.sql، آدرس و کلید Supabase، و اینترنت را بررسی کنید.', true);
-    $('#foodList').innerHTML = '<div class="card">دریافت غذاها ناموفق بود.</div>';
+    connection('اتصال به دیتابیس برقرار نشد.', true);
+    if($('#foodList')) $('#foodList').innerHTML = '<div class="card">دریافت غذاها ناموفق بود.</div>';
   }
 }
 const sellerOf = (food) => state.sellers.find((s) => s.id === food.seller_id);
@@ -124,8 +125,11 @@ function cartTotals() {
 }
 
 function renderFoods() {
-  const q = normalizePersian($('#search').value);
-  const cat = $('#category').value;
+  const searchEl = $('#search'), catEl = $('#category');
+  if(!searchEl || !catEl) return;
+  
+  const q = normalizePersian(searchEl.value);
+  const cat = catEl.value;
 
   let list = state.foods.filter((f) => {
     const s = sellerOf(f);
@@ -162,13 +166,13 @@ function renderFoods() {
       <h3>${escapeHtml(f.title)}</h3>
       <p class="muted">${escapeHtml(s?.name || 'فروشنده')} · ${escapeHtml(categoryNames[f.category] || f.category)}${escapeHtml(distTxt)}${escapeHtml(courierNote)}</p>
       <p>${escapeHtml(f.description || '')}</p>
+      ${f.drinks ? `<p class="muted">🥤 نوشیدنی‌ها: ${escapeHtml(f.drinks)}</p>` : ''}
       <p><span class="old">${money(f.original_price)}</span> <span class="price">${money(f.discounted_price)}</span> ${d ? `<span class="badge">${d.toLocaleString('fa-IR')}٪ تخفیف</span>` : ''}</p>
       <p class="muted">موجودی: ${Number(f.quantity).toLocaleString('fa-IR')} پرس · آماده‌سازی: ${Number(f.delivery_minutes || 0).toLocaleString('fa-IR')} دقیقه</p>
       <p class="muted">📍 ${escapeHtml(s?.address || 'نشانی ثبت نشده')}</p>
       <div class="row">
         <button data-add="${f.id}" ${f.quantity < 1 ? 'disabled' : ''}>افزودن به سبد</button>
         ${s?.phone ? `<a class="btn secondary fixed" style="text-decoration:none" href="tel:${encodeURIComponent(s.phone)}">📞 تماس</a>` : ''}
-        ${s?.phone ? `<a class="btn secondary fixed" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${encodeURIComponent(s.phone.replace(/^\+/,''))}">واتس‌اپ</a>` : ''}
       </div>
     </article>`;
   }).join('');
@@ -194,7 +198,8 @@ function addCart(id) {
   notice('غذا به سبد اضافه شد.');
 }
 function updateCartCount() {
-  $('#cartCount').textContent = state.cart.reduce((a,x) => a + x.qty, 0).toLocaleString('fa-IR');
+  const el = $('#cartCount');
+  if(el) el.textContent = state.cart.reduce((a,x) => a + x.qty, 0).toLocaleString('fa-IR');
   localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
 }
 function renderCart() {
@@ -252,9 +257,13 @@ function setQty(id, delta) {
   updateCartCount(); renderCart();
 }
 
-$('#orderForm').addEventListener('submit', async (e) => {
+$('#orderForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!state.cart.length) return notice('سبد خرید خالی است.', true);
+  if (!$('#healthCheck') || !$('#healthCheck').checked) {
+    return notice('لطفاً تیک تایید سلامت غذا را بزنید.', true);
+  }
+  const form = e.currentTarget;
   const btn = $('#submitOrder');
   btn.disabled = true;
   try {
@@ -286,7 +295,7 @@ $('#orderForm').addEventListener('submit', async (e) => {
     } catch (_) {}
 
     state.cart = []; updateCartCount();
-    e.currentTarget.reset();
+    form.reset();
     await loadData();
     showView('orders');
     $('#lookupPhone').value = customer_phone;
@@ -328,7 +337,6 @@ function renderOrderCard(o) {
     <p class="price">${money(o.total_amount)}</p>
     ${items.map((i) => `<p class="muted">${escapeHtml(i.title)} × ${i.quantity} — ${money(i.unit_price)} · ${escapeHtml(i.seller_name)}</p>`).join('')}
     ${phones.length ? `<p class="muted">تماس فروشنده: ${phones.map((p) => `<a href="tel:${encodeURIComponent(p)}">${escapeHtml(p)}</a>`).join('، ')}</p>` : ''}
-    <p class="muted">روش دریافت: ${o.delivery_method === 'courier' ? 'پیک' : 'حضوری'}${o.note ? ' · یادداشت: ' + escapeHtml(o.note) : ''}</p>
   </article>`;
 }
 function renderLocalOrders() {
@@ -338,9 +346,8 @@ function renderLocalOrders() {
   if (!saved.length) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="card">
     <b>سفارش‌های این دستگاه</b>
-    <p class="muted">برای مشاهده، روی هر سفارش بزنید.</p>
     ${saved.map((s) => `<button class="ghost" style="width:100%;text-align:right;margin:4px 0" data-local="${escapeHtml(s.orderId)}" data-pin="${escapeHtml(s.pin)}" data-phone="${escapeHtml(s.phone)}">
-      ${String(s.orderId).slice(0,8)} — پین ${escapeHtml(s.pin)} — ${new Date(s.at).toLocaleDateString('fa-IR')}
+      ${String(s.orderId).slice(0,8)} — پین ${escapeHtml(s.pin)}
     </button>`).join('')}
   </div>`;
   el.querySelectorAll('[data-local]').forEach((b) => b.onclick = () => {
@@ -350,28 +357,27 @@ function renderLocalOrders() {
   });
 }
 
-$('#gps').addEventListener('click', () => {
+$('#gps')?.addEventListener('click', () => {
   if (!navigator.geolocation) return notice('مرورگر از مکان‌یابی پشتیبانی نمی‌کند.', true);
   $('#locationStatus').textContent = 'در حال دریافت موقعیت…';
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       state.position = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      $('#locationStatus').textContent = `موقعیت دریافت شد — غذاها بر اساس فاصله مرتب شدند.`;
-      notice('موقعیت دریافت شد؛ غذاها بر اساس فاصله مرتب شدند.');
+      $('#locationStatus').textContent = `موقعیت دریافت شد.`;
+      notice('موقعیت دریافت شد.');
       renderFoods();
     },
     (err) => {
-      $('#locationStatus').textContent = 'مکان‌یابی ناموفق: ' + (err.message || 'دسترسی داده نشد.');
-      notice('دسترسی به موقعیت داده نشد. HTTPS و مجوز مرورگر را بررسی کنید.', true);
+      $('#locationStatus').textContent = 'مکان‌یابی ناموفق.';
     },
     { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
   );
 });
 
-$('#search').addEventListener('input', renderFoods);
-$('#category').addEventListener('change', renderFoods);
+$('#search')?.addEventListener('input', renderFoods);
+$('#category')?.addEventListener('change', renderFoods);
 $$('[data-show]').forEach((b) => b.addEventListener('click', () => showView(b.dataset.show)));
-$('#lookupOrders').addEventListener('click', lookupOrders);
+$('#lookupOrders')?.addEventListener('click', lookupOrders);
 
 async function refreshAuth() {
   const { data: { user } } = await state.db.auth.getUser();
@@ -412,12 +418,12 @@ async function renderAdminView() {
 }
 
 let authMode = 'signin';
-$('#authToggle').addEventListener('click', () => {
+$('#authToggle')?.addEventListener('click', () => {
   authMode = authMode === 'signin' ? 'signup' : 'signin';
   $('#authSubmit').textContent = authMode === 'signin' ? 'ورود' : 'ثبت‌نام';
   $('#authToggle').textContent = authMode === 'signin' ? 'ثبت‌نام' : 'ورود';
 });
-$('#authForm').addEventListener('submit', async (e) => {
+$('#authForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = $('#authEmail').value.trim();
   const password = $('#authPassword').value;
@@ -427,7 +433,7 @@ $('#authForm').addEventListener('submit', async (e) => {
     if (authMode === 'signup') {
       const { error } = await state.db.auth.signUp({ email, password });
       if (error) throw error;
-      notice('ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ابتدا ایمیل خود را تأیید کنید.');
+      notice('ثبت‌نام انجام شد.');
     } else {
       const { error } = await state.db.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -435,8 +441,7 @@ $('#authForm').addEventListener('submit', async (e) => {
     }
     await renderSellerView();
   } catch (err) {
-    console.error(err);
-    notice('خطا: ' + (err.message || 'ورود ناموفق'), true);
+    notice('خطا: ' + (err.message || ''), true);
   } finally {
     btn.disabled = false;
   }
@@ -448,13 +453,14 @@ $('#courierMode')?.addEventListener('change', (e) => {
   if (e.target.value !== 'paid') cost.value = 0;
 });
 
-$('#sellerForm').addEventListener('submit', async (e) => {
+$('#sellerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = e.submitter || e.target.querySelector('button[type=submit]');
+  const form = e.currentTarget;
+  const btn = e.submitter || form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
     if (!state.authUser) throw new Error('ابتدا وارد شوید.');
-    const d = Object.fromEntries(new FormData(e.currentTarget));
+    const d = Object.fromEntries(new FormData(form));
     const payload = {
       user_id: state.authUser.id,
       name: d.name.trim(),
@@ -469,12 +475,11 @@ $('#sellerForm').addEventListener('submit', async (e) => {
     };
     const { error } = await state.db.from('sellers').insert(payload);
     if (error) throw error;
-    e.currentTarget.reset();
+    form.reset();
     notice('فروشگاه ثبت شد.');
     await loadData();
     await renderSellerView();
   } catch (err) {
-    console.error(err);
     notice('ثبت فروشنده انجام نشد: ' + (err.message || ''), true);
   } finally {
     btn.disabled = false;
@@ -483,7 +488,7 @@ $('#sellerForm').addEventListener('submit', async (e) => {
 
 $$('[data-sellertab]').forEach((b) => b.addEventListener('click', () => {
   $$('[data-sellertab]').forEach((x) => x.classList.toggle('active', x === b));
-  ['orders','listings','new'].forEach((t) => $(`#seller-tab-${t}`).classList.toggle('hidden', t !== b.dataset.sellertab));
+  ['orders','listings','new'].forEach((t) => $(`#seller-tab-${t}`)?.classList.toggle('hidden', t !== b.dataset.sellertab));
 }));
 
 async function loadSellerOrders() {
@@ -498,11 +503,8 @@ async function loadSellerOrders() {
       <p class="muted">${new Date(o.created_at).toLocaleString('fa-IR')}</p>
       <div class="kv">
         <span>مشتری:</span><span>${escapeHtml(o.customer_name)} — <a href="tel:${encodeURIComponent(o.customer_phone)}">${escapeHtml(o.customer_phone)}</a></span>
-        <span>نشانی:</span><span>${escapeHtml(o.customer_address)}</span>
-        <span>روش:</span><span>${o.delivery_method === 'courier' ? 'پیک' : 'حضوری'}</span>
         <span>مبلغ:</span><span class="price">${money(o.total_amount)}</span>
       </div>
-      ${(o.items || []).map((i) => `<p class="muted">${escapeHtml(i.title)} × ${i.quantity} — ${money(i.unit_price)}</p>`).join('')}
       <div class="row" style="margin-top:8px">
         ${['accepted','preparing','ready','completed','cancelled'].map((s) =>
           `<button class="secondary fixed" data-status="${s}" data-order="${o.id}" ${o.status === s ? 'disabled' : ''}>${escapeHtml(statusNames[s])}</button>`
@@ -511,7 +513,6 @@ async function loadSellerOrders() {
     </article>`).join('');
     wrap.querySelectorAll('[data-status]').forEach((b) => b.onclick = () => changeOrderStatus(b.dataset.order, b.dataset.status, loadSellerOrders));
   } catch (err) {
-    console.error(err);
     wrap.textContent = 'بارگذاری سفارش‌ها ناموفق: ' + (err.message || '');
   }
 }
@@ -527,8 +528,7 @@ async function loadSellerListings() {
     <p class="muted">${categoryNames[f.category] || f.category} · موجودی ${f.quantity} · ${f.is_active ? 'فعال' : 'غیرفعال'}</p>
     <p class="price">${money(f.discounted_price)}</p>
     <div class="row" style="margin-top:6px">
-      <button class="secondary fixed" data-edit="${f.id}">ویرایش</button>
-      <button class="danger fixed" data-del="${f.id}">حذف</button>
+      <button class="secondary fixed" data-del="${f.id}">حذف</button>
     </div>
   </div>`).join('');
   wrap.querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => {
@@ -537,39 +537,35 @@ async function loadSellerListings() {
     if (error) return notice('حذف ناموفق: ' + error.message, true);
     notice('حذف شد.'); await loadSellerListings(); await loadData();
   });
-  wrap.querySelectorAll('[data-edit]').forEach((b) => b.onclick = async () => {
-    const id = b.dataset.edit;
-    const { data: row } = await state.db.from('listings').select('*').eq('id', id).single();
-    if (!row) return;
-    const price = prompt('قیمت تخفیفی جدید (تومان):', row.discounted_price);
-    if (price == null) return;
-    const qty = prompt('موجودی جدید:', row.quantity);
-    if (qty == null) return;
-    const p = Number(toAsciiDigits(price)), q = Number(toAsciiDigits(qty));
-    if (!Number.isSafeInteger(p) || p <= 0 || !Number.isInteger(q) || q < 0) return notice('مقادیر نامعتبر.', true);
-    const { error } = await state.db.from('listings').update({ discounted_price: p, quantity: q }).eq('id', id);
-    if (error) return notice('ویرایش ناموفق: ' + error.message, true);
-    notice('ویرایش شد.'); await loadSellerListings(); await loadData();
-  });
 }
 
-$('#foodForm').addEventListener('submit', async (e) => {
+$('#foodForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const btn = e.submitter || e.target.querySelector('button[type=submit]');
+  const form = e.currentTarget;
+  const btn = e.submitter || form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
     if (!state.mySeller) throw new Error('فروشنده یافت نشد.');
-    const d = Object.fromEntries(new FormData(e.currentTarget));
+    
+    const subUntil = state.mySeller.subscription_until ? new Date(state.mySeller.subscription_until) : null;
+    if (!subUntil || subUntil < new Date()) {
+      throw new Error('اشتراک شما به پایان رسیده است. لطفاً برای تمدید با مدیر سیستم تماس بگیرید.');
+    }
+
+    const d = Object.fromEntries(new FormData(form));
     const original = Number(toAsciiDigits(d.original_price));
     const price    = Number(toAsciiDigits(d.discounted_price));
     const qty      = Number(toAsciiDigits(d.quantity));
     const mins     = Number(toAsciiDigits(d.delivery_minutes || 30));
+    
     if (!Number.isSafeInteger(original) || original <= 0) throw new Error('قیمت اصلی نامعتبر.');
-    if (!Number.isSafeInteger(price) || price <= 0 || price > original) throw new Error('قیمت تخفیفی باید بین ۱ و قیمت اصلی باشد.');
+    if (!Number.isSafeInteger(price) || price <= 0 || price > original) throw new Error('قیمت تخفیفی معتبر نیست.');
     if (!Number.isInteger(qty) || qty < 0) throw new Error('موجودی نامعتبر.');
+    
     const payload = {
       seller_id: state.mySeller.id,
       title: d.title.trim(),
+      drinks: d.drinks ? d.drinks.trim() : null,
       description: d.description.trim(),
       category: d.category,
       original_price: original,
@@ -578,16 +574,18 @@ $('#foodForm').addEventListener('submit', async (e) => {
       delivery_minutes: Math.max(0, mins),
       image_url: d.image_url.trim() || null,
     };
+    
     const { error } = await state.db.from('listings').insert(payload);
     if (error) throw error;
-    e.currentTarget.reset();
+    
+    form.reset();
     notice('غذا ثبت شد.');
     await loadData();
     await loadSellerListings();
+    
     $$('[data-sellertab]').forEach((x) => x.classList.toggle('active', x.dataset.sellertab === 'listings'));
-    ['orders','listings','new'].forEach((t) => $(`#seller-tab-${t}`).classList.toggle('hidden', t !== 'listings'));
+    ['orders','listings','new'].forEach((t) => $(`#seller-tab-${t}`)?.classList.toggle('hidden', t !== 'listings'));
   } catch (err) {
-    console.error(err);
     notice('ثبت غذا نامعتبر: ' + (err.message || ''), true);
   } finally {
     btn.disabled = false;
@@ -597,14 +595,13 @@ $('#foodForm').addEventListener('submit', async (e) => {
 $('#signOut')?.addEventListener('click', async () => {
   await state.db.auth.signOut();
   await renderSellerView();
-  notice('خارج شدید.');
 });
 $('#adminSignOut')?.addEventListener('click', async () => {
   await state.db.auth.signOut();
   await renderAdminView();
 });
 
-$('#adminAuthForm').addEventListener('submit', async (e) => {
+$('#adminAuthForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = e.submitter || e.target.querySelector('button[type=submit]');
   btn.disabled = true;
@@ -615,7 +612,7 @@ $('#adminAuthForm').addEventListener('submit', async (e) => {
     });
     if (error) throw error;
     await renderAdminView();
-    if (!state.isAdmin) notice('این حساب دسترسی مدیریت ندارد. در جدول admins اضافه کنید.', true);
+    if (!state.isAdmin) notice('این حساب دسترسی مدیریت ندارد.', true);
   } catch (err) {
     notice('ورود ناموفق: ' + (err.message || ''), true);
   } finally {
@@ -628,189 +625,143 @@ async function loadAdminOrders() {
   wrap.textContent = 'در حال بارگذاری…';
   try {
     const { data, error } = await state.db.rpc('admin_list_orders', { p_limit: 200 });
-    if (error) throw error;
-    if (!data?.length) { wrap.innerHTML = '<div class="card">سفارشی نیست.</div>'; return; }
-    wrap.innerHTML = data.map((o) => `<article class="card">
-      <b>${escapeHtml(String(o.id).slice(0,8))}</b> · ${escapeHtml(o.seller_name || '')}
-      <p class="muted">${new Date(o.created_at).toLocaleString('fa-IR')}</p>
-      <p>وضعیت: <b>${escapeHtml(statusNames[o.status] || o.status)}</b></p>
-      <p class="muted">${escapeHtml(o.customer_name)} — <a href="tel:${encodeURIComponent(o.customer_phone)}">${escapeHtml(o.customer_phone)}</a></p>
-      <p class="price">${money(o.total_amount)}</p>
-      <div class="row" style="margin-top:6px">
-        ${['pending','accepted','preparing','ready','completed','cancelled'].map((s) =>
-          `<button class="secondary fixed" data-status="${s}" data-order="${o.id}" ${o.status === s ? 'disabled' : ''}>${escapeHtml(statusNames[s])}</button>`
-        ).join('')}
-      </div>
-    </article>`).join('');
-    wrap.querySelectorAll('[data-status]').forEach((b) => b.onclick = () => changeOrderStatus(b.dataset.order, b.dataset.status, loadAdminOrders));
+    if (!error && data?.length) {
+      wrap.innerHTML = data.map((o) => `<article class="card">
+        <b>${escapeHtml(String(o.id).slice(0,8))}</b> · ${escapeHtml(o.seller_name || '')}
+        <p class="muted">${new Date(o.created_at).toLocaleString('fa-IR')} | وضعیت: ${escapeHtml(statusNames[o.status] || o.status)}</p>
+        <div class="row" style="margin-top:6px">
+          ${['pending','accepted','preparing','ready','completed','cancelled'].map((s) =>
+            `<button class="secondary fixed" data-status="${s}" data-order="${o.id}" ${o.status === s ? 'disabled' : ''}>${escapeHtml(statusNames[s])}</button>`
+          ).join('')}
+        </div>
+      </article>`).join('');
+      wrap.querySelectorAll('[data-status]').forEach((b) => b.onclick = () => changeOrderStatus(b.dataset.order, b.dataset.status, loadAdminOrders));
+    } else {
+      wrap.innerHTML = '<div class="card">سفارشی نیست.</div>';
+    }
   } catch (err) {
-    console.error(err);
-    wrap.textContent = 'خطا: ' + (err.message || '');
+    wrap.textContent = 'خطا در بارگذاری سفارش‌ها';
+  }
+
+  const sWrap = $('#adminSellers');
+  if (sWrap) {
+    try {
+      const { data: sData } = await state.db.from('sellers').select('*').order('created_at', {ascending: false});
+      if (sData) {
+        sWrap.innerHTML = '<h3>فروشندگان و وضعیت اشتراک</h3>' + sData.map(s => `
+          <div class="card" style="margin-bottom:8px">
+            <b>${escapeHtml(s.name)}</b> - ${escapeHtml(categoryNames[s.type] || s.type)}<br>
+            <span class="muted">اعتبار اشتراک: ${s.subscription_until ? new Date(s.subscription_until).toLocaleDateString('fa-IR') : 'ندارد'}</span><br>
+            <button class="secondary" style="margin-top:5px" onclick="renewSub('${s.id}')">تمدید ۳۰ روزه</button>
+          </div>
+        `).join('');
+      }
+    } catch(e) { console.error(e); }
   }
 }
+
+window.renewSub = async (id) => {
+  const newDate = new Date();
+  newDate.setDate(newDate.getDate() + 30);
+  const { error } = await state.db.from('sellers').update({ subscription_until: newDate.toISOString() }).eq('id', id);
+  if (error) return notice('خطا در تمدید: ' + error.message, true);
+  notice('اشتراک با موفقیت ۳۰ روز تمدید شد.');
+  await loadAdminOrders();
+};
+
 async function changeOrderStatus(orderId, status, reloadFn) {
   const { error } = await state.db.from('orders').update({ status }).eq('id', orderId);
-  if (error) return notice('تغییر وضعیت ناموفق: ' + error.message, true);
+  if (error) return notice('تغییر وضعیت ناموفق', true);
   notice('وضعیت به‌روزرسانی شد.');
   await reloadFn();
 }
 
+// OTP Section (Kept for future Edge Functions integration)
 const OTP = {
-  phone: '',
-  token: null,
-  el: {
-    step1: () => $('#otpStep1'),
-    step2: () => $('#otpStep2'),
-    step3: () => $('#otpStep3'),
-    welcome: () => $('#otpWelcomePhone'),
-    timer: () => $('#otpTimer'),
-  },
-  go(step) {
-    [['step1', this.el.step1()], ['step2', this.el.step2()], ['step3', this.el.step3()]]
-      .forEach(([k, e]) => e && e.classList.toggle('hidden', k !== step));
-  },
+  phone: '', token: null,
+  el: { step1: () => $('#otpStep1'), step2: () => $('#otpStep2'), step3: () => $('#otpStep3'), welcome: () => $('#otpWelcomePhone'), timer: () => $('#otpTimer') },
+  go(step) { [['step1', this.el.step1()], ['step2', this.el.step2()], ['step3', this.el.step3()]].forEach(([k, e]) => e && e.classList.toggle('hidden', k !== step)); },
   async requestOtp() {
     const phone = normalizePhone($('#otpPhone').value);
     if (phone.length < 10) return notice('شماره تلفن معتبر نیست.', true);
-    const btn = $('#otpRequest');
-    btn.disabled = true;
+    const btn = $('#otpRequest'); btn.disabled = true;
     try {
-      const res = await fetch(`${FUNCTIONS_URL}/request-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${SUPABASE_KEY}`, apikey: SUPABASE_KEY },
-        body: JSON.stringify({ phone }),
-      });
+      const res = await fetch(`${FUNCTIONS_URL}/request-otp`, { method: 'POST', headers: { 'Content-Type':'application/json', Authorization:`Bearer ${SUPABASE_KEY}`, apikey: SUPABASE_KEY }, body: JSON.stringify({ phone }) });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || `HTTP ${res.status}`);
-      this.phone = phone;
-      this.go('step2');
-      $('#otpCode').focus();
-      startOtpCountdown(180);
-      notice('کد پیامک شد. تا ۵ دقیقه معتبر است.');
-    } catch (e) {
-      console.error(e);
-      notice('ارسال کد ناموفق: ' + (e.message || ''), true);
-    } finally {
-      btn.disabled = false;
-    }
+      this.phone = phone; this.go('step2'); startOtpCountdown(180);
+      notice('کد پیامک شد.');
+    } catch (e) { notice('ارسال کد ناموفق: ' + (e.message || ''), true); } finally { btn.disabled = false; }
   },
   async verifyOtp() {
     const code = toAsciiDigits($('#otpCode').value).replace(/\D/g, '');
     if (code.length !== 5) return notice('کد باید ۵ رقم باشد.', true);
-    const btn = $('#otpVerify');
-    btn.disabled = true;
+    const btn = $('#otpVerify'); btn.disabled = true;
     try {
-      const res = await fetch(`${FUNCTIONS_URL}/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', Authorization:`Bearer ${SUPABASE_KEY}`, apikey: SUPABASE_KEY },
-        body: JSON.stringify({ phone: this.phone, code }),
-      });
+      const res = await fetch(`${FUNCTIONS_URL}/verify-otp`, { method: 'POST', headers: { 'Content-Type':'application/json', Authorization:`Bearer ${SUPABASE_KEY}`, apikey: SUPABASE_KEY }, body: JSON.stringify({ phone: this.phone, code }) });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || `HTTP ${res.status}`);
-      this.token = j.token;
-      localStorage.setItem('sofreh_otp_session', JSON.stringify({ token: j.token, phone: j.phone, expires_at: j.expires_at }));
-      this.go('step3');
-      this.el.welcome().textContent = j.phone;
-      notice('ورود موفق — سفارش‌های شما نمایش داده شد.');
+      this.token = j.token; localStorage.setItem('sofreh_otp_session', JSON.stringify({ token: j.token, phone: j.phone, expires_at: j.expires_at }));
+      this.go('step3'); this.el.welcome().textContent = j.phone;
       await this.loadMyOrders();
-    } catch (e) {
-      console.error(e);
-      notice('تأیید ناموفق: ' + (e.message || ''), true);
-    } finally {
-      btn.disabled = false;
-    }
+    } catch (e) { notice('تأیید ناموفق: ' + (e.message || ''), true); } finally { btn.disabled = false; }
   },
   async loadMyOrders() {
-    const wrap = $('#ordersList');
-    wrap.textContent = 'در حال بارگذاری سفارش‌ها…';
+    const wrap = $('#ordersList'); wrap.textContent = 'در حال بارگذاری…';
     try {
       const { data, error } = await state.db.rpc('my_orders', { p_token: this.token });
       if (error) throw error;
-      if (!data?.length) { wrap.innerHTML = '<div class="card">هنوز سفارشی ثبت نکرده‌اید.</div>'; return; }
+      if (!data?.length) { wrap.innerHTML = '<div class="card">سفارشی نیست.</div>'; return; }
       wrap.innerHTML = data.map(renderOrderCard).join('');
-    } catch (e) {
-      console.error(e);
-      wrap.textContent = 'خطا در دریافت سفارش‌ها: ' + (e.message || '');
-      if (String(e.message).includes('منقضی')) {
-        localStorage.removeItem('sofreh_otp_session');
-        this.logout();
-      }
-    }
+    } catch (e) { wrap.textContent = 'خطا در دریافت سفارش‌ها'; }
   },
-  logout() {
-    this.token = null; this.phone = '';
-    localStorage.removeItem('sofreh_otp_session');
-    this.go('step1');
-    $('#otpCode').value = '';
-    $('#ordersList').innerHTML = '';
-    notice('از حساب پیامکی خارج شدید.');
-  },
+  logout() { this.token = null; this.phone = ''; localStorage.removeItem('sofreh_otp_session'); this.go('step1'); $('#ordersList').innerHTML = ''; },
   restore() {
     try {
       const s = JSON.parse(localStorage.getItem('sofreh_otp_session') || 'null');
-      if (!s || !s.token || new Date(s.expires_at).getTime() < Date.now()) return false;
-      this.token = s.token; this.phone = s.phone;
-      this.el.welcome().textContent = s.phone;
-      this.go('step3');
-      this.loadMyOrders();
-      return true;
+      if (!s || new Date(s.expires_at).getTime() < Date.now()) return false;
+      this.token = s.token; this.phone = s.phone; this.el.welcome().textContent = s.phone; this.go('step3'); this.loadMyOrders(); return true;
     } catch { return false; }
   },
 };
-
 let otpTimerInterval = null;
 function startOtpCountdown(seconds) {
   clearInterval(otpTimerInterval);
-  const el = OTP.el.timer();
-  let remain = seconds;
-  const render = () => {
-    if (remain <= 0) { el.textContent = 'کد منقضی شده؛ دوباره درخواست دهید.'; clearInterval(otpTimerInterval); return; }
-    const m = String(Math.floor(remain/60)).padStart(2,'0');
-    const s = String(remain % 60).padStart(2,'0');
-    el.textContent = `زمان باقی‌مانده: ${m}:${s}`;
-  };
-  render();
-  otpTimerInterval = setInterval(() => { remain--; render(); }, 1000);
+  const el = OTP.el.timer(); let remain = seconds;
+  otpTimerInterval = setInterval(() => { if (remain <= 0) { el.textContent = 'منقضی شد'; clearInterval(otpTimerInterval); return; } remain--; el.textContent = `زمان: ${Math.floor(remain/60)}:${String(remain%60).padStart(2,'0')}`; }, 1000);
 }
-
 function wireOtp() {
   if (!$('#otpRequest')) return;
   $('#otpRequest').addEventListener('click', () => OTP.requestOtp());
   $('#otpVerify').addEventListener('click', () => OTP.verifyOtp());
   $('#otpBack').addEventListener('click', () => { OTP.go('step1'); clearInterval(otpTimerInterval); });
   $('#otpLogout').addEventListener('click', () => OTP.logout());
-  $('#otpCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') OTP.verifyOtp(); });
-  $('#otpPhone').addEventListener('keydown', (e) => { if (e.key === 'Enter') OTP.requestOtp(); });
   OTP.restore();
 }
+
 async function init() {
-  if (!window.supabase?.createClient) {
-    connection('کتابخانه Supabase بارگذاری نشد؛ اینترنت یا CDN را بررسی کنید.', true);
-    return;
-  }
-  state.db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true },
-  });
+  if (!window.supabase?.createClient) return connection('کتابخانه Supabase بارگذاری نشد.', true);
+  
+  state.db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  
+  try { state.cart = JSON.parse(localStorage.getItem('sofreh_cart') || '[]'); } catch(e) { state.cart = []; }
+  updateCartCount();
+
   state.db.auth.onAuthStateChange(() => {
     refreshAuth().then(() => {
       if (!$('#view-seller').classList.contains('hidden')) renderSellerView();
       if (!$('#view-admin').classList.contains('hidden')) renderAdminView();
     });
   });
-
-  // بازیابی سبد خرید از حافظه مرورگر
-  try {
-    state.cart = JSON.parse(localStorage.getItem('sofreh_cart') || '[]');
-  } catch(e) { state.cart = []; }
-  updateCartCount();
-
+  
   await loadData();
   await refreshAuth();
   wireOtp();
+  
   const v = new URLSearchParams(location.search).get('v');
   if (v) showView(v);
 }
-  
+
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
 }
