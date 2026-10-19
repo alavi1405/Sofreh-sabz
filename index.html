@@ -85,8 +85,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 
 <section id="view-foods">
   <div class="hero">
-    <h1>غذای خوب، قیمت مناسب 🌿</h1>
-    <p>غذاهای تخفیف‌دار موجود را پیدا کنید و سفارش دهید.</p>
+  <h1>سفره سبز؛ پلی برای استفاده بهینه از غذا 🌿</h1>
     <div id="connection" class="status">در حال بررسی اتصال به دیتابیس…</div>
   </div>
   <div class="controls">
@@ -121,6 +120,12 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
         <p class="muted" id="deliveryHint"></p>
       </div>
       <div class="field"><label>یادداشت</label><input id="orderNote" maxlength="300" placeholder="اختیاری"></div>
+      <div class="field full">
+        <label style="display:flex;align-items:center;gap:8px;color:#b3261e;font-weight:bold">
+          <input type="checkbox" id="healthCheck" required style="width:20px;height:20px"> 
+          تایید می‌کنم که از سلامت و بهداشت غذا اطمینان حاصل کرده‌ام.
+        </label>
+      </div>
       <div class="field full">
         <p id="orderTotal" class="price"></p>
         <button id="submitOrder" type="submit">ثبت سفارش</button>
@@ -239,6 +244,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
         <div class="field"><label>قیمت تخفیفی (تومان) *</label><input name="discounted_price" type="number" min="1" step="1" required></div>
         <div class="field"><label>تعداد موجود (پرس) *</label><input name="quantity" type="number" min="0" step="1" required></div>
         <div class="field"><label>زمان آماده‌سازی (دقیقه)</label><input name="delivery_minutes" type="number" min="0" value="30"></div>
+        <div class="field full"><label>نوشیدنی‌ها و افزودنی‌ها (اختیاری)</label><input name="drinks" placeholder="مثلاً: نوشابه، دوغ، سالاد"></div>
         <div class="field full"><label>توضیحات</label><textarea name="description" rows="2" maxlength="1000"></textarea></div>
         <div class="field full"><label>لینک عکس غذا (اختیاری)</label><input name="image_url" type="url" placeholder="https://…"></div>
         <div class="field full"><button type="submit">ثبت غذا</button></div>
