@@ -1,4 +1,4 @@
-/* ============================================================
+⁵/* ============================================================
    سفره سبز — v3 unified client (Final)
    ============================================================ */
 (() => {
@@ -450,7 +450,28 @@ $('#courierMode')?.addEventListener('change', (e) => {
   cost.disabled = e.target.value !== 'paid';
   if (e.target.value !== 'paid') cost.value = 0;
 });
-
+$('#getSellerLocation')?.addEventListener('click', () => {
+  if (!navigator.geolocation) return notice('مرورگر از موقعیت‌یابی پشتیبانی نمی‌کند.', true);
+  const btn = $('#getSellerLocation');
+  btn.disabled = true;
+  btn.textContent = 'در حال دریافت موقعیت...';
+  
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      $('#sellerLat').value = pos.coords.latitude.toFixed(6);
+      $('#sellerLng').value = pos.coords.longitude.toFixed(6);
+      notice('موقعیت فروشگاه با موفقیت دریافت شد.');
+      btn.disabled = false;
+      btn.textContent = '📍 دریافت مجدد موقعیت';
+    },
+    (err) => {
+      notice('خطا در دریافت موقعیت. دسترسی GPS را بررسی کنید.', true);
+      btn.disabled = false;
+      btn.textContent = '📍 دریافت خودکار موقعیت فروشگاه';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
 $('#sellerForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.currentTarget;
