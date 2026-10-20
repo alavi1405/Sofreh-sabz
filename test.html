@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2 style="text-align:center; margin-top:50px;">تست اتصال به دیتابیس</h2>
+  <div id="result" style="text-align:center; font-size:20px; margin-top:20px;">در حال تست...</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://znblebezgplnzjexdjx.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_vCrEbmQ7YalZ9_rvnPIrqA_hBGL_TI_";
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    db.from('listings').select('*').limit(1).then(({ data, error }) => {
+      if (error) {
+        document.getElementById('result').innerText = "❌ خطای دیتابیس: " + error.message;
+        document.getElementById('result').style.color = "red";
+      } else {
+        document.getElementById('result').innerText = "✅ اتصال موفق بود! دیتابیس کار می‌کند.";
+        document.getElementById('result').style.color = "green";
+      }
+    }).catch(err => {
+      document.getElementById('result').innerText = "🚨 خطای شبکه: " + err.message;
+      document.getElementById('result').style.color = "red";
+    });
+  </script>
+</body>
+</html>
