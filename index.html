@@ -209,8 +209,11 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
         </select>
       </div>
       <div class="field"><label>هزینه ارسال (تومان)</label><input name="courier_cost" id="courierCost" type="number" min="0" step="1000" value="0"></div>
-      <div class="field"><label>عرض جغرافیایی (اختیاری)</label><input name="latitude" type="number" step="any" min="-90" max="90"></div>
-      <div class="field"><label>طول جغرافیایی (اختیاری)</label><input name="longitude" type="number" step="any" min="-180" max="180"></div>
+      <<div class="field full">
+  <button type="button" id="getSellerLocation" class="secondary">📍 دریافت خودکار موقعیت فروشگاه</button>
+</div
+<div class="field"><label>عرض جغرافیایی</label><input name="latitude" id="sellerLat" type="number" step="any" min="-90" max="90"></div>
+<div class="field"><label>طول جغرافیایی</label><input name="longitude" id="sellerLng" type="number" step="any" min="-180" max="180"></div>
       <div class="field full"><label>لینک عکس فروشگاه (اختیاری)</label><input name="image_url" type="url" placeholder="https://…"></div>
       <div class="field full"><button type="submit">ثبت فروشنده</button></div>
     </form>
