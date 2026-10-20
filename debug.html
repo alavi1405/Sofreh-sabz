@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>عیب‌یابی سفره سبز</title>
+<style>
+body{font-family:Tahoma,sans-serif;background:#f4f8f4;color:#203026;margin:0;padding:16px;line-height:1.8;font-size:16px}
+h1{font-size:20px;color:#0d6034;margin:0 0 16px}
+.box{background:#fff;border:2px solid #dce8de;border-radius:12px;padding:14px;margin-bottom:12px}
+.ok{border-color:#16834a;background:#e8f7ee}
+.err{border-color:#c62828;background:#ffebee;color:#7a1414}
+.wait{border-color:#d4b24a;background:#fffbe6}
+.title{font-weight:800;font-size:15px;margin-bottom:6px}
+.msg{font-size:13px;font-family:monospace;direction:ltr;text-align:left;word-break:break-all;background:#f8f8f8;padding:8px;border-radius:6px;margin-top:6px;overflow-x:auto}
+button{background:#16834a;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:16px;font-weight:700;width:100%;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>🔍 عیب‌یابی سفره سبز</h1>
+<div id="out"></div>
+<button onclick="location.reload()">🔄 تلاش مجدد</button>
+
+<script>
+const out = document.getElementById('out');
+let step = 0;
+function addBox(type, title, msg) {
+  step++;
+  const d = document.createElement('div');
+  d.className = 'box ' + type;
+  d.innerHTML = `<div class="title">${step}. ${title}</div>`
+    + (msg ? `<div class="msg">${String(msg).replace(/</g,'&lt;')}</div>` : '');
+  out.appendChild(d);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+// گیرانداختن همه خطاها
+window.onerror = function(msg, src, line) {
+  addBox('err', 'خطای جاوااسکریپت', `${msg}\nفایل: ${src}\nخط: ${line}`);
+};
+
+addBox('wait', 'شروع تست', 'در حال بارگذاری کتابخانه Supabase…');
+
+// بارگذاری CDN ۱
+const s = document.createElement('script');
+s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+s.onload = () => {
+  addBox('ok', 'CDN بارگذاری شد', 'jsdelivr پاسخ داد');
+  runTest();
+};
+s.onerror = () => {
+  addBox('err', 'CDN اول (jsdelivr) ناموفق', 'حالا CDN دوم را امتحان می‌کنیم…');
+  const s2 = document.createElement('script');
+  s2.src = 'https://unpkg.com/@supabase/supabase-js@2';
+  s2.onload = () => {
+    addBox('ok', 'CDN دوم (unpkg) بارگذاری شد', '');
+    runTest();
+  };
+  s2.onerror = () => {
+    addBox('err', 'هر دو CDN ناموفق', 'شبکه موبایل شما به jsdelivr و unpkg دسترسی ندارد.\nراه‌حل: از VPN استفاده کنید یا فایل supabase.js را محلی کنید.');
+  };
+  document.head.appendChild(s2);
+};
+document.head.appendChild(s);
+
+async function runTest() {
+  if (!window.supabase) {
+    addBox('err', 'کتابخانه Supabase تعریف نشده', 'window.supabase = ' + typeof window.supabase);
+    return;
+  }
+  addBox('ok', 'کتابخانه Supabase آماده', 'createClient: ' + typeof window.supabase.createClient);
+
+  const URL = 'https://znblebezgplnzjexdjjx.supabase.co';
+  const KEY = 'sb_publishable_vCrEbmQ7YalZ9_rvnPlrqA_hBGL_TlY';
+
+  let db;
+  try {
+    db = window.supabase.createClient(URL, KEY);
+    addBox('ok', 'ساخت کلاینت موفق', 'URL و KEY پذیرفته شد');
+  } catch (e) {
+    addBox('err', 'ساخت کلاینت ناموفق', e.message);
+    return;
+  }
+
+  // تست ۱: جدول sellers
+  try {
+    const r = await db.from('sellers').select('id').limit(1);
+    if (r.error) {
+      addBox('err', 'خطا در خواندن جدول sellers', r.error.message + ' | کد: ' + r.error.code);
+    } else {
+      addBox('ok', 'اتصال به جدول sellers موفق', 'تعداد ردیف: ' + r.data.length);
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در sellers', e.message);
+  }
+
+  // تست ۲: جدول listings
+  try {
+    const r = await db.from('listings').select('id').limit(1);
+    if (r.error) {
+      addBox('err', 'خطا در خواندن جدول listings', r.error.message + ' | کد: ' + r.error.code);
+    } else {
+      addBox('ok', 'اتصال به جدول listings موفق', 'تعداد ردیف: ' + r.data.length);
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در listings', e.message);
+  }
+
+  // تست ۳: جدول food (اگر listings نبود، شاید این باشد)
+  try {
+    const r = await db.from('foods').select('id').limit(1);
+    if (r.error) {
+      addBox('err', 'خطا در خواندن جدول foods', r.error.message);
+    } else {
+      addBox('ok', 'جدول foods هم وجود دارد', 'تعداد ردیف: ' + r.data.length);
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در foods', e.message);
+  }
+
+  // تست ۴: جدول orders
+  try {
+    const r = await db.from('orders').select('id').limit(1);
+    if (r.error) {
+      addBox('err', 'خطا در خواندن جدول orders', r.error.message + ' | کد: ' + r.error.code);
+    } else {
+      addBox('ok', 'اتصال به جدول orders موفق', 'تعداد ردیف: ' + r.data.length);
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در orders', e.message);
+  }
+
+  // تست ۵: تابع place_order
+  try {
+    const r = await db.rpc('place_order');
+    // اگر تابع نباشد، error می‌دهد
+    if (r.error && (r.error.code === '42883' || r.error.message.includes('does not exist'))) {
+      addBox('err', 'تابع place_order وجود ندارد', r.error.message);
+    } else {
+      addBox('ok', 'تابع place_order وجود دارد', 'پاسخ: ' + (r.error ? r.error.message : 'بدون خطای ساختاری'));
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در place_order', e.message);
+  }
+
+  // تست ۶: تابع lookup_orders
+  try {
+    const r = await db.rpc('lookup_orders', { p_phone: '0000', p_pin: '000000' });
+    if (r.error && (r.error.code === '42883' || r.error.message.includes('does not exist'))) {
+      addBox('err', 'تابع lookup_orders وجود ندارد', r.error.message);
+    } else {
+      addBox('ok', 'تابع lookup_orders وجود دارد', '');
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در lookup_orders', e.message);
+  }
+
+  // تست ۷: تابع seller_orders
+  try {
+    const r = await db.rpc('seller_orders', { p_seller_id: '00000000-0000-0000-0000-000000000000' });
+    if (r.error && (r.error.code === '42883' || r.error.message.includes('does not exist'))) {
+      addBox('err', 'تابع seller_orders وجود ندارد', r.error.message);
+    } else {
+      addBox('ok', 'تابع seller_orders وجود دارد', '');
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در seller_orders', e.message);
+  }
+
+  // تست ۸: تابع admin_list_orders
+  try {
+    const r = await db.rpc('admin_list_orders', { p_limit: 1 });
+    if (r.error && (r.error.code === '42883' || r.error.message.includes('does not exist'))) {
+      addBox('err', 'تابع admin_list_orders وجود ندارد', r.error.message);
+    } else if (r.error) {
+      addBox('err', 'admin_list_orders خطا داد (احتمالاً RLS چون لاگین نیستی)', r.error.message);
+    } else {
+      addBox('ok', 'تابع admin_list_orders وجود دارد', '');
+    }
+  } catch (e) {
+    addBox('err', 'استثنا در admin_list_orders', e.message);
+  }
+
+  addBox('ok', '🎉 تست کامل شد', 'نتایج بالا را برای من بفرست (اسکرین‌شات کافی است)');
+}
+</script>
+</body>
+</html>
