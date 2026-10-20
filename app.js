@@ -3,9 +3,9 @@
    ============================================================ */
 (() => {
 'use strict';
+const SUPABASE_URL = 'https://znblebezgplnzjexdjjx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_vCrEbmQ7YalZ9_rvnPlrqA_hBGL_TlY';
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
-
 const $  = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
