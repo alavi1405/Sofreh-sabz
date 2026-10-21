@@ -12,12 +12,12 @@
 :root{--green:#16834a;--dark:#0d6034;--bg:#f4f8f4;--line:#dce8de;--red:#c62828;--amber:#8c4d00}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65}
-header{position:sticky;top:0;background:#fff;z-index:5;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:9px;color:var(--dark);font-weight:800;font-size:20px}
-  .slogan { font-size: 14px; font-weight: normal; color: #617066; margin-right: 10px; }
-@media(max-width: 600px) { .slogan { display: none; } }
-.logo{width:42px;height:42px;border-radius:50%;background:#e2f4e7;display:grid;place-items:center;font-size:25px}
-nav{display:flex;gap:6px;flex-wrap:wrap}
+header{position:sticky;top:0;background:#fff;z-index:5;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;justify-content:space-between;width:100%}
+.brand-title{font-weight:800;font-size:22px;color:var(--dark)}
+.logo{width:42px;height:42px;border-radius:50%;background:#a8dcbb;display:grid;place-items:center;font-size:25px}
+.slogan{font-size:13px;font-weight:normal;color:#617066;max-width:55%;text-align:right}
+nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
 .btn,button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer}
 .btn.secondary,button.secondary{background:#e6f2e9;color:var(--dark)}
 button.danger{background:#b3261e}
@@ -60,14 +60,18 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </head>
 <body>
 <header>
-<div class="brand"><span class="logo">🍽️</span><span>سفره سبز</span><span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span></div>
-<nav>
-<button class="secondary" data-show="foods">غذاها</button>
-<button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
-<button class="secondary" data-show="orders">پیگیری</button>
-<button class="secondary" data-show="seller">پنل فروشنده</button>
-<button class="secondary" data-show="admin">مدیریت</button>
-</nav>
+ <div class="brand">
+  <span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span>
+  <span class="brand-title">سفره سبز</span>
+  <span class="logo">🍽️</span>
+</div> 
+    <nav>
+    <button class="secondary" data-show="foods">غذاها</button>
+    <button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
+    <button class="secondary" data-show="orders">پیگیری</button>
+    <button class="secondary" data-show="seller">پنل فروشنده</button>
+    <button class="secondary" data-show="admin">مدیریت</button>
+  </nav>
 </header>
 <main>
 
