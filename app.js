@@ -112,7 +112,9 @@ function renderFoods(){
       <p class="muted">موجودی: ${Number(f.quantity).toLocaleString('fa-IR')} · آماده‌سازی: ${Number(f.delivery_minutes||0).toLocaleString('fa-IR')} دقیقه</p>
       <p class="muted">📍 ${escapeHtml(s?.address||'نشانی ثبت نشده')}</p>
       <div class="row">
-        <button data-add="${f.id}" ${f.quantity<1?'disabled':''}>افزودن به سبد</button>
+        <button data-add="${f.id}" ${f.quantity<1?'disabled':''}>
+    ${extrasCount > 0 ? '➕ انتخاب افزودنی' : 'افزودن به سبد'}
+</button>
         ${s?.phone?`<a href="tel:${encodeURIComponent(s.phone)}" class="btn secondary" style="text-align:center;text-decoration:none">📞 تماس</a>`:''}
       </div>
     </article>`;
