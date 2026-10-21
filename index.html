@@ -10,14 +10,14 @@
 <style>
 :root{--green:#16834a;--dark:#0d6034;--bg:#f4f8f4;--line:#dce8de;--red:#c62828;--amber:#8c4d00}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65}
-header{position:sticky;top:0;background:#fff;z-index:5;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;flex-direction:column;gap:12px}
+body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65; padding-bottom: 80px;}
+header{position:sticky;top:0;background:#fff;z-index:100;padding:10px 16px;box-shadow:0 4px 12px #0001;display:flex;flex-direction:column;gap:10px}
 .brand{display:flex;align-items:center;justify-content:space-between;width:100%}
 .brand-title{font-weight:800;font-size:22px;color:var(--dark)}
 .logo{width:42px;height:42px;border-radius:50%;background:#a8dcbb;display:grid;place-items:center;font-size:25px}
 .slogan{font-size:13px;font-weight:normal;color:#617066;max-width:55%;text-align:right}
 nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
-.btn,button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer}
+.btn,button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer;transition:0.2s;}
 .btn.secondary,button.secondary{background:#e6f2e9;color:var(--dark)}
 button.danger{background:#b3261e}
 button:disabled{opacity:.55;cursor:not-allowed}
@@ -37,7 +37,7 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .field label{display:block;font-size:13px;font-weight:700;margin-bottom:4px}
 .field.full{grid-column:1/-1}
 .panel{margin-top:16px}.hidden{display:none!important}
-.status{padding:10px;border-radius:10px;background:#e5f5e9;margin:10px 0}
+.status{padding:10px;border-radius:10px;background:#e5f5e9;margin:10px 0; font-weight:bold; text-align:center;}
 .error{background:#ffebee;color:#9b1c1c}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row>*{flex:1;min-width:0}.row .fixed{flex:0 0 auto;min-width:auto}
@@ -48,7 +48,7 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}
 .kv b{color:#41564a}
 .health-box{background:#e0f2fe;border-right:4px solid #0284c7;padding:10px;border-radius:8px;margin:8px 0;font-size:13px}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:100;padding:16px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:1000;padding:16px}
 .modal{background:white;border-radius:14px;padding:18px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
 .ext-item{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #eee;cursor:pointer}
 .ext-item input{width:20px;height:20px;flex:0 0 auto}
@@ -57,6 +57,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </style>
 </head>
 <body>
+
 <header>
   <div class="brand">
     <span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span>
@@ -66,33 +67,32 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
   <nav>
     <button class="secondary" data-show="restaurants">رستوران‌ها</button>
     <button class="secondary" data-show="foods">غذاها</button>
-    <button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
     <button class="secondary" data-show="orders">پیگیری</button>
     <button class="secondary" data-show="seller">پنل فروشنده</button>
     <button class="secondary" data-show="admin">مدیریت</button>
   </nav>
+
+  <!-- کادر جستجوی دوگانه (چسبان) -->
+  <div class="card" style="margin: 0; padding: 8px; box-shadow: none; border: 2px solid var(--green); background: #fafdfb;">
+    <div class="row" style="margin-bottom: 8px; background: #e6f2e9; padding: 3px; border-radius: 10px;">
+      <button id="modeFood" class="btn" style="flex: 1; padding: 8px; border-radius: 8px;">🍲 جستجوی غذا</button>
+      <button id="modeSeller" class="btn" style="flex: 1; padding: 8px; border-radius: 8px; background: transparent; color: var(--dark);">🏪 جستجوی فروشنده</button>
+    </div>
+    <div class="row" style="margin-bottom: 8px;">
+      <input id="mainSearch" placeholder="جستجو..." style="padding: 8px;">
+      <select id="mainCat" style="flex: 0 0 110px; padding: 8px;">
+        <option value="">همه</option>
+        <option value="restaurant">رستوران</option>
+        <option value="fastfood">فست‌فود</option>
+        <option value="catering">کترینگ</option>
+        <option value="home">خانگی</option>
+      </select>
+    </div>
+    <button id="mainGps" class="secondary" style="width: 100%; padding: 8px;">📍 نمایش نزدیک‌ترین‌ها</button>
+  </div>
 </header>
+
 <main>
-
-<!-- بخش جستجوی سراسری و دوگانه -->
-<div class="card" style="margin-bottom: 16px; padding: 14px; box-shadow: 0 4px 15px rgba(22,131,74,0.1); border: 2px solid var(--green);">
-  <div class="row" style="margin-bottom: 12px; background: #f0f7f2; padding: 4px; border-radius: 12px;">
-    <button id="modeFood" class="btn" style="flex: 1; background: #16834a; color: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1);">🍲 جستجوی غذا</button>
-    <button id="modeSeller" class="btn" style="flex: 1; background: transparent; color: #0d6034; border-radius: 8px;">🏪 جستجوی فروشنده</button>
-  </div>
-  <div class="row" style="margin-bottom: 10px;">
-    <input id="mainSearch" placeholder="جستجو در نام غذا، توضیحات...">
-    <select id="mainCat" style="flex: 0 0 130px;">
-      <option value="">همه دسته‌ها</option>
-      <option value="restaurant">رستوران</option>
-      <option value="fastfood">فست‌فود</option>
-      <option value="catering">کترینگ</option>
-      <option value="home">خانگی</option>
-    </select>
-  </div>
-  <button id="mainGps" class="secondary" style="width: 100%;">📍 نمایش نزدیک‌ترین‌ها</button>
-</div>
-
 <section id="view-restaurants">
   <div class="hero"><h1>نزدیک‌ترین رستوران‌ها و کترینگ‌ها 🌿</h1><p class="muted">برای دیدن منوی هر فروشگاه، روی آن کلیک کنید.</p></div>
   <div id="restaurantList" class="grid"><div class="card">در حال دریافت…</div></div>
@@ -218,7 +218,18 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 
 <div id="notice" class="status hidden"></div>
 </main>
-<footer>سفره سبز v9 — نهایی</footer>
+
+<footer>سفره سبز v11 — نهایی</footer>
+
+<!-- نوار سبد خرید چسبان در پایین صفحه -->
+<div id="stickyCart" class="hidden" style="position:fixed; bottom:0; left:0; right:0; background:#16834a; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; z-index:200; box-shadow:0 -4px 12px rgba(0,0,0,0.15); border-radius: 16px 16px 0 0; max-width: 1080px; margin: 0 auto; border: 1px solid #0d6034;">
+    <div style="font-weight: bold; display:flex; align-items:center; gap:6px;"><span style="font-size:20px;">🛒</span> <span id="stickyCartCount">۰</span> مورد</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+        <span id="stickyCartTotal" style="font-weight: bold;">۰ تومان</span>
+        <button id="stickyCartBtn" class="btn" style="background:white; color:#16834a; font-weight:800; padding:8px 16px; border-radius:8px;">مشاهده سبد</button>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./app.js"></script>
 </body>
