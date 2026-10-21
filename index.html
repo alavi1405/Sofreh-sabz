@@ -25,7 +25,6 @@ main{max-width:1080px;margin:auto;padding:16px}
 .hero{background:linear-gradient(120deg,#e0f4e5,#fff);padding:20px;border-radius:18px;margin-bottom:14px}
 h1{font-size:23px;margin:0 0 5px}h2{font-size:20px;margin:18px 0 8px}h3{font-size:16px;margin:8px 0 4px}
 p{margin:5px 0}
-.controls{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin:14px 0}
 input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd9ce;border-radius:10px;background:white;color:#203026}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
 .card{background:white;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 3px 10px #00000008}
@@ -54,7 +53,7 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .ext-item{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #eee;cursor:pointer}
 .ext-item input{width:20px;height:20px;flex:0 0 auto}
 footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
-@media(max-width:600px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
 </style>
 </head>
 <body>
@@ -75,22 +74,32 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </header>
 <main>
 
+<!-- بخش جستجوی سراسری و دوگانه -->
+<div class="card" style="margin-bottom: 16px; padding: 14px; box-shadow: 0 4px 15px rgba(22,131,74,0.1); border: 2px solid var(--green);">
+  <div class="row" style="margin-bottom: 12px; background: #f0f7f2; padding: 4px; border-radius: 12px;">
+    <button id="modeFood" class="btn" style="flex: 1; background: #16834a; color: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1);">🍲 جستجوی غذا</button>
+    <button id="modeSeller" class="btn" style="flex: 1; background: transparent; color: #0d6034; border-radius: 8px;">🏪 جستجوی فروشنده</button>
+  </div>
+  <div class="row" style="margin-bottom: 10px;">
+    <input id="mainSearch" placeholder="جستجو در نام غذا، توضیحات...">
+    <select id="mainCat" style="flex: 0 0 130px;">
+      <option value="">همه دسته‌ها</option>
+      <option value="restaurant">رستوران</option>
+      <option value="fastfood">فست‌فود</option>
+      <option value="catering">کترینگ</option>
+      <option value="home">خانگی</option>
+    </select>
+  </div>
+  <button id="mainGps" class="secondary" style="width: 100%;">📍 نمایش نزدیک‌ترین‌ها</button>
+</div>
+
 <section id="view-restaurants">
   <div class="hero"><h1>نزدیک‌ترین رستوران‌ها و کترینگ‌ها 🌿</h1><p class="muted">برای دیدن منوی هر فروشگاه، روی آن کلیک کنید.</p></div>
-  <div class="row" style="margin-bottom:12px"><button id="gpsRestaurants" class="secondary">📍 مرتب‌سازی بر اساس نزدیک‌ترین</button></div>
-  <p class="muted" id="restaurantLocationStatus"></p>
   <div id="restaurantList" class="grid"><div class="card">در حال دریافت…</div></div>
 </section>
 
 <section id="view-foods" class="hidden">
-  <button id="backToRestaurants" class="secondary hidden" style="margin-bottom:12px">← بازگشت به لیست رستوران‌ها</button>
   <div id="connection" class="status hidden" style="margin-bottom: 14px;"></div>
-  <div class="controls">
-    <input id="search" placeholder="جستجو در غذا…">
-    <select id="category"><option value="">همه</option><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select>
-    <button id="gps" class="secondary">📍 موقعیت من</button>
-  </div>
-  <p class="muted" id="locationStatus">برای نمایش نزدیک‌ترین غذاها، موقعیت را فعال کنید.</p>
   <div id="foodList" class="grid"><div class="card">در حال دریافت…</div></div>
 </section>
 
@@ -145,7 +154,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
       <div class="field full"><button type="button" id="getSellerLocation" class="secondary">📍 دریافت موقعیت فروشگاه</button></div>
       <div class="field"><label>عرض جغرافیایی</label><input name="latitude" id="sellerLat" type="number" step="any"></div>
       <div class="field"><label>طول جغرافیایی</label><input name="longitude" id="sellerLng" type="number" step="any"></div>
-      <div class="field full"><label>لینک عکس فروشگاه</label><input name="image_url" type="url"></div>
+      <div class="field full"><label>📷 عکس فروشگاه (از گالری انتخاب کنید)</label><input name="image_file" type="file" accept="image/*"></div>
       <div class="field full"><label>📄 تصویر جواز بهداشت *</label><input name="license_file" type="file" accept="image/*,application/pdf"></div>
       <div class="field full"><label>📄 تصویر پروانه صنف *</label><input name="guild_file" type="file" accept="image/*,application/pdf"></div>
       <div class="field full"><button type="submit">ثبت فروشگاه</button></div>
@@ -173,7 +182,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
         <div class="field"><label>زمان آماده‌سازی (دقیقه)</label><input name="delivery_minutes" type="number" min="0" value="30"></div>
         <div class="field full"><label>نوشیدنی‌ها</label><input name="drinks" placeholder="مثلاً: نوشابه، دوغ"></div>
         <div class="field full"><label>توضیحات</label><textarea name="description" rows="2"></textarea></div>
-        <div class="field full"><label>لینک عکس غذا</label><input name="image_url" type="url"></div>
+        <div class="field full"><label>📷 عکس غذا (از گالری انتخاب کنید)</label><input name="image_file" type="file" accept="image/*"></div>
         <div class="field full">
           <label>افزودنی‌های اختیاری (نان، سالاد، …)</label>
           <div id="extrasList"></div>
@@ -209,7 +218,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 
 <div id="notice" class="status hidden"></div>
 </main>
-<footer>سفره سبز v6 — نهایی</footer>
+<footer>سفره سبز v9 — نهایی</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./app.js"></script>
 </body>
