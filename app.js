@@ -21,7 +21,6 @@ const discount = (f) => f.original_price > f.discounted_price ? Math.round((1-f.
 
 function distanceKm(a,b,c,d){const R=6371,t=x=>x*Math.PI/180;const dLat=t(c-a),dLon=t(d-b);const x=Math.sin(dLat/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));}
 
-// پیام‌ها حالا به صورت شناور در پایین صفحه نمایش داده می‌شوند (صفحه بالا نمی‌پرد)
 function notice(msg, error=false){
   const el=$('#notice'); if(!el){alert(msg);return;}
   el.textContent=msg; 
@@ -192,6 +191,20 @@ window.showRestaurantMenuModal = (sellerId) => {
             let extrasList = f.extras;
             if (typeof extrasList === 'string') { try { extrasList = JSON.parse(extrasList); } catch(e) { extrasList = []; } }
             const extrasCount = Array.isArray(extrasList) ? extrasList.length : 0;
+            
+            const cartQty = state.cart.filter(c => c.id === f.id).reduce((sum, item) => sum + item.qty, 0);
+            let actionHtml = '';
+            
+            if (cartQty > 0) {
+                actionHtml = `<div class="row" style="flex:0 0 100px; background:#e6f2e9; border-radius:10px; padding:2px; margin:0; align-items:center; justify-content:space-between;">
+                    <button class="btn" data-dec-food="${f.id}" style="background:white; color:var(--green); padding:2px 8px; font-size:16px; border-radius:6px;">−</button>
+                    <span style="font-weight:bold; font-size:14px; color:var(--dark);">${cartQty.toLocaleString('fa-IR')}</span>
+                    <button class="btn" data-inc-food="${f.id}" style="background:var(--green); color:white; padding:2px 8px; font-size:16px; border-radius:6px;">+</button>
+                </div>`;
+            } else {
+                actionHtml = `<button data-add="${f.id}" class="secondary fixed" style="padding:6px 12px;">${extrasCount > 0 ? '➕ افزودنی' : 'افزودن'}</button>`;
+            }
+
             return `<div class="card" style="margin-bottom: 10px; padding: 10px;">
                 <div style="display:flex; gap:10px; align-items:center;">
                     ${f.image_url ? `<img src="${escapeHtml(f.image_url)}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" alt="">` : `<div style="width:60px;height:60px;background:#edf3ee;border-radius:8px;display:grid;place-items:center;font-size:24px;">🍲</div>`}
@@ -202,7 +215,7 @@ window.showRestaurantMenuModal = (sellerId) => {
                             <span class="price">${money(f.discounted_price)}</span>
                         </div>
                     </div>
-                    <button data-add="${f.id}" class="secondary fixed">${extrasCount > 0 ? '➕ افزودنی' : 'افزودن'}</button>
+                    ${actionHtml}
                 </div>
             </div>`;
         }).join('')}
@@ -210,11 +223,10 @@ window.showRestaurantMenuModal = (sellerId) => {
     document.body.appendChild(modal);
     modal.querySelector('#menuClose').onclick = () => modal.remove();
     
-    // دکمه‌های داخل منو
+    // دکمه‌های افزودن (برای بار اول)
     modal.querySelectorAll('[data-add]').forEach(b => {
         b.onclick = (e) => {
-            const btn = e.currentTarget;
-            const foodId = btn.dataset.add;
+            const foodId = e.currentTarget.dataset.add;
             const f = state.foods.find(x=>x.id===foodId);
             let extras = f.extras;
             if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch(e) { extras = []; } }
@@ -224,17 +236,39 @@ window.showRestaurantMenuModal = (sellerId) => {
                 modal.remove();
                 openExtrasModal(foodId);
             } else {
-                const success = addCart(foodId, []);
-                if (success) {
-                    btn.innerHTML = '✔️ اضافه شد';
-                    btn.style.background = '#0d6034';
-                    setTimeout(() => {
-                        btn.innerHTML = 'افزودن';
-                        btn.style.background = '';
-                    }, 1500);
-                }
+                addCart(foodId, []);
+                modal.remove();
+                window.showRestaurantMenuModal(sellerId); // باز کردن مجدد برای نمایش دکمه‌های + و -
             }
         };
+    });
+
+    // دکمه‌های + و - (وقتی غذا در سبد هست)
+    modal.querySelectorAll('[data-inc-food]').forEach(b => b.onclick = (e) => {
+        e.stopPropagation();
+        const id = e.currentTarget.dataset.incFood;
+        let cartItem = state.cart.find(c => c.id === id);
+        if (cartItem) {
+            const f = state.foods.find(x=>x.id===id);
+            if (cartItem.qty >= Number(f.quantity)) return notice('موجودی کافی نیست', true);
+            cartItem.qty++;
+            updateCartCount();
+            modal.remove();
+            window.showRestaurantMenuModal(sellerId);
+        }
+    });
+
+    modal.querySelectorAll('[data-dec-food]').forEach(b => b.onclick = (e) => {
+        e.stopPropagation();
+        const id = e.currentTarget.dataset.decFood;
+        let cartItem = state.cart.find(c => c.id === id);
+        if (cartItem) {
+            cartItem.qty--;
+            if (cartItem.qty <= 0) state.cart = state.cart.filter(c => c !== cartItem);
+            updateCartCount();
+            modal.remove();
+            window.showRestaurantMenuModal(sellerId);
+        }
     });
 };
 
@@ -264,6 +298,20 @@ function renderFoods(){
     
     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : encodeURIComponent(s.address || s.name)}`;
 
+    // منطق دکمه افزودن / افزایش تعداد در کارت غذا
+    const cartQty = state.cart.filter(c => c.id === f.id).reduce((sum, item) => sum + item.qty, 0);
+    let actionBtn = '';
+    if (cartQty > 0) {
+        actionBtn = `
+        <div class="row" style="flex:2; background:#e6f2e9; border-radius:10px; padding:4px; margin:0; align-items:center; justify-content:space-between;">
+            <button class="btn" data-dec-food="${f.id}" style="background:white; color:var(--green); padding:4px 12px; font-size:18px; border-radius:8px;">−</button>
+            <span style="font-weight:bold; font-size:16px; color:var(--dark);">${cartQty.toLocaleString('fa-IR')}</span>
+            <button class="btn" data-inc-food="${f.id}" style="background:var(--green); color:white; padding:4px 12px; font-size:18px; border-radius:8px;">+</button>
+        </div>`;
+    } else {
+        actionBtn = `<button data-add="${f.id}" style="flex:2">${extrasCount > 0 ? '➕ انتخاب افزودنی' : 'افزودن به سبد'}</button>`;
+    }
+
     return `<article class="card">
       ${f.image_url ? `<img class="food-img" src="${escapeHtml(f.image_url)}" alt="${escapeHtml(f.title)}" loading="lazy">` : `<div class="food-img">🍲</div>`}
       <h3 style="margin-bottom:2px">${escapeHtml(f.title)}</h3>
@@ -274,16 +322,15 @@ function renderFoods(){
         ${d?`<span class="badge">${d.toLocaleString('fa-IR')}٪</span>`:''}
       </p>
       <div class="row" style="margin-top:10px">
-        <button data-add="${f.id}" style="flex:2">${extrasCount > 0 ? '➕ انتخاب افزودنی' : 'افزودن به سبد'}</button>
+        ${actionBtn}
         <a href="${mapUrl}" target="_blank" class="btn secondary" style="flex:1; text-align:center; text-decoration:none; padding:10px 0;">📍</a>
       </div>
     </article>`;
   }).join('');
   
-  // دکمه‌های کارت غذا
+  // رویدادهای دکمه افزودن اولیه
   wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', (e) => {
-      const btn = e.currentTarget;
-      const foodId = btn.dataset.add;
+      const foodId = e.currentTarget.dataset.add;
       const f = state.foods.find(x=>x.id===foodId);
       let extras = f.extras;
       if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch(e) { extras = []; } }
@@ -292,18 +339,37 @@ function renderFoods(){
       if (extras.length > 0) {
           openExtrasModal(foodId);
       } else {
-          const success = addCart(foodId, []);
-          if (success) {
-              const orig = btn.innerHTML;
-              btn.innerHTML = '✔️ اضافه شد';
-              btn.style.background = '#0d6034';
-              setTimeout(() => {
-                  btn.innerHTML = orig;
-                  btn.style.background = '';
-              }, 1500);
-          }
+          addCart(foodId, []);
+          renderFoods(); // آپدیت صفحه برای نمایش دکمه‌های + و -
       }
   }));
+
+  // رویدادهای دکمه +
+  wrap.querySelectorAll('[data-inc-food]').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const id = b.dataset.incFood;
+      let cartItem = state.cart.find(c => c.id === id);
+      if (cartItem) {
+          const f = state.foods.find(x=>x.id===id);
+          if (cartItem.qty >= Number(f.quantity)) return notice('موجودی کافی نیست', true);
+          cartItem.qty++;
+          updateCartCount();
+          renderFoods();
+      }
+  });
+
+  // رویدادهای دکمه -
+  wrap.querySelectorAll('[data-dec-food]').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const id = b.dataset.decFood;
+      let cartItem = state.cart.find(c => c.id === id);
+      if (cartItem) {
+          cartItem.qty--;
+          if (cartItem.qty <= 0) state.cart = state.cart.filter(c => c !== cartItem);
+          updateCartCount();
+          renderFoods();
+      }
+  });
 }
 
 function openExtrasModal(foodId){
@@ -335,10 +401,10 @@ function openExtrasModal(foodId){
     const selected = Array.from(modal.querySelectorAll('[data-ex]:checked')).map(cb => extras[Number(cb.dataset.ex)]);
     modal.remove();
     addCart(foodId, selected);
+    if (state.searchMode === 'food') renderFoods();
   };
 }
 
-// حالا این تابع مقدار true یا false برمی‌گرداند تا دکمه‌ها بتوانند عکس‌العمل نشان دهند
 function addCart(id, extras){
   const f = state.foods.find(x=>x.id===id);
   if(!f || Number(f.quantity)<1) { notice('این غذا دیگر موجود نیست.', true); return false; }
@@ -361,7 +427,6 @@ function updateCartCount(){
   const el=$('#cartCount'); if(el) el.textContent = state.cart.reduce((a,x)=>a+x.qty,0).toLocaleString('fa-IR');
   localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
   
-  // آپدیت نوار سبد خرید پایین صفحه
   const sticky = document.getElementById('stickyCart');
   const stickyCount = document.getElementById('stickyCartCount');
   const stickyTotal = document.getElementById('stickyCartTotal');
@@ -600,9 +665,7 @@ $('#modeSeller')?.addEventListener('click', () => setSearchMode('seller'));
 
 $$('[data-show]').forEach(b=>b.addEventListener('click',()=>{
   const v = b.dataset.show;
-  if (v === 'foods') setSearchMode('food');
-  else if (v === 'restaurants') setSearchMode('seller');
-  else showView(v);
+  showView(v);
 }));
 
 $('#lookupOrders')?.addEventListener('click', lookupOrders);
@@ -956,7 +1019,6 @@ async function init(){
   await refreshAuth();
   setSearchMode('food'); 
   
-  // اتصال دکمه نوار سبد خرید پایین صفحه
   document.getElementById('stickyCartBtn')?.addEventListener('click', () => showView('cart'));
 }
 
