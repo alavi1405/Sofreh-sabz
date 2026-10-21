@@ -19,6 +19,11 @@ const normPhone = (v) => toAscii(v).replace(/[^\d+]/g,'').trim();
 const normPersian = (s) => String(s??'').toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200d]/g,' ').replace(/\s+/g,' ').trim();
 const discount = (f) => f.original_price > f.discounted_price ? Math.round((1-f.discounted_price/f.original_price)*100) : 0;
 
+function extrasSumPerUnit(item) {
+    if (!item.extras || !item.extras.length) return 0;
+    return item.extras.reduce((a, e) => a + Number(e.price || 0) * (Number(e.qty) || 1), 0);
+}
+
 function distanceKm(a,b,c,d){const R=6371,t=x=>x*Math.PI/180;const dLat=t(c-a),dLon=t(d-b);const x=Math.sin(dLat/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));}
 
 function notice(msg, error=false){
@@ -112,9 +117,8 @@ function cartTotals(){
   for(const it of state.cart){
     const f = state.foods.find(x=>x.id===it.id);
     if(!f) continue;
-    let price = Number(f.discounted_price);
-    if(it.extras && it.extras.length){ for(const ex of it.extras) price += Number(ex.price||0); }
-    items += price * it.qty;
+    const unitPrice = Number(f.discounted_price) + extrasSumPerUnit(it);
+    items += unitPrice * it.qty;
   }
   const seller = currentCartSeller();
   const method = $('#delivery')?.value || 'pickup';
@@ -173,6 +177,20 @@ window.showRestaurantMenuModal = (sellerId) => {
     if (!seller) return;
     const sellerFoods = state.foods.filter(f => f.seller_id === sellerId);
 
+    let mapHtml = '';
+    if (seller.latitude && seller.latitude !== 0 && seller.longitude && seller.longitude !== 0) {
+        const mapImgUrl = `https://static-maps.yandex.ru/1.x/?ll=${seller.longitude},${seller.latitude}&z=15&l=map&pt=${seller.longitude},${seller.latitude},pm2rdm`;
+        const mapLink = `https://www.google.com/maps/search/?api=1&query=${seller.latitude},${seller.longitude}`;
+        mapHtml = `
+            <div style="margin-bottom:12px; border-radius:10px; overflow:hidden; border:1px solid #ddd; position:relative;">
+                <img src="${mapImgUrl}" alt="نقشه محدوده فروشگاه" style="width:100%; height:150px; object-fit:cover; display:block;">
+                <a href="${mapLink}" target="_blank" style="position:absolute; bottom:0; left:0; right:0; background:rgba(13,96,52,0.85); color:white; text-align:center; padding:8px; text-decoration:none; font-weight:bold; font-size:13px;">📍 مشاهده مسیر و محدوده دقیق</a>
+            </div>
+        `;
+    } else {
+        mapHtml = `<div class="muted" style="margin-bottom:12px; text-align:center;">موقعیت روی نقشه برای این فروشگاه ثبت نشده است.</div>`;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'modal-bg';
     modal.innerHTML = `
@@ -181,10 +199,13 @@ window.showRestaurantMenuModal = (sellerId) => {
             <h3 style="margin:0">منوی ${escapeHtml(seller.name)}</h3>
             <button id="menuClose" class="secondary fixed">بستن</button>
         </div>
-        <p class="muted">📍 ${escapeHtml(seller.address || '')}</p>
+        
+        <p class="muted" style="margin-bottom:8px;">📍 ${escapeHtml(seller.address || '')}</p>
+        
+        ${mapHtml}
+
         <div class="row" style="margin-bottom: 12px;">
             ${seller.phone ? `<a href="tel:${encodeURIComponent(seller.phone)}" class="btn secondary" style="text-align:center;text-decoration:none;flex:1">📞 تماس</a>` : ''}
-            <a href="https://www.google.com/maps/search/?api=1&query=${seller.latitude && seller.longitude ? `${seller.latitude},${seller.longitude}` : encodeURIComponent(seller.address || seller.name)}" target="_blank" class="btn secondary" style="text-align:center;text-decoration:none;flex:1">📍 مسیریابی</a>
         </div>
         <hr style="border:0; border-top:1px solid #eee; margin:12px 0;">
         ${sellerFoods.length === 0 ? '<p class="muted">این فروشگاه هنوز منویی ثبت نکرده است.</p>' : sellerFoods.map(f => {
@@ -223,7 +244,6 @@ window.showRestaurantMenuModal = (sellerId) => {
     document.body.appendChild(modal);
     modal.querySelector('#menuClose').onclick = () => modal.remove();
     
-    // دکمه‌های افزودن (برای بار اول)
     modal.querySelectorAll('[data-add]').forEach(b => {
         b.onclick = (e) => {
             const foodId = e.currentTarget.dataset.add;
@@ -238,12 +258,11 @@ window.showRestaurantMenuModal = (sellerId) => {
             } else {
                 addCart(foodId, []);
                 modal.remove();
-                window.showRestaurantMenuModal(sellerId); // باز کردن مجدد برای نمایش دکمه‌های + و -
+                window.showRestaurantMenuModal(sellerId);
             }
         };
     });
 
-    // دکمه‌های + و - (وقتی غذا در سبد هست)
     modal.querySelectorAll('[data-inc-food]').forEach(b => b.onclick = (e) => {
         e.stopPropagation();
         const id = e.currentTarget.dataset.incFood;
@@ -298,7 +317,6 @@ function renderFoods(){
     
     const mapUrl = `https://www.google.com/maps/search/?api=1&query=${s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : encodeURIComponent(s.address || s.name)}`;
 
-    // منطق دکمه افزودن / افزایش تعداد در کارت غذا
     const cartQty = state.cart.filter(c => c.id === f.id).reduce((sum, item) => sum + item.qty, 0);
     let actionBtn = '';
     if (cartQty > 0) {
@@ -328,7 +346,6 @@ function renderFoods(){
     </article>`;
   }).join('');
   
-  // رویدادهای دکمه افزودن اولیه
   wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', (e) => {
       const foodId = e.currentTarget.dataset.add;
       const f = state.foods.find(x=>x.id===foodId);
@@ -340,11 +357,10 @@ function renderFoods(){
           openExtrasModal(foodId);
       } else {
           addCart(foodId, []);
-          renderFoods(); // آپدیت صفحه برای نمایش دکمه‌های + و -
+          renderFoods();
       }
   }));
 
-  // رویدادهای دکمه +
   wrap.querySelectorAll('[data-inc-food]').forEach(b => b.onclick = (e) => {
       e.stopPropagation();
       const id = b.dataset.incFood;
@@ -358,7 +374,6 @@ function renderFoods(){
       }
   });
 
-  // رویدادهای دکمه -
   wrap.querySelectorAll('[data-dec-food]').forEach(b => b.onclick = (e) => {
       e.stopPropagation();
       const id = b.dataset.decFood;
@@ -380,29 +395,56 @@ function openExtrasModal(foodId){
   if (!Array.isArray(extras)) extras = [];
   
   if(!extras.length){ return addCart(foodId, []); }
+
+  const qtys = extras.map(() => 0);
+
   const modal = document.createElement('div');
   modal.className='modal-bg';
-  modal.innerHTML = `<div class="modal">
-    <h3>افزودنی‌های اختیاری</h3>
-    <p class="muted">${escapeHtml(f.title)}</p>
-    ${extras.map((ex,i)=>`
-      <label class="ext-item">
-        <input type="checkbox" data-ex="${i}">
-        <span>${escapeHtml(ex.name)} — ${money(ex.price)}</span>
-      </label>`).join('')}
-    <div class="row" style="margin-top:12px">
-      <button id="exConfirm" class="fixed">افزودن به سبد</button>
-      <button id="exCancel" class="secondary fixed">لغو</button>
-    </div>
-  </div>`;
+
+  function renderContent() {
+    modal.innerHTML = `<div class="modal">
+      <h3>افزودنی‌های اختیاری</h3>
+      <p class="muted">${escapeHtml(f.title)}</p>
+      ${extras.map((ex, i) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+          <div style="flex:1;">
+            <b>${escapeHtml(ex.name)}</b>
+            <div class="muted" style="font-size:12px;">${money(ex.price)}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; background:#e6f2e9; border-radius:10px; padding:3px;">
+            <button type="button" class="btn" data-ext-dec="${i}" style="background:white; color:var(--green); padding:4px 10px; font-size:16px; border-radius:6px;">−</button>
+            <span style="font-weight:bold; min-width:20px; text-align:center; color:var(--dark);">${qtys[i].toLocaleString('fa-IR')}</span>
+            <button type="button" class="btn" data-ext-inc="${i}" style="background:var(--green); color:white; padding:4px 10px; font-size:16px; border-radius:6px;">+</button>
+          </div>
+        </div>
+      `).join('')}
+      <div class="row" style="margin-top:16px">
+        <button id="exConfirm" class="fixed">افزودن به سبد (${money(extras.reduce((a,e,i)=>a + Number(e.price)*qtys[i],0))} + غذا)</button>
+        <button id="exCancel" class="secondary fixed">لغو</button>
+      </div>
+    </div>`;
+
+    modal.querySelector('#exCancel').onclick = () => modal.remove();
+    modal.querySelectorAll('[data-ext-inc]').forEach(b => b.onclick = () => {
+      const i = Number(b.dataset.extInc);
+      qtys[i]++;
+      renderContent();
+    });
+    modal.querySelectorAll('[data-ext-dec]').forEach(b => b.onclick = () => {
+      const i = Number(b.dataset.extDec);
+      if (qtys[i] > 0) qtys[i]--;
+      renderContent();
+    });
+    modal.querySelector('#exConfirm').onclick = () => {
+      const selected = extras.map((ex, i) => ({ name: ex.name, price: Number(ex.price)||0, qty: qtys[i] })).filter(x => x.qty > 0);
+      modal.remove();
+      addCart(foodId, selected);
+      if (state.searchMode === 'food') renderFoods();
+    };
+  }
+
+  renderContent();
   document.body.appendChild(modal);
-  modal.querySelector('#exCancel').onclick = () => modal.remove();
-  modal.querySelector('#exConfirm').onclick = () => {
-    const selected = Array.from(modal.querySelectorAll('[data-ex]:checked')).map(cb => extras[Number(cb.dataset.ex)]);
-    modal.remove();
-    addCart(foodId, selected);
-    if (state.searchMode === 'food') renderFoods();
-  };
 }
 
 function addCart(id, extras){
@@ -410,13 +452,19 @@ function addCart(id, extras){
   if(!f || Number(f.quantity)<1) { notice('این غذا دیگر موجود نیست.', true); return false; }
   const firstSeller = state.cart[0] ? sellerOf(state.foods.find(x=>x.id===state.cart[0].id)) : null;
   if(firstSeller && firstSeller.id!==f.seller_id) { notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true); return false; }
-  const key = id + '|' + JSON.stringify((extras||[]).map(e=>e.name));
+
+  const normExtras = (extras||[]).filter(e => Number(e.qty||1) > 0)
+                                    .map(e => ({ name: e.name, price: Number(e.price)||0, qty: Number(e.qty)||1 }))
+                                    .sort((a,b) => a.name.localeCompare(b.name));
+  const key = id + '|' + JSON.stringify(normExtras.map(e => `${e.name}:${e.qty}`));
   const existing = state.cart.find(x=>x.key===key);
+  
   if(existing){ 
       if(existing.qty >= Number(f.quantity)) { notice('تعداد از موجودی بیشتر است.', true); return false; }
       existing.qty++; 
   }
-  else state.cart.push({ key, id, qty:1, extras: extras||[] });
+  else state.cart.push({ key, id, qty:1, extras: normExtras });
+  
   updateCartCount(); 
   notice('غذا به سبد اضافه شد.');
   if(!$('#view-cart').classList.contains('hidden')) renderCart();
@@ -439,9 +487,7 @@ function updateCartCount(){
           for (const it of state.cart) {
               const f = state.foods.find(x=>x.id===it.id);
               if (f) {
-                  let price = Number(f.discounted_price);
-                  if (it.extras) price += it.extras.reduce((a,e)=>a+Number(e.price||0),0);
-                  total += price * it.qty;
+                  total += (Number(f.discounted_price) + extrasSumPerUnit(it)) * it.qty;
               }
           }
           stickyTotal.textContent = money(total);
@@ -451,30 +497,46 @@ function updateCartCount(){
   }
 }
 
+// ⬇⬇⬇ سبد خرید کاملاً بازنویسی شد تا باگ دکمه‌ها حل شود ⬇⬇⬇
 function renderCart(){
   const wrap=$('#cartList'), checkout=$('#checkout');
   state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
-  if(!state.cart.length){ wrap.innerHTML='سبد خرید خالی است.'; checkout.classList.add('hidden'); updateCartCount(); return; }
-  wrap.innerHTML = state.cart.map(item=>{
+  
+  if(!state.cart.length){ 
+      wrap.innerHTML='سبد خرید خالی است.'; 
+      checkout.classList.add('hidden'); 
+      updateCartCount(); 
+      return; 
+  }
+  
+  wrap.innerHTML = state.cart.map((item, idx)=>{
     const f = state.foods.find(x=>x.id===item.id);
-    const extrasSum = (item.extras||[]).reduce((a,e)=>a+Number(e.price||0),0);
-    const lineTotal = (Number(f.discounted_price)+extrasSum) * item.qty;
-    return `<div class="cart-line">
-      <div>
-        <b>${escapeHtml(f.title)}</b>
-        ${item.extras?.length?`<div class="muted">${item.extras.map(e=>escapeHtml(e.name)).join('، ')}</div>`:''}
-        <div class="muted">${money(Number(f.discounted_price)+extrasSum)} × ${item.qty.toLocaleString('fa-IR')} = ${money(lineTotal)}</div>
+    const extrasUnit = extrasSumPerUnit(item);
+    const lineTotal = (Number(f.discounted_price) + extrasUnit) * item.qty;
+    const extrasTxt = (item.extras||[]).map(e => escapeHtml(e.name) + (Number(e.qty) > 1 ? ` × ${Number(e.qty).toLocaleString('fa-IR')}` : '')).join('، ');
+    
+    return `<div class="cart-line" style="border-bottom: 1px dashed #cbd9ce; padding: 12px 0;">
+      <div style="flex:1;">
+        <b style="font-size: 17px; color: #0d6034; display:block; margin-bottom:2px;">${escapeHtml(f.title)}</b>
+        ${extrasTxt ? `<div class="muted" style="color:#555; font-size:12px; margin-bottom:4px;">➕ ${extrasTxt}</div>` : ''}
+        <div class="muted">${money(Number(f.discounted_price)+extrasUnit)} × ${item.qty.toLocaleString('fa-IR')} = <b class="price">${money(lineTotal)}</b></div>
       </div>
-      <div class="row fixed">
-        <button class="secondary fixed" data-dec="${item.key}">−</button>
-        <button class="secondary fixed" data-inc="${item.key}">+</button>
-        <button class="danger fixed" data-remove="${item.key}">حذف</button>
+      <div class="row fixed" style="gap:4px;">
+        <button class="btn secondary" style="width:32px; height:32px; padding:0; border-radius:50%; font-size:18px; display:grid; place-items:center; background:#e6f2e9; color:#16834a;" data-dec="${idx}">−</button>
+        <span style="font-weight:bold; min-width:24px; text-align:center;">${item.qty.toLocaleString('fa-IR')}</span>
+        <button class="btn secondary" style="width:32px; height:32px; padding:0; border-radius:50%; font-size:18px; display:grid; place-items:center; background:#e6f2e9; color:#16834a;" data-inc="${idx}">+</button>
+        <button class="danger" style="width:32px; height:32px; padding:0; border-radius:8px; font-size:12px; display:grid; place-items:center; margin-right:6px;" data-remove="${idx}">🗑️</button>
       </div>
     </div>`;
   }).join('');
-  wrap.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>setQty(b.dataset.dec,-1));
-  wrap.querySelectorAll('[data-inc]').forEach(b=>b.onclick=()=>setQty(b.dataset.inc,1));
-  wrap.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{ state.cart=state.cart.filter(x=>x.key!==b.dataset.remove); updateCartCount(); renderCart(); });
+  
+  wrap.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => setQty(Number(b.dataset.dec), -1));
+  wrap.querySelectorAll('[data-inc]').forEach(b => b.onclick = () => setQty(Number(b.dataset.inc), 1));
+  wrap.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => { 
+      state.cart.splice(Number(b.dataset.remove), 1); 
+      updateCartCount(); 
+      renderCart(); 
+  });
   
   const t = cartTotals();
   const dSel=$('#delivery'), hint=$('#deliveryHint');
@@ -485,13 +547,22 @@ function renderCart(){
   checkout.classList.remove('hidden');
 }
 
-function setQty(key, delta){
-  const item = state.cart.find(x=>x.key===key); if(!item) return;
+// تابع کم و زیاد کردن با ایندکس (شماره ردیف) کار می کند
+function setQty(idx, delta){
+  const item = state.cart[idx]; if(!item) return;
   const f = state.foods.find(x=>x.id===item.id); if(!f) return;
+  
   item.qty += delta;
-  if(item.qty<=0) state.cart = state.cart.filter(x=>x.key!==key);
-  else if(item.qty > Number(f.quantity)){ item.qty=Number(f.quantity); notice('تعداد از موجودی بیشتر است.',true); }
-  updateCartCount(); renderCart();
+  
+  if(item.qty <= 0) {
+      state.cart.splice(idx, 1);
+  } else if(item.qty > Number(f.quantity)) { 
+      item.qty = Number(f.quantity); 
+      notice('تعداد از موجودی بیشتر است.',true); 
+  }
+  
+  updateCartCount(); 
+  renderCart();
 }
 
 $('#delivery')?.addEventListener('change', () => { if(!$('#view-cart').classList.contains('hidden')) renderCart(); });
@@ -585,7 +656,6 @@ async function openChat(orderId, senderType){
     <div id="chatBody" style="max-height:50vh;overflow-y:auto;margin:12px 0;border:1px solid #ddd;border-radius:10px;padding:8px;background:#f8f8f8"></div>
     <div class="row">
       <input id="chatInput" placeholder="پیام شما…" maxlength="500">
-      ${senderType === 'seller' ? `<button id="chatSendLoc" class="secondary fixed" title="ارسال موقعیت GPS">📍</button>` : ''}
       <button id="chatSend" class="fixed">ارسال</button>
     </div>
   </div>`;
@@ -597,17 +667,10 @@ async function openChat(orderId, senderType){
   const load = async () => {
     const { data } = await state.db.rpc('get_chat_messages', { p_order_id: orderId });
     body.innerHTML = (data||[]).map(m => {
-      let msgContent = '';
-      if (m.message.startsWith('[LOCATION]')) {
-        const coords = m.message.replace('[LOCATION]', '').split(',');
-        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}`;
-        msgContent = `<a href="${mapUrl}" target="_blank" class="btn secondary" style="display:inline-block;margin-top:6px;padding:6px 12px;font-size:13px;text-decoration:none">📍 مشاهده روی نقشه</a>`;
-      } else {
-        msgContent = escapeHtml(m.message);
-      }
-      return `<div style="margin:6px 0;padding:6px 10px;border-radius:8px;background:${m.sender_type==='customer'?'#e6f2e9':'#fff0d8'};max-width:75%;${m.sender_type==='customer'?'margin-right:auto':'margin-left:auto'}">
-        <b>${m.sender_type==='customer'?'مشتری':'فروشنده'}:</b> <div>${msgContent}</div>
-        <div class="muted" style="font-size:10px">${new Date(m.created_at).toLocaleTimeString('fa-IR')}</div>
+      return `<div style="margin:6px 0;padding:8px 12px;border-radius:12px;background:${m.sender_type==='customer'?'#e6f2e9':'#fff0d8'};max-width:80%;${m.sender_type==='customer'?'margin-right:auto':'margin-left:auto'}">
+        <b style="font-size:12px; color:#555;">${m.sender_type==='customer'?'مشتری':'فروشنده'}:</b> 
+        <div style="margin-top:4px;">${escapeHtml(m.message)}</div>
+        <div class="muted" style="font-size:10px; text-align:left; margin-top:4px;">${new Date(m.created_at).toLocaleTimeString('fa-IR')}</div>
       </div>`;
     }).join('');
     body.scrollTop = body.scrollHeight;
@@ -621,15 +684,6 @@ async function openChat(orderId, senderType){
     modal.querySelector('#chatInput').value='';
     await load();
   };
-  modal.querySelector('#chatSendLoc')?.addEventListener('click', async () => {
-    if (!state.mySeller || !state.mySeller.latitude || !state.mySeller.longitude) {
-      alert('موقعیت فروشگاه شما ثبت نشده است. لطفاً از پنل فروشنده، موقعیت را ثبت کنید.');
-      return;
-    }
-    const locMsg = `[LOCATION]${state.mySeller.latitude},${state.mySeller.longitude}`;
-    await state.db.rpc('send_chat_message', { p_order_id: orderId, p_sender_type: 'seller', p_sender_id: state.authUser?.id||null, p_message: locMsg });
-    await load();
-  });
   const interval = setInterval(load, 4000);
   modal.addEventListener('DOMNodeRemoved', ()=>clearInterval(interval));
 }
