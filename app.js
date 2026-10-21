@@ -7,7 +7,7 @@ const CONFIG = { TRIAL_MODE: true, ZARINPAL_MERCHANT: "", SMS_API_KEY: "" };
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
-const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null, selectedSellerId:null };
+const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null, searchMode:'food' };
 
 const catNames = { restaurant:'رستوران', fastfood:'فست‌فود', catering:'کترینگ', home:'خانگی' };
 const statusNames = { pending:'در انتظار پذیرش', accepted:'پذیرفته‌شده', preparing:'در حال آماده‌سازی', ready:'آماده تحویل', completed:'تحویل‌شده', cancelled:'لغو‌شده' };
@@ -34,6 +34,29 @@ function connection(msg, error=false){
   el.textContent=msg; el.classList.remove('hidden'); el.classList.toggle('error',error);
 }
 
+function setSearchMode(mode) {
+  state.searchMode = mode;
+  if (mode === 'food') {
+    $('#modeFood').style.background = '#16834a';
+    $('#modeFood').style.color = 'white';
+    $('#modeFood').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
+    $('#modeSeller').style.background = 'transparent';
+    $('#modeSeller').style.color = '#0d6034';
+    $('#modeSeller').style.boxShadow = 'none';
+    $('#mainSearch').placeholder = 'جستجو در نام غذا، توضیحات...';
+    showView('foods');
+  } else {
+    $('#modeSeller').style.background = '#16834a';
+    $('#modeSeller').style.color = 'white';
+    $('#modeSeller').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
+    $('#modeFood').style.background = 'transparent';
+    $('#modeFood').style.color = '#0d6034';
+    $('#modeFood').style.boxShadow = 'none';
+    $('#mainSearch').placeholder = 'جستجوی نام رستوران، فست‌فود، کترینگ...';
+    showView('restaurants');
+  }
+}
+
 function showView(name){
   $$('main section[id^="view-"]').forEach(e=>e.classList.add('hidden'));
   const t=$(`#view-${name}`); if(!t) return;
@@ -43,11 +66,7 @@ function showView(name){
   if(name==='seller') renderSellerView();
   if(name==='admin') renderAdminView();
   if(name==='restaurants') renderRestaurants();
-  if(name==='foods') {
-      renderFoods(); 
-      $('#backToRestaurants')?.classList.toggle('hidden', !state.selectedSellerId);
-      $('#search').placeholder = state.selectedSellerId ? 'جستجو در منوی این فروشگاه…' : 'جستجو در نام غذا، توضیحات یا فروشگاه…';
-  }
+  if(name==='foods') renderFoods();
 }
 
 async function loadData(){
@@ -91,55 +110,100 @@ function cartTotals(){
 function renderRestaurants() {
     const wrap = $('#restaurantList'); if(!wrap) return;
     if (!state.sellers.length) { wrap.innerHTML = '<div class="card">هیچ فروشنده‌ای ثبت نشده است.</div>'; return; }
-    let list = [...state.sellers];
+    
+    const searchQ = normPersian($('#mainSearch')?.value || '');
+    const catFilter = $('#mainCat')?.value || '';
+
+    let list = state.sellers.filter(s => {
+        const matchSearch = !searchQ || normPersian([s.name, s.address, catNames[s.type]].join(' ')).includes(searchQ);
+        const matchCat = !catFilter || s.type === catFilter;
+        return matchSearch && matchCat;
+    });
+
+    if (!list.length) { 
+        wrap.innerHTML = '<div class="card">فروشگاهی با این مشخصات پیدا نشد.</div>'; 
+        return; 
+    }
+
     if (state.position) {
         list.sort((a, b) => {
-            const da = a.latitude != null ? distanceKm(state.position.latitude, state.position.longitude, a.latitude, a.longitude) : Infinity;
-            const db = b.latitude != null ? distanceKm(state.position.latitude, state.position.longitude, b.latitude, b.longitude) : Infinity;
+            const da = a.latitude ? distanceKm(state.position.latitude, state.position.longitude, a.latitude, a.longitude) : Infinity;
+            const db = b.latitude ? distanceKm(state.position.latitude, state.position.longitude, b.latitude, b.longitude) : Infinity;
             return da - db;
         });
     }
+
     wrap.innerHTML = list.map(s => {
         let distTxt = '';
-        if (state.position && s.latitude != null) { const km = distanceKm(state.position.latitude, state.position.longitude, s.latitude, s.longitude); distTxt = ` · ${km.toFixed(1)} کیلومتر`; }
+        if (state.position && s.latitude && s.latitude !== 0 && s.longitude !== 0) { 
+            const km = distanceKm(state.position.latitude, state.position.longitude, s.latitude, s.longitude); 
+            distTxt = ` · ${km.toFixed(1)} کیلومتر`; 
+        }
         return `<article class="card" style="cursor:pointer">
             ${s.image_url ? `<img class="food-img" src="${escapeHtml(s.image_url)}" alt="${escapeHtml(s.name)}">` : `<div class="food-img">🏪</div>`}
             <h3>${escapeHtml(s.name)}</h3>
             <p class="muted">${escapeHtml(catNames[s.type] || s.type)}${escapeHtml(distTxt)}</p>
             <p class="muted">📍 ${escapeHtml(s.address || '')}</p>
             <div class="row" style="margin-top:10px">
-                <button class="secondary fixed" style="flex:1" onclick="event.stopPropagation(); openRestaurantMenu('${s.id}')">مشاهده منو</button>
+                <button class="secondary fixed" style="flex:1" onclick="event.stopPropagation(); showRestaurantMenuModal('${s.id}')">مشاهده منو</button>
                 <a href="https://www.google.com/maps/search/?api=1&query=${s.latitude && s.longitude ? `${s.latitude},${s.longitude}` : encodeURIComponent(s.address || s.name)}" target="_blank" class="btn secondary" style="flex:1;text-align:center;text-decoration:none" onclick="event.stopPropagation()">📍 مسیریابی</a>
             </div>
         </article>`;
     }).join('');
 }
 
-window.openRestaurantMenu = (sellerId) => {
-    state.selectedSellerId = sellerId;
-    showView('foods');
+window.showRestaurantMenuModal = (sellerId) => {
+    const seller = state.sellers.find(s => s.id === sellerId);
+    if (!seller) return;
+    const sellerFoods = state.foods.filter(f => f.seller_id === sellerId);
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-bg';
+    modal.innerHTML = `
+    <div class="modal" style="max-height: 90vh; width: 95%; max-width: 600px;">
+        <div class="row" style="justify-content: space-between; margin-bottom: 12px;">
+            <h3 style="margin:0">منوی ${escapeHtml(seller.name)}</h3>
+            <button id="menuClose" class="secondary fixed">بستن</button>
+        </div>
+        <p class="muted">📍 ${escapeHtml(seller.address || '')}</p>
+        <div class="row" style="margin-bottom: 12px;">
+            ${seller.phone ? `<a href="tel:${encodeURIComponent(seller.phone)}" class="btn secondary" style="text-align:center;text-decoration:none;flex:1">📞 تماس</a>` : ''}
+            <a href="https://www.google.com/maps/search/?api=1&query=${seller.latitude && seller.longitude ? `${seller.latitude},${seller.longitude}` : encodeURIComponent(seller.address || seller.name)}" target="_blank" class="btn secondary" style="text-align:center;text-decoration:none;flex:1">📍 مسیریابی</a>
+        </div>
+        <hr style="border:0; border-top:1px solid #eee; margin:12px 0;">
+        ${sellerFoods.length === 0 ? '<p class="muted">این فروشگاه هنوز منویی ثبت نکرده است.</p>' : sellerFoods.map(f => {
+            let extrasList = f.extras;
+            if (typeof extrasList === 'string') { try { extrasList = JSON.parse(extrasList); } catch(e) { extrasList = []; } }
+            const extrasCount = Array.isArray(extrasList) ? extrasList.length : 0;
+            return `<div class="card" style="margin-bottom: 10px; padding: 10px;">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    ${f.image_url ? `<img src="${escapeHtml(f.image_url)}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" alt="">` : `<div style="width:60px;height:60px;background:#edf3ee;border-radius:8px;display:grid;place-items:center;font-size:24px;">🍲</div>`}
+                    <div style="flex:1; min-width:0;">
+                        <b>${escapeHtml(f.title)}</b>
+                        <div style="font-size:12px; color:#777; margin-top:2px;">
+                            <span class="old">${money(f.original_price)}</span> 
+                            <span class="price">${money(f.discounted_price)}</span>
+                        </div>
+                    </div>
+                    <button data-add="${f.id}" class="secondary fixed">${extrasCount > 0 ? '➕ افزودنی' : 'افزودن'}</button>
+                </div>
+            </div>`;
+        }).join('')}
+    </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#menuClose').onclick = () => modal.remove();
+    modal.querySelectorAll('[data-add]').forEach(b => {
+        b.onclick = () => {
+            modal.remove();
+            openExtrasModal(b.dataset.add);
+        };
+    });
 };
 
-$('#backToRestaurants')?.addEventListener('click', () => {
-    state.selectedSellerId = null;
-    showView('restaurants');
-});
-
-$('#gpsRestaurants')?.addEventListener('click', () => {
-    if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
-    $('#restaurantLocationStatus').textContent='در حال دریافت…';
-    navigator.geolocation.getCurrentPosition(
-        pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#restaurantLocationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderRestaurants(); },
-        err => { $('#restaurantLocationStatus').textContent='ناموفق.'; },
-        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
-    );
-});
-
 function renderFoods(){
-  const sEl=$('#search'), cEl=$('#category'); if(!sEl||!cEl) return;
+  const sEl=$('#mainSearch'), cEl=$('#mainCat'); if(!sEl||!cEl) return;
   const q=normPersian(sEl.value), cat=cEl.value;
   let list = state.foods.filter(f => {
-      if (state.selectedSellerId && f.seller_id !== state.selectedSellerId) return false;
       const s = sellerOf(f);
       const hay = normPersian([f.title,f.description,s?.name,s?.address,catNames[f.category]].join(' '));
       return (!cat || f.category===cat) && (!q || hay.includes(q));
@@ -147,8 +211,8 @@ function renderFoods(){
   if(state.position){
     list.sort((a,b)=>{
       const sa=sellerOf(a), sb=sellerOf(b);
-      const da = sa?.latitude!=null ? distanceKm(state.position.latitude,state.position.longitude,sa.latitude,sa.longitude) : Infinity;
-      const db = sb?.latitude!=null ? distanceKm(state.position.latitude,state.position.longitude,sb.latitude,sb.longitude) : Infinity;
+      const da = sa?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sa.latitude,sa.longitude) : Infinity;
+      const db = sb?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sb.latitude,sb.longitude) : Infinity;
       return da-db;
     });
   }
@@ -156,10 +220,6 @@ function renderFoods(){
   if(!list.length){ wrap.innerHTML='<div class="card">غذایی با این مشخصات پیدا نشد.</div>'; return; }
   wrap.innerHTML = list.map(f=>{
     const s=sellerOf(f), d=discount(f);
-    let distTxt='';
-    if(state.position && s?.latitude!=null){ const km=distanceKm(state.position.latitude,state.position.longitude,s.latitude,s.longitude); distTxt=` · ${km.toFixed(1)} کیلومتر`; }
-    const courierNote = s?.courier_mode==='free' ? ' · ارسال رایگان' : s?.courier_mode==='paid' ? ` · کرایه ${money(s.courier_cost)}` : '';
-    
     let extrasList = f.extras;
     if (typeof extrasList === 'string') { try { extrasList = JSON.parse(extrasList); } catch(e) { extrasList = []; } }
     const extrasCount = Array.isArray(extrasList) ? extrasList.length : 0;
@@ -168,22 +228,16 @@ function renderFoods(){
 
     return `<article class="card">
       ${f.image_url ? `<img class="food-img" src="${escapeHtml(f.image_url)}" alt="${escapeHtml(f.title)}" loading="lazy">` : `<div class="food-img">🍲</div>`}
-      <h3>${escapeHtml(f.title)}</h3>
-      <p class="muted">${escapeHtml(s?.name||'فروشنده')} · ${escapeHtml(catNames[f.category]||f.category)}${escapeHtml(distTxt)}${escapeHtml(courierNote)}</p>
-      <p>${escapeHtml(f.description||'')}</p>
-      ${f.drinks ? `<p class="muted">🥤 ${escapeHtml(f.drinks)}</p>` : ''}
-      ${extrasCount ? `<p class="muted">➕ ${extrasCount} افزودنی اختیاری</p>` : ''}
-      <p><span class="old">${money(f.original_price)}</span> <span class="price">${money(f.discounted_price)}</span> ${d?`<span class="badge">${d.toLocaleString('fa-IR')}٪</span>`:''}</p>
-      <p class="muted">موجودی: ${Number(f.quantity).toLocaleString('fa-IR')} · آماده‌سازی: ${Number(f.delivery_minutes||0).toLocaleString('fa-IR')} دقیقه</p>
-      <p class="muted">📍 ${escapeHtml(s?.address||'نشانی ثبت نشده')}</p>
-      <div class="row" style="margin-bottom:8px">
-        <button data-add="${f.id}" ${f.quantity<1?'disabled':''}>
-            ${extrasCount > 0 ? '➕ انتخاب افزودنی' : 'افزودن به سبد'}
-        </button>
-      </div>
-      <div class="row">
-        ${s?.phone?`<a href="tel:${encodeURIComponent(s.phone)}" class="btn secondary" style="text-align:center;text-decoration:none">📞 تماس</a>`:''}
-        ${s?.latitude || s?.address ? `<a href="${mapUrl}" target="_blank" class="btn secondary" style="text-align:center;text-decoration:none">📍 مسیریابی</a>` : ''}
+      <h3 style="margin-bottom:2px">${escapeHtml(f.title)}</h3>
+      <p class="muted" style="font-size:12px; margin-bottom:10px;">${escapeHtml(s?.name || 'فروشنده')}</p>
+      <p>
+        <span class="old">${money(f.original_price)}</span> 
+        <span class="price">${money(f.discounted_price)}</span> 
+        ${d?`<span class="badge">${d.toLocaleString('fa-IR')}٪</span>`:''}
+      </p>
+      <div class="row" style="margin-top:10px">
+        <button data-add="${f.id}" style="flex:2">${extrasCount > 0 ? '➕ انتخاب افزودنی' : 'افزودن به سبد'}</button>
+        <a href="${mapUrl}" target="_blank" class="btn secondary" style="flex:1; text-align:center; text-decoration:none; padding:10px 0;">📍</a>
       </div>
     </article>`;
   }).join('');
@@ -283,7 +337,6 @@ function setQty(key, delta){
   updateCartCount(); renderCart();
 }
 
-// افزودن رویداد تغییر روش ارسال برای آپدیت لحظه‌ای جمع کل
 $('#delivery')?.addEventListener('change', () => { if(!$('#view-cart').classList.contains('hidden')) renderCart(); });
 
 $('#orderForm')?.addEventListener('submit', async (e)=>{
@@ -424,19 +477,42 @@ async function openChat(orderId, senderType){
   modal.addEventListener('DOMNodeRemoved', ()=>clearInterval(interval));
 }
 
-$('#gps')?.addEventListener('click', ()=>{
+$('#mainGps')?.addEventListener('click', ()=>{
   if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
-  $('#locationStatus').textContent='در حال دریافت…';
+  const btn = $('#mainGps');
+  btn.textContent='در حال دریافت…';
   navigator.geolocation.getCurrentPosition(
-    pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#locationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderFoods(); },
-    err => { $('#locationStatus').textContent='ناموفق.'; },
+    pos => { 
+      state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; 
+      btn.textContent='📍 موقعیت دریافت شد';
+      notice('موقعیت دریافت شد.'); 
+      if (state.searchMode === 'food') renderFoods();
+      else renderRestaurants();
+    },
+    err => { btn.textContent='📍 ناموفق'; },
     { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
   );
 });
 
-$('#search')?.addEventListener('input', renderFoods);
-$('#category')?.addEventListener('change', renderFoods);
-$$('[data-show]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.show)));
+$('#mainSearch')?.addEventListener('input', () => {
+  if (state.searchMode === 'food') renderFoods();
+  else renderRestaurants();
+});
+$('#mainCat')?.addEventListener('change', () => {
+  if (state.searchMode === 'food') renderFoods();
+  else renderRestaurants();
+});
+
+$('#modeFood')?.addEventListener('click', () => setSearchMode('food'));
+$('#modeSeller')?.addEventListener('click', () => setSearchMode('seller'));
+
+$$('[data-show]').forEach(b=>b.addEventListener('click',()=>{
+  const v = b.dataset.show;
+  if (v === 'foods') setSearchMode('food');
+  else if (v === 'restaurants') setSearchMode('seller');
+  else showView(v);
+}));
+
 $('#lookupOrders')?.addEventListener('click', lookupOrders);
 
 async function refreshAuth(){
@@ -524,11 +600,27 @@ $('#sellerForm')?.addEventListener('submit', async (e)=>{
   try {
     if(!state.authUser) throw new Error('ابتدا وارد شوید.');
     const d = Object.fromEntries(new FormData(form));
+    
+    const latVal = (d.latitude && Number(d.latitude) !== 0) ? Number(d.latitude) : null;
+    const lngVal = (d.longitude && Number(d.longitude) !== 0) ? Number(d.longitude) : null;
+
+    let image_url = null;
+    const fileInput = form.querySelector('[name="image_file"]');
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `seller-${Date.now()}.${fileExt}`;
+        const { error: upErr } = await state.db.storage.from('food-images').upload(fileName, file);
+        if (upErr) throw new Error('خطا در آپلود عکس: ' + upErr.message);
+        const { data: urlData } = state.db.storage.from('food-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+    }
+
     const payload = {
       user_id: state.authUser.id, name:d.name.trim(), phone:normPhone(d.phone),
-      address:d.address.trim(), type:d.type, image_url:d.image_url?.trim()||null,
+      address:d.address.trim(), type:d.type, image_url: image_url,
       courier_mode:d.courier_mode, courier_cost: d.courier_mode==='paid'?Number(d.courier_cost||0):0,
-      latitude: d.latitude?Number(d.latitude):null, longitude: d.longitude?Number(d.longitude):null,
+      latitude: latVal, longitude: lngVal,
       national_code: d.national_code?.trim()||null,
     };
     const { error } = await state.db.from('sellers').insert(payload);
@@ -618,13 +710,25 @@ $('#foodForm')?.addEventListener('submit', async (e)=>{
       const p = Number(toAscii(row.querySelector('[data-ex-price]').value));
       if(name) extras.push({ name, price: p||0 });
     });
+
+    let image_url = null;
+    const fileInput = form.querySelector('[name="image_file"]');
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `food-${Date.now()}.${fileExt}`;
+        const { error: upErr } = await state.db.storage.from('food-images').upload(fileName, file);
+        if (upErr) throw new Error('خطا در آپلود عکس: ' + upErr.message);
+        const { data: urlData } = state.db.storage.from('food-images').getPublicUrl(fileName);
+        image_url = urlData.publicUrl;
+    }
     
     const payload = {
       seller_id: state.mySeller.id, title:d.title.trim(),
       drinks:d.drinks?.trim()||null, description:d.description.trim(),
       category:d.category, original_price:original, discounted_price:price,
       quantity:qty, delivery_minutes: Math.max(0, Number(toAscii(d.delivery_minutes||30))),
-      image_url:d.image_url?.trim()||null, extras: extras
+      image_url: image_url, extras: extras
     };
     
     const { error } = await state.db.from('listings').insert(payload);
@@ -758,7 +862,7 @@ async function init(){
   state.db.auth.onAuthStateChange(()=>{ refreshAuth().then(()=>{ if(!$('#view-seller')?.classList.contains('hidden')) renderSellerView(); if(!$('#view-admin')?.classList.contains('hidden')) renderAdminView(); }); });
   await loadData();
   await refreshAuth();
-  showView('restaurants'); 
+  setSearchMode('food'); 
 }
 
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
