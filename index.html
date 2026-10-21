@@ -14,6 +14,8 @@
 body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65}
 header{position:sticky;top:0;background:#fff;z-index:5;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:9px;color:var(--dark);font-weight:800;font-size:20px}
+  .slogan { font-size: 14px; font-weight: normal; color: #617066; margin-right: 10px; }
+@media(max-width: 600px) { .slogan { display: none; } }
 .logo{width:42px;height:42px;border-radius:50%;background:#e2f4e7;display:grid;place-items:center;font-size:25px}
 nav{display:flex;gap:6px;flex-wrap:wrap}
 .btn,button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer}
@@ -58,7 +60,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </head>
 <body>
 <header>
-<div class="brand"><span class="logo">🍽️</span><span>سفره سبز</span></div>
+<div class="brand"><span class="logo">🍽️</span><span>سفره سبز</span><span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span></div>
 <nav>
 <button class="secondary" data-show="foods">غذاها</button>
 <button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
@@ -70,7 +72,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 <main>
 
 <section id="view-foods">
-<div class="hero"><h1>سفره سبز؛ پلی برای استفاده بهینه از غذا 🌿</h1><div id="connection" class="status">در حال بررسی اتصال…</div></div>
+<div id="connection" class="status hidden" style="margin-bottom: 14px;"></div>
 <div class="controls">
 <input id="search" placeholder="جستجو در غذا، توضیحات یا فروشگاه…">
 <select id="category">
