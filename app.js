@@ -21,12 +21,28 @@ const discount = (f) => f.original_price > f.discounted_price ? Math.round((1-f.
 
 function distanceKm(a,b,c,d){const R=6371,t=x=>x*Math.PI/180;const dLat=t(c-a),dLon=t(d-b);const x=Math.sin(dLat/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));}
 
+// پیام‌ها حالا به صورت شناور در پایین صفحه نمایش داده می‌شوند (صفحه بالا نمی‌پرد)
 function notice(msg, error=false){
   const el=$('#notice'); if(!el){alert(msg);return;}
-  el.textContent=msg; el.classList.remove('hidden','error');
+  el.textContent=msg; 
+  el.classList.remove('hidden','error');
   if(error) el.classList.add('error');
-  window.scrollTo({top:0,behavior:'smooth'});
-  clearTimeout(notice._t); notice._t=setTimeout(()=>el.classList.add('hidden'),7000);
+  el.style.position = 'fixed';
+  el.style.bottom = '80px';
+  el.style.left = '50%';
+  el.style.transform = 'translateX(-50%)';
+  el.style.zIndex = '9999';
+  el.style.width = 'auto';
+  el.style.minWidth = '250px';
+  el.style.maxWidth = '90%';
+  el.style.textAlign = 'center';
+  el.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+  el.style.background = error ? '#ffebee' : '#e5f5e9';
+  el.style.color = error ? '#9b1c1c' : '#0d6034';
+  el.style.margin = '0';
+  
+  clearTimeout(notice._t); 
+  notice._t = setTimeout(()=>el.classList.add('hidden'), 3000);
 }
 function connection(msg, error=false){
   const el=$('#connection'); if(!el)return; 
@@ -80,6 +96,7 @@ async function loadData(){
     connection(''); 
     if(!$('#view-foods').classList.contains('hidden')) renderFoods();
     if(!$('#view-restaurants').classList.contains('hidden')) renderRestaurants();
+    updateCartCount();
   } catch(err){ 
     console.error(err); 
     connection('اتصال به دیتابیس برقرار نشد.',true); 
@@ -192,10 +209,31 @@ window.showRestaurantMenuModal = (sellerId) => {
     </div>`;
     document.body.appendChild(modal);
     modal.querySelector('#menuClose').onclick = () => modal.remove();
+    
+    // دکمه‌های داخل منو
     modal.querySelectorAll('[data-add]').forEach(b => {
-        b.onclick = () => {
-            modal.remove();
-            openExtrasModal(b.dataset.add);
+        b.onclick = (e) => {
+            const btn = e.currentTarget;
+            const foodId = btn.dataset.add;
+            const f = state.foods.find(x=>x.id===foodId);
+            let extras = f.extras;
+            if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch(e) { extras = []; } }
+            if (!Array.isArray(extras)) extras = [];
+
+            if (extras.length > 0) {
+                modal.remove();
+                openExtrasModal(foodId);
+            } else {
+                const success = addCart(foodId, []);
+                if (success) {
+                    btn.innerHTML = '✔️ اضافه شد';
+                    btn.style.background = '#0d6034';
+                    setTimeout(() => {
+                        btn.innerHTML = 'افزودن';
+                        btn.style.background = '';
+                    }, 1500);
+                }
+            }
         };
     });
 };
@@ -241,7 +279,31 @@ function renderFoods(){
       </div>
     </article>`;
   }).join('');
-  wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>openExtrasModal(b.dataset.add)));
+  
+  // دکمه‌های کارت غذا
+  wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', (e) => {
+      const btn = e.currentTarget;
+      const foodId = btn.dataset.add;
+      const f = state.foods.find(x=>x.id===foodId);
+      let extras = f.extras;
+      if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch(e) { extras = []; } }
+      if (!Array.isArray(extras)) extras = [];
+
+      if (extras.length > 0) {
+          openExtrasModal(foodId);
+      } else {
+          const success = addCart(foodId, []);
+          if (success) {
+              const orig = btn.innerHTML;
+              btn.innerHTML = '✔️ اضافه شد';
+              btn.style.background = '#0d6034';
+              setTimeout(() => {
+                  btn.innerHTML = orig;
+                  btn.style.background = '';
+              }, 1500);
+          }
+      }
+  }));
 }
 
 function openExtrasModal(foodId){
@@ -276,22 +338,52 @@ function openExtrasModal(foodId){
   };
 }
 
+// حالا این تابع مقدار true یا false برمی‌گرداند تا دکمه‌ها بتوانند عکس‌العمل نشان دهند
 function addCart(id, extras){
   const f = state.foods.find(x=>x.id===id);
-  if(!f || f.quantity<1) return notice('این غذا دیگر موجود نیست.', true);
+  if(!f || Number(f.quantity)<1) { notice('این غذا دیگر موجود نیست.', true); return false; }
   const firstSeller = state.cart[0] ? sellerOf(state.foods.find(x=>x.id===state.cart[0].id)) : null;
-  if(firstSeller && firstSeller.id!==f.seller_id) return notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true);
+  if(firstSeller && firstSeller.id!==f.seller_id) { notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true); return false; }
   const key = id + '|' + JSON.stringify((extras||[]).map(e=>e.name));
   const existing = state.cart.find(x=>x.key===key);
-  if(existing){ if(existing.qty >= f.quantity) return notice('تعداد از موجودی بیشتر است.', true); existing.qty++; }
+  if(existing){ 
+      if(existing.qty >= Number(f.quantity)) { notice('تعداد از موجودی بیشتر است.', true); return false; }
+      existing.qty++; 
+  }
   else state.cart.push({ key, id, qty:1, extras: extras||[] });
-  updateCartCount(); notice('غذا به سبد اضافه شد.');
+  updateCartCount(); 
+  notice('غذا به سبد اضافه شد.');
   if(!$('#view-cart').classList.contains('hidden')) renderCart();
+  return true;
 }
 
 function updateCartCount(){
   const el=$('#cartCount'); if(el) el.textContent = state.cart.reduce((a,x)=>a+x.qty,0).toLocaleString('fa-IR');
   localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
+  
+  // آپدیت نوار سبد خرید پایین صفحه
+  const sticky = document.getElementById('stickyCart');
+  const stickyCount = document.getElementById('stickyCartCount');
+  const stickyTotal = document.getElementById('stickyCartTotal');
+  if (sticky && stickyCount && stickyTotal) {
+      const count = state.cart.reduce((a,x)=>a+x.qty,0);
+      if (count > 0) {
+          sticky.classList.remove('hidden');
+          stickyCount.textContent = count.toLocaleString('fa-IR');
+          let total = 0;
+          for (const it of state.cart) {
+              const f = state.foods.find(x=>x.id===it.id);
+              if (f) {
+                  let price = Number(f.discounted_price);
+                  if (it.extras) price += it.extras.reduce((a,e)=>a+Number(e.price||0),0);
+                  total += price * it.qty;
+              }
+          }
+          stickyTotal.textContent = money(total);
+      } else {
+          sticky.classList.add('hidden');
+      }
+  }
 }
 
 function renderCart(){
@@ -333,7 +425,7 @@ function setQty(key, delta){
   const f = state.foods.find(x=>x.id===item.id); if(!f) return;
   item.qty += delta;
   if(item.qty<=0) state.cart = state.cart.filter(x=>x.key!==key);
-  else if(item.qty > f.quantity){ item.qty=f.quantity; notice('تعداد از موجودی بیشتر است.',true); }
+  else if(item.qty > Number(f.quantity)){ item.qty=Number(f.quantity); notice('تعداد از موجودی بیشتر است.',true); }
   updateCartCount(); renderCart();
 }
 
@@ -863,6 +955,9 @@ async function init(){
   await loadData();
   await refreshAuth();
   setSearchMode('food'); 
+  
+  // اتصال دکمه نوار سبد خرید پایین صفحه
+  document.getElementById('stickyCartBtn')?.addEventListener('click', () => showView('cart'));
 }
 
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
