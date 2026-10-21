@@ -55,17 +55,18 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .ext-item{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid #eee;cursor:pointer}
 .ext-item input{width:20px;height:20px;flex:0 0 auto}
 footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
-@media(max-width:600px){header{flex-direction:column;align-items:flex-start}.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
+@media(max-width:600px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
 </style>
 </head>
 <body>
 <header>
- <div class="brand">
-  <span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span>
-  <span class="brand-title">سفره سبز</span>
-  <span class="logo">🍽️</span>
-</div> 
-    <nav>
+  <div class="brand">
+    <span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span>
+    <span class="brand-title">سفره سبز</span>
+    <span class="logo">🍽️</span>
+  </div>
+  <nav>
+    <button class="secondary" data-show="restaurants">رستوران‌ها</button>
     <button class="secondary" data-show="foods">غذاها</button>
     <button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
     <button class="secondary" data-show="orders">پیگیری</button>
@@ -75,145 +76,142 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </header>
 <main>
 
-<section id="view-foods">
-<div id="connection" class="status hidden" style="margin-bottom: 14px;"></div>
-<div class="controls">
-<input id="search" placeholder="جستجو در غذا، توضیحات یا فروشگاه…">
-<select id="category">
-<option value="">همه</option><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option>
-</select>
-<button id="gps" class="secondary">📍 موقعیت من</button>
-</div>
-<p class="muted" id="locationStatus">برای نمایش نزدیک‌ترین غذاها، موقعیت را فعال کنید.</p>
-<div id="foodList" class="grid"><div class="card">در حال دریافت…</div></div>
+<section id="view-restaurants">
+  <div class="hero"><h1>نزدیک‌ترین رستوران‌ها و کترینگ‌ها 🌿</h1><p class="muted">برای دیدن منوی هر فروشگاه، روی آن کلیک کنید.</p></div>
+  <div class="row" style="margin-bottom:12px"><button id="gpsRestaurants" class="secondary">📍 مرتب‌سازی بر اساس نزدیک‌ترین</button></div>
+  <p class="muted" id="restaurantLocationStatus"></p>
+  <div id="restaurantList" class="grid"><div class="card">در حال دریافت…</div></div>
+</section>
+
+<section id="view-foods" class="hidden">
+  <button id="backToRestaurants" class="secondary hidden" style="margin-bottom:12px">← بازگشت به لیست رستوران‌ها</button>
+  <div id="connection" class="status hidden" style="margin-bottom: 14px;"></div>
+  <div class="controls">
+    <input id="search" placeholder="جستجو در غذا…">
+    <select id="category"><option value="">همه</option><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select>
+    <button id="gps" class="secondary">📍 موقعیت من</button>
+  </div>
+  <p class="muted" id="locationStatus">برای نمایش نزدیک‌ترین غذاها، موقعیت را فعال کنید.</p>
+  <div id="foodList" class="grid"><div class="card">در حال دریافت…</div></div>
 </section>
 
 <section id="view-cart" class="hidden panel">
-<h2>سبد خرید</h2>
-<div id="cartList" class="card">سبد خرید خالی است.</div>
-<div id="checkout" class="card panel hidden">
-<h2>اطلاعات سفارش</h2>
-<form id="orderForm" class="form-grid">
-<div class="field"><label>نام شما *</label><input id="customerName" required maxlength="100"></div>
-<div class="field"><label>شماره تماس *</label><input id="customerPhone" required inputmode="tel" maxlength="25"></div>
-<div class="field full"><label>آدرس تحویل *</label><textarea id="customerAddress" required rows="2" maxlength="500"></textarea></div>
-<div class="field"><label>روش دریافت</label><select id="delivery"><option value="pickup">تحویل حضوری</option><option value="courier">ارسال با پیک</option></select><p class="muted" id="deliveryHint"></p></div>
-<div class="field"><label>یادداشت</label><input id="orderNote" maxlength="300" placeholder="اختیاری"></div>
-<div class="field full"><label style="display:flex;align-items:center;gap:8px;color:#b3261e;font-weight:bold"><input type="checkbox" id="healthCheck" required style="width:20px;height:20px"> تایید می‌کنم که از سلامت و بهداشت غذا اطمینان حاصل کرده‌ام.</label></div>
-<div class="field full"><p id="orderTotal" class="price"></p><button id="submitOrder" type="submit">ثبت سفارش</button></div>
-</form>
-</div>
+  <h2>سبد خرید</h2>
+  <div id="cartList" class="card">سبد خرید خالی است.</div>
+  <div id="checkout" class="card panel hidden">
+    <h2>اطلاعات سفارش</h2>
+    <form id="orderForm" class="form-grid">
+      <div class="field"><label>نام شما *</label><input id="customerName" required maxlength="100"></div>
+      <div class="field"><label>شماره تماس *</label><input id="customerPhone" required inputmode="tel" maxlength="25"></div>
+      <div class="field full"><label>آدرس تحویل *</label><textarea id="customerAddress" required rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label>روش دریافت</label><select id="delivery"><option value="pickup">تحویل حضوری</option><option value="courier">ارسال با پیک</option></select><p class="muted" id="deliveryHint"></p></div>
+      <div class="field"><label>یادداشت</label><input id="orderNote" maxlength="300" placeholder="اختیاری"></div>
+      <div class="field full"><label style="display:flex;align-items:center;gap:8px;color:#b3261e;font-weight:bold"><input type="checkbox" id="healthCheck" required style="width:20px;height:20px"> تایید می‌کنم که از سلامت غذا اطمینان حاصل کرده‌ام.</label></div>
+      <div class="field full"><p id="orderTotal" class="price"></p><button id="submitOrder" type="submit">ثبت سفارش</button></div>
+    </form>
+  </div>
 </section>
 
 <section id="view-orders" class="hidden panel">
-<h2>پیگیری سفارش</h2>
-<p class="muted">با «شماره تلفن + پین ۶ رقمی» سفارش‌های خود را ببینید.</p>
-<div class="row">
-<input id="lookupPhone" placeholder="شماره تماس" inputmode="tel">
-<input id="lookupPin" placeholder="پین ۶ رقمی" inputmode="numeric" maxlength="6">
-<button id="lookupOrders" class="fixed">جستجو</button>
-</div>
-<div id="localOrders" class="panel"></div>
-<div id="ordersList" class="panel"></div>
+  <h2>پیگیری سفارش</h2>
+  <p class="muted">با «شماره تلفن + پین ۶ رقمی» سفارش‌های خود را ببینید.</p>
+  <div class="row">
+    <input id="lookupPhone" placeholder="شماره تماس" inputmode="tel">
+    <input id="lookupPin" placeholder="پین ۶ رقمی" inputmode="numeric" maxlength="6">
+    <button id="lookupOrders" class="fixed">جستجو</button>
+  </div>
+  <div id="localOrders" class="panel"></div>
+  <div id="ordersList" class="panel"></div>
 </section>
 
 <section id="view-seller" class="hidden panel">
-<div id="seller-auth">
-<h2>ورود / ثبت‌نام فروشنده</h2>
-<form id="authForm" class="card form-grid">
-<div class="field full"><label>ایمیل *</label><input id="authEmail" type="email" required></div>
-<div class="field full"><label>رمز عبور (حداقل ۶ کاراکتر) *</label><input id="authPassword" type="password" required minlength="6"></div>
-<div class="field full row"><button type="submit" id="authSubmit">ورود</button><button type="button" id="authToggle" class="secondary">ثبت‌نام</button></div>
-</form>
-</div>
-
-<div id="seller-register" class="hidden">
-<h2>ثبت فروشگاه</h2>
-<form id="sellerForm" class="card form-grid">
-<div class="field"><label>نام فروشگاه *</label><input name="name" required maxlength="120"></div>
-<div class="field"><label>شماره تماس *</label><input name="phone" required inputmode="tel"></div>
-<div class="field full"><label>نشانی *</label><input name="address" required maxlength="500"></div>
-<div class="field"><label>کد ملی</label><input name="national_code" maxlength="10"></div>
-<div class="field"><label>نوع کسب‌وکار</label><select name="type"><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select></div>
-<div class="field"><label>حالت ارسال</label><select name="courier_mode" id="courierMode"><option value="none">پیک نداریم</option><option value="free">ارسال رایگان</option><option value="paid">با هزینه</option></select></div>
-<div class="field"><label>هزینه ارسال (تومان)</label><input name="courier_cost" id="courierCost" type="number" min="0" step="1000" value="0"></div>
-<div class="field full"><button type="button" id="getSellerLocation" class="secondary">📍 دریافت موقعیت فروشگاه</button></div>
-<div class="field"><label>عرض جغرافیایی</label><input name="latitude" id="sellerLat" type="number" step="any"></div>
-<div class="field"><label>طول جغرافیایی</label><input name="longitude" id="sellerLng" type="number" step="any"></div>
-<div class="field full"><label>لینک عکس فروشگاه</label><input name="image_url" type="url"></div>
-<div class="field full"><label>📄 تصویر جواز بهداشت *</label><input name="license_file" type="file" accept="image/*,application/pdf"></div>
-<div class="field full"><label>📄 تصویر پروانه صنف *</label><input name="guild_file" type="file" accept="image/*,application/pdf"></div>
-<div class="field full"><button type="submit">ثبت فروشگاه</button></div>
-</form>
-</div>
-
-<div id="seller-dashboard" class="hidden">
-<div class="row" style="justify-content:space-between">
-<h2>پنل فروشنده</h2>
-<button id="signOut" class="secondary fixed">خروج</button>
-</div>
-<p class="muted" id="subStatus"></p>
-<div class="tabs">
-<button data-sellertab="orders" class="active">سفارش‌ها</button>
-<button data-sellertab="listings">غذاها</button>
-<button data-sellertab="new">افزودن غذا</button>
-<button data-sellertab="subscription">💳 اشتراک</button>
-</div>
-<div id="seller-tab-orders"><h3>سفارش‌ها</h3><div id="sellerOrders"></div></div>
-<div id="seller-tab-listings" class="hidden"><h3>غذاهای شما</h3><div id="sellerListings" class="grid"></div></div>
-<div id="seller-tab-new" class="hidden">
-<h3>ثبت غذای جدید</h3>
-<form id="foodForm" class="card form-grid">
-<div class="field"><label>نام غذا *</label><input name="title" required maxlength="150"></div>
-<div class="field"><label>دسته *</label><select name="category" required><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select></div>
-<div class="field"><label>قیمت اصلی *</label><input name="original_price" type="number" min="1" required></div>
-<div class="field"><label>قیمت تخفیفی *</label><input name="discounted_price" type="number" min="1" required></div>
-<div class="field"><label>تعداد موجود *</label><input name="quantity" type="number" min="0" required></div>
-<div class="field"><label>زمان آماده‌سازی (دقیقه)</label><input name="delivery_minutes" type="number" min="0" value="30"></div>
-<div class="field full"><label>نوشیدنی‌ها</label><input name="drinks" placeholder="مثلاً: نوشابه، دوغ"></div>
-<div class="field full"><label>توضیحات</label><textarea name="description" rows="2"></textarea></div>
-<div class="field full"><label>لینک عکس غذا</label><input name="image_url" type="url"></div>
-<div class="field full">
-<label>افزودنی‌های اختیاری (نان، سالاد، …)</label>
-<div id="extrasList"></div>
-<button type="button" id="addExtraRow" class="secondary" style="margin-top:6px">+ افزودن ردیف</button>
-</div>
-<div class="field full"><button type="submit">ثبت غذا</button></div>
-</form>
-</div>
-<div id="seller-tab-subscription" class="hidden">
-<h3>خرید / تمدید اشتراک</h3>
-<p class="muted">برای ثبت غذا در حالت واقعی، به اشتراک فعال نیاز دارید. در حالت آزمایشی اکنون رایگان است.</p>
-<div class="card"><b>ماهانه</b> — ۱۰۰,۰۰۰ تومان <button id="buyMonthly" style="margin-top:8px">خرید</button></div>
-<div class="card" style="margin-top:8px"><b>سالانه</b> — ۱,۰۰۰,۰۰۰ تومان (۲ ماه هدیه) <button id="buyYearly" style="margin-top:8px">خرید</button></div>
-</div>
-</div>
+  <div id="seller-auth">
+    <h2>ورود / ثبت‌نام فروشنده</h2>
+    <form id="authForm" class="card form-grid">
+      <div class="field full"><label>ایمیل *</label><input id="authEmail" type="email" required></div>
+      <div class="field full"><label>رمز عبور (حداقل ۶ کاراکتر) *</label><input id="authPassword" type="password" required minlength="6"></div>
+      <div class="field full row"><button type="submit" id="authSubmit">ورود</button><button type="button" id="authToggle" class="secondary">ثبت‌نام</button></div>
+    </form>
+  </div>
+  <div id="seller-register" class="hidden">
+    <h2>ثبت فروشگاه</h2>
+    <form id="sellerForm" class="card form-grid">
+      <div class="field"><label>نام فروشگاه *</label><input name="name" required maxlength="120"></div>
+      <div class="field"><label>شماره تماس *</label><input name="phone" required inputmode="tel"></div>
+      <div class="field full"><label>نشانی *</label><input name="address" required maxlength="500"></div>
+      <div class="field"><label>کد ملی</label><input name="national_code" maxlength="10"></div>
+      <div class="field"><label>نوع کسب‌وکار</label><select name="type"><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select></div>
+      <div class="field"><label>حالت ارسال</label><select name="courier_mode" id="courierMode"><option value="none">پیک نداریم</option><option value="free">ارسال رایگان</option><option value="paid">با هزینه</option></select></div>
+      <div class="field"><label>هزینه ارسال (تومان)</label><input name="courier_cost" id="courierCost" type="number" min="0" step="1000" value="0"></div>
+      <div class="field full"><button type="button" id="getSellerLocation" class="secondary">📍 دریافت موقعیت فروشگاه</button></div>
+      <div class="field"><label>عرض جغرافیایی</label><input name="latitude" id="sellerLat" type="number" step="any"></div>
+      <div class="field"><label>طول جغرافیایی</label><input name="longitude" id="sellerLng" type="number" step="any"></div>
+      <div class="field full"><label>لینک عکس فروشگاه</label><input name="image_url" type="url"></div>
+      <div class="field full"><label>📄 تصویر جواز بهداشت *</label><input name="license_file" type="file" accept="image/*,application/pdf"></div>
+      <div class="field full"><label>📄 تصویر پروانه صنف *</label><input name="guild_file" type="file" accept="image/*,application/pdf"></div>
+      <div class="field full"><button type="submit">ثبت فروشگاه</button></div>
+    </form>
+  </div>
+  <div id="seller-dashboard" class="hidden">
+    <div class="row" style="justify-content:space-between"><h2>پنل فروشنده</h2><button id="signOut" class="secondary fixed">خروج</button></div>
+    <p class="muted" id="subStatus"></p>
+    <div class="tabs">
+      <button data-sellertab="orders" class="active">سفارش‌ها</button>
+      <button data-sellertab="listings">غذاها</button>
+      <button data-sellertab="new">افزودن غذا</button>
+      <button data-sellertab="subscription">💳 اشتراک</button>
+    </div>
+    <div id="seller-tab-orders"><h3>سفارش‌ها</h3><div id="sellerOrders"></div></div>
+    <div id="seller-tab-listings" class="hidden"><h3>غذاهای شما</h3><div id="sellerListings" class="grid"></div></div>
+    <div id="seller-tab-new" class="hidden">
+      <h3>ثبت غذای جدید</h3>
+      <form id="foodForm" class="card form-grid">
+        <div class="field"><label>نام غذا *</label><input name="title" required maxlength="150"></div>
+        <div class="field"><label>دسته *</label><select name="category" required><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select></div>
+        <div class="field"><label>قیمت اصلی *</label><input name="original_price" type="number" min="1" required></div>
+        <div class="field"><label>قیمت تخفیفی *</label><input name="discounted_price" type="number" min="1" required></div>
+        <div class="field"><label>تعداد موجود *</label><input name="quantity" type="number" min="0" required></div>
+        <div class="field"><label>زمان آماده‌سازی (دقیقه)</label><input name="delivery_minutes" type="number" min="0" value="30"></div>
+        <div class="field full"><label>نوشیدنی‌ها</label><input name="drinks" placeholder="مثلاً: نوشابه، دوغ"></div>
+        <div class="field full"><label>توضیحات</label><textarea name="description" rows="2"></textarea></div>
+        <div class="field full"><label>لینک عکس غذا</label><input name="image_url" type="url"></div>
+        <div class="field full">
+          <label>افزودنی‌های اختیاری (نان، سالاد، …)</label>
+          <div id="extrasList"></div>
+          <button type="button" id="addExtraRow" class="secondary" style="margin-top:6px">+ افزودن ردیف</button>
+        </div>
+        <div class="field full"><button type="submit">ثبت غذا</button></div>
+      </form>
+    </div>
+    <div id="seller-tab-subscription" class="hidden">
+      <h3>خرید / تمدید اشتراک</h3>
+      <p class="muted">برای ثبت غذا در حالت واقعی، به اشتراک فعال نیاز دارید. در حالت آزمایشی اکنون رایگان است.</p>
+      <div class="card"><b>ماهانه</b> — ۱۰۰,۰۰۰ تومان <button id="buyMonthly" style="margin-top:8px">خرید</button></div>
+      <div class="card" style="margin-top:8px"><b>سالانه</b> — ۱,۰۰۰,۰۰۰ تومان (۲ ماه هدیه) <button id="buyYearly" style="margin-top:8px">خرید</button></div>
+    </div>
+  </div>
 </section>
 
 <section id="view-admin" class="hidden panel">
-<div id="admin-auth">
-<h2>ورود مدیر</h2>
-<form id="adminAuthForm" class="card form-grid">
-<div class="field full"><label>ایمیل</label><input id="adminEmail" type="email" required></div>
-<div class="field full"><label>رمز</label><input id="adminPassword" type="password" required></div>
-<div class="field full"><button type="submit">ورود</button></div>
-</form>
-</div>
-<div id="admin-dashboard" class="hidden">
-<div class="row" style="justify-content:space-between">
-<h2>پنل مدیریت</h2>
-<button id="adminSignOut" class="secondary fixed">خروج</button>
-</div>
-<h3>سفارش‌ها</h3>
-<div id="adminOrders"></div>
-<div id="adminSellers" style="margin-top:20px"></div>
-<div id="adminListings" style="margin-top:20px"></div>
-</div>
+  <div id="admin-auth">
+    <h2>ورود مدیر</h2>
+    <form id="adminAuthForm" class="card form-grid">
+      <div class="field full"><label>ایمیل</label><input id="adminEmail" type="email" required></div>
+      <div class="field full"><label>رمز</label><input id="adminPassword" type="password" required></div>
+      <div class="field full"><button type="submit">ورود</button></div>
+    </form>
+  </div>
+  <div id="admin-dashboard" class="hidden">
+    <div class="row" style="justify-content:space-between"><h2>پنل مدیریت</h2><button id="adminSignOut" class="secondary fixed">خروج</button></div>
+    <h3>سفارش‌ها</h3><div id="adminOrders"></div>
+    <div id="adminSellers" style="margin-top:20px"></div>
+    <div id="adminListings" style="margin-top:20px"></div>
+  </div>
 </section>
 
 <div id="notice" class="status hidden"></div>
 </main>
-<footer>سفره سبز v4 — کامل</footer>
+<footer>سفره سبز v5 — نهایی</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./app.js"></script>
 </body>
