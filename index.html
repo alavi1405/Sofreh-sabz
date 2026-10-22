@@ -10,7 +10,7 @@
 <style>
 :root{--green:#16834a;--dark:#0d6034;--bg:#f4f8f4;--line:#dce8de;--red:#c62828;--amber:#8c4d00}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65}
+body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65; padding-bottom: 80px;}
 header{position:sticky;top:0;background:#fff;z-index:5;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;flex-direction:column;gap:12px}
 .brand{display:flex;align-items:center;justify-content:space-between;width:100%}
 .brand-title{font-weight:800;font-size:22px;color:var(--dark)}
@@ -25,7 +25,6 @@ main{max-width:1080px;margin:auto;padding:16px}
 .hero{background:linear-gradient(120deg,#e0f4e5,#fff);padding:20px;border-radius:18px;margin-bottom:14px}
 h1{font-size:23px;margin:0 0 5px}h2{font-size:20px;margin:18px 0 8px}h3{font-size:16px;margin:8px 0 4px}
 p{margin:5px 0}
-.controls{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin:14px 0}
 input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd9ce;border-radius:10px;background:white;color:#203026}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}
 .card{background:white;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 3px 10px #00000008}
@@ -54,7 +53,19 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .ext-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid #eee}
 .qty-btn{width:32px;height:32px;border-radius:8px;background:#e6f2e9;color:var(--dark);font-size:18px;display:grid;place-items:center;font-weight:bold;border:1px solid #cbd9ce;}
 footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
-@media(max-width:600px){.controls{grid-template-columns:1fr 1fr}.controls input{grid-column:1/-1}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
+
+/* استایل سبد شناور پایین صفحه */
+#stickyCart {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: var(--green); color: white; padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+#stickyCart.hidden { transform: translateY(100%); display: flex !important; }
+.sticky-btn { background: white; color: var(--green); border-radius: 8px; padding: 8px 16px; font-weight: 800; font-size: 15px; }
+
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}main{padding:12px}}
 </style>
 </head>
 <body>
@@ -65,41 +76,40 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
     <span class="logo">🍽️</span>
   </div>
   <nav>
-    <button class="secondary" data-show="cart">سبد <span id="cartCount">۰</span></button>
     <button class="secondary" data-show="orders">پیگیری</button>
     <button class="secondary" data-show="seller">پنل فروشنده</button>
     <button class="secondary" data-show="admin">مدیریت</button>
+    <button class="secondary" data-show="cart" style="display:none;">سبد <span id="cartCount">۰</span></button>
   </nav>
 </header>
 <main>
 
-<section id="view-restaurants">
-  <div class="hero"><h1>نزدیک‌ترین رستوران‌ها و کترینگ‌ها 🌿</h1><p class="muted">برای دیدن منوی هر فروشگاه، روی آن کلیک کنید.</p></div>
-  <div class="controls" style="grid-template-columns: 1fr 1fr;">
-    <input id="searchRestaurant" placeholder="جستجوی نام رستوران، فست‌فود یا کترینگ…">
-    <select id="restaurantCategory">
-      <option value="">همه انواع</option>
+<!-- پنل جستجوی دوگانه دقیقاً مثل عکس -->
+<div class="card" style="margin-bottom: 16px; padding: 14px; box-shadow: 0 4px 15px rgba(22,131,74,0.1); border: 2px solid var(--green);">
+  <div class="row" style="margin-bottom: 12px; background: #f0f7f2; padding: 4px; border-radius: 12px;">
+    <button id="modeFood" class="btn" style="flex: 1; background: #16834a; color: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.1);">🍲 جستجوی غذا</button>
+    <button id="modeSeller" class="btn" style="flex: 1; background: transparent; color: #0d6034; border-radius: 8px;">🏪 جستجوی فروشنده</button>
+  </div>
+  <div class="row" style="margin-bottom: 10px;">
+    <input id="mainSearch" placeholder="جستجو در نام غذا، توضیحات...">
+    <select id="mainCat" style="flex: 0 0 130px;">
+      <option value="">همه</option>
       <option value="restaurant">رستوران</option>
       <option value="fastfood">فست‌فود</option>
       <option value="catering">کترینگ</option>
       <option value="home">خانگی</option>
     </select>
   </div>
-  <div class="row" style="margin-bottom:12px">
-    <button id="gpsRestaurants" class="secondary">📍 مرتب‌سازی بر اساس نزدیک‌ترین</button>
-  </div>
-  <p class="muted" id="restaurantLocationStatus"></p>
+  <button id="mainGps" class="secondary" style="width: 100%;">📍 نمایش نزدیک‌ترین‌ها</button>
+</div>
+
+<section id="view-restaurants">
+  <div class="hero"><h1>نزدیک‌ترین رستوران‌ها و کترینگ‌ها 🌿</h1><p class="muted">برای دیدن منوی هر فروشگاه، روی آن کلیک کنید.</p></div>
   <div id="restaurantList" class="grid"><div class="card">در حال دریافت…</div></div>
 </section>
 
 <section id="view-foods" class="hidden">
   <div id="connection" class="status hidden" style="margin-bottom: 14px;"></div>
-  <div class="controls">
-    <input id="search" placeholder="جستجو در نام غذا، توضیحات یا فروشگاه…">
-    <select id="category"><option value="">همه دسته‌ها</option><option value="restaurant">رستوران</option><option value="fastfood">فست‌فود</option><option value="catering">کترینگ</option><option value="home">خانگی</option></select>
-    <button id="gps" class="secondary">📍 موقعیت من</button>
-  </div>
-  <p class="muted" id="locationStatus">برای نمایش نزدیک‌ترین غذاها، موقعیت را فعال کنید.</p>
   <div id="foodList" class="grid"><div class="card">در حال دریافت…</div></div>
 </section>
 
@@ -218,7 +228,18 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 
 <div id="notice" class="status hidden"></div>
 </main>
-<footer>سفره سبز v11 — نهایی</footer>
+
+<!-- نوار شناور سبد خرید در پایین صفحه -->
+<div id="stickyCart" class="hidden">
+    <div style="display:flex; align-items:center; gap:8px;">
+        <span id="stickyCartCount" style="font-weight:bold; font-size:16px;">۰ مورد</span>
+        <span>🛒</span>
+    </div>
+    <div style="font-weight:800; font-size:16px;" id="stickyCartTotal">۰ تومان</div>
+    <button class="sticky-btn" onclick="document.querySelector('[data-show=cart]').click()">مشاهده سبد</button>
+</div>
+
+<footer>سفره سبز v12 — نهایی</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./app.js"></script>
 </body>
