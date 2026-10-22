@@ -14,7 +14,9 @@ const statusNames = { pending:'در انتظار پذیرش', accepted:'پذیر
 const money = (n) => `${Number(n||0).toLocaleString('fa-IR')} تومان`;
 
 const escapeHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const toAscii = (s) => String(s??'').replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+const toAscii = (s) => String(s??'')
+  .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+  .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
 const normPhone = (v) => toAscii(v).replace(/[^\d+]/g,'').trim();
 const normPersian = (s) => String(s??'').toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200d]/g,' ').replace(/\s+/g,' ').trim();
 const discount = (f) => f.original_price > f.discounted_price ? Math.round((1-f.discounted_price/f.original_price)*100) : 0;
@@ -435,7 +437,6 @@ $('#orderForm')?.addEventListener('submit', async (e)=>{
     const customer_address = $('#customerAddress').value.trim();
     if(customer_name.length<2 || customer_phone.length<5 || customer_address.length<3) throw new Error('نام، شماره تماس و نشانی را کامل کنید.');
     
-    // این همون بخش مهمه که اسم غذا رو به دیتابیس پاس میده
     const items = state.cart.map(x => {
         const food = state.foods.find(f => f.id === x.id);
         return {
@@ -827,7 +828,7 @@ $('#foodForm')?.addEventListener('submit', async (e)=>{
     const qty = Number(toAscii(d.quantity));
     if(!original || original<1) throw new Error('قیمت اصلی نامعتبر.');
     if(!price || price<1 || price>original) throw new Error('قیمت تخفیفی نامعتبر.');
-    if(qty<0) throw new Error('موجودی نامعتبر.');
+    if(!Number.isFinite(qty) || qty<1) throw new Error('تعداد موجود باید حداقل ۱ باشد.');
     
     const extras = [];
     form.querySelectorAll('[data-extra-row]').forEach(row=>{
@@ -853,11 +854,17 @@ $('#foodForm')?.addEventListener('submit', async (e)=>{
       drinks:d.drinks?.trim()||null, description:d.description.trim(),
       category:d.category, original_price:original, discounted_price:price,
       quantity:qty, delivery_minutes: Math.max(0, Number(toAscii(d.delivery_minutes||30))),
-      image_url: image_url, extras: extras
+      image_url: image_url, extras: extras,
+      is_active: true
     };
-    
-    const { error } = await state.db.from('listings').insert(payload);
-    if(error) throw error;
+
+    const { data: insertedListing, error } = await state.db
+      .from('listings').insert(payload).select('id').single();
+    if(error) {
+      console.error('Food listing insert failed:', error);
+      throw new Error(`ثبت غذا در پایگاه داده ناموفق بود: ${error.message}${error.code ? ` (کد ${error.code})` : ''}`);
+    }
+    if(!insertedListing?.id) throw new Error('شناسه غذای ثبت‌شده از پایگاه داده دریافت نشد.');
     form.reset(); form.querySelector('#extrasList').innerHTML='';
     notice('غذا ثبت شد.');
     await loadData(); await loadSellerListings();
