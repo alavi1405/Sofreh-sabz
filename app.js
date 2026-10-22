@@ -72,7 +72,7 @@ function showView(name){
 async function loadData(){
   try {
     const [sr,fr] = await Promise.all([
-      state.db.from('sellers').select('id,name,phone,address,type,image_url,latitude,longitude,courier_mode,courier_cost,license_approved,guild_approved,subscription_until').eq('is_active',true).order('created_at',{ascending:false}),
+      state.db.from('sellers').select('*').eq('is_active',true).order('created_at',{ascending:false}),
       state.db.from('listings').select('id,seller_id,title,description,category,original_price,discounted_price,quantity,delivery_minutes,image_url,drinks,extras,created_at').eq('is_active',true).gt('quantity',0).order('created_at',{ascending:false})
     ]);
     if(sr.error) throw sr.error; if(fr.error) throw fr.error;
@@ -128,13 +128,17 @@ function renderRestaurants() {
         return; 
     }
 
-    if (state.position) {
-        list.sort((a, b) => {
+    // مرتب‌سازی: طلایی‌ها اول، سپس بر اساس فاصله
+    list.sort((a, b) => {
+        if (a.is_gold && !b.is_gold) return -1;
+        if (!a.is_gold && b.is_gold) return 1;
+        if (state.position) {
             const da = a.latitude ? distanceKm(state.position.latitude, state.position.longitude, a.latitude, a.longitude) : Infinity;
             const db = b.latitude ? distanceKm(state.position.latitude, state.position.longitude, b.latitude, b.longitude) : Infinity;
             return da - db;
-        });
-    }
+        }
+        return 0;
+    });
 
     wrap.innerHTML = list.map(s => {
         let distTxt = '';
@@ -142,10 +146,13 @@ function renderRestaurants() {
             const km = distanceKm(state.position.latitude, state.position.longitude, s.latitude, s.longitude); 
             distTxt = ` · ${km.toFixed(1)} کیلومتر`; 
         }
+        const goldBadge = s.is_gold ? '<span style="color: #f59e0b; font-size: 18px; margin-right: 4px;">🌟</span>' : '';
+        const ratingBadge = `<span style="color: #f59e0b; font-size: 13px;">⭐ ${Number(s.rating || 5).toFixed(1)}</span>`;
+        
         return `<article class="card" style="cursor:pointer">
             ${s.image_url ? `<img class="food-img" src="${escapeHtml(s.image_url)}" alt="${escapeHtml(s.name)}">` : `<div class="food-img">🏪</div>`}
-            <h3>${escapeHtml(s.name)}</h3>
-            <p class="muted">${escapeHtml(catNames[s.type] || s.type)}${escapeHtml(distTxt)}</p>
+            <h3 style="margin-bottom: 2px;">${goldBadge}${escapeHtml(s.name)}</h3>
+            <p class="muted" style="margin-bottom: 4px;">${ratingBadge} · ${escapeHtml(catNames[s.type] || s.type)}${escapeHtml(distTxt)}</p>
             <p class="muted">📍 ${escapeHtml(s.address || '')}</p>
             <div class="row" style="margin-top:10px">
                 <button class="secondary fixed" style="flex:1" onclick="event.stopPropagation(); showRestaurantMenuModal('${s.id}')">مشاهده منو</button>
@@ -208,21 +215,33 @@ function renderFoods(){
   const q=normPersian(sEl.value), cat=cEl.value;
   let list = state.foods.filter(f => {
       const s = sellerOf(f);
+      if (!s) return false; // جلوگیری از ارور کرش کردن
       const hay = normPersian([f.title,f.description,s?.name,s?.address,catNames[f.category]].join(' '));
       return (!cat || f.category===cat) && (!q || hay.includes(q));
   });
-  if(state.position){
-    list.sort((a,b)=>{
-      const sa=sellerOf(a), sb=sellerOf(b);
-      const da = sa?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sa.latitude,sa.longitude) : Infinity;
-      const db = sb?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sb.latitude,sb.longitude) : Infinity;
-      return da-db;
-    });
-  }
+
+  // === مرتب‌سازی هوشمند ===
+  list.sort((a,b)=>{
+    if (state.position) {
+        // اگر GPS روشن است، بر اساس نزدیک‌ترین
+        const sa=sellerOf(a), sb=sellerOf(b);
+        const da = sa?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sa.latitude,sa.longitude) : Infinity;
+        const db = sb?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sb.latitude,sb.longitude) : Infinity;
+        return da - db;
+    } else {
+        // اگر GPS خاموش است، بر اساس بیشترین تخفیف
+        const dA = a.original_price > a.discounted_price ? (1 - a.discounted_price/a.original_price) : 0;
+        const dB = b.original_price > b.discounted_price ? (1 - b.discounted_price/b.original_price) : 0;
+        return dB - dA;
+    }
+  });
+
   const wrap=$('#foodList');
   if(!list.length){ wrap.innerHTML='<div class="card">غذایی با این مشخصات پیدا نشد.</div>'; return; }
   wrap.innerHTML = list.map(f=>{
     const s=sellerOf(f), d=discount(f);
+    if(!s) return ''; 
+    
     let extrasList = f.extras;
     if (typeof extrasList === 'string') { try { extrasList = JSON.parse(extrasList); } catch(e) { extrasList = []; } }
     const extrasCount = Array.isArray(extrasList) ? extrasList.length : 0;
@@ -244,6 +263,8 @@ function renderFoods(){
       </div>
     </article>`;
   }).join('');
+  
+  // وصل کردن رویدادها
   wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>openExtrasModal(b.dataset.add)));
 }
 
@@ -324,7 +345,6 @@ function updateCartCount(){
   const el=$('#cartCount'); if(el) el.textContent = count.toLocaleString('fa-IR');
   localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
   
-  // آپدیت سبد شناور پایین
   const sticky = $('#stickyCart');
   if (sticky) {
       if (count > 0) {
@@ -339,13 +359,19 @@ function updateCartCount(){
 }
 
 function renderCart(){
-  const wrap=$('#cartList'), checkout=$('#checkout');
+  const wrap=$('#cartList'), checkout=$('#checkout'), mapContainer=$('#mapContainer');
   
   if (state.foods.length > 0) {
       state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
   }
 
-  if(!state.cart.length){ wrap.innerHTML='سبد خرید خالی است.'; checkout.classList.add('hidden'); updateCartCount(); return; }
+  if(!state.cart.length){ 
+      wrap.innerHTML='سبد خرید خالی است.'; 
+      checkout.classList.add('hidden'); 
+      mapContainer.classList.add('hidden');
+      updateCartCount(); 
+      return; 
+  }
   
   wrap.innerHTML = state.cart.map(item=>{
     const f = state.foods.find(x=>x.id===item.id);
@@ -368,6 +394,7 @@ function renderCart(){
       </div>
     </div>`;
   }).join('');
+  
   wrap.querySelectorAll('[data-dec]').forEach(b=>b.onclick=()=>setQty(b.dataset.dec,-1));
   wrap.querySelectorAll('[data-inc]').forEach(b=>b.onclick=()=>setQty(b.dataset.inc,1));
   wrap.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{ state.cart=state.cart.filter(x=>x.key!==b.dataset.remove); updateCartCount(); renderCart(); });
@@ -378,6 +405,17 @@ function renderCart(){
   else { Array.from(dSel.options).forEach(o=>{if(o.value==='courier')o.disabled=false;}); hint.textContent = t.mode==='free'?'ارسال رایگان.':`هزینه پیک: ${money(t.seller?.courier_cost||0)}`; }
   
   $('#orderTotal').innerHTML = `جمع غذاها: <b>${money(t.items)}</b>` + (t.shipping?`<br>+ پیک: <b>${money(t.shipping)}</b>`:'') + `<br>⇒ قابل پرداخت: <b>${money(t.total)}</b>`;
+  
+  // اضافه کردن نقشه تقریبی (مثل دیوار)
+  if (t.seller && t.seller.latitude && t.seller.longitude) {
+      const lat = t.seller.latitude, lon = t.seller.longitude;
+      mapContainer.classList.remove('hidden');
+      mapContainer.innerHTML = `<b>📍 موقعیت تقریبی ${escapeHtml(t.seller.name)}:</b><br>
+      <iframe width="100%" height="200" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.01}%2C${lat-0.01}%2C${lon+0.01}%2C${lat+0.01}&amp;layer=mapnik&amp;marker=${lat}%2C${lon}" style="border-radius: 10px; margin-top: 8px; border: 1px solid #ddd;"></iframe>`;
+  } else {
+      mapContainer.classList.add('hidden');
+  }
+  
   checkout.classList.remove('hidden');
 }
 
@@ -439,6 +477,7 @@ async function lookupOrders(){
     if(!data?.length){ wrap.innerHTML='<div class="card">سفارشی پیدا نشد.</div>'; return; }
     wrap.innerHTML = data.map(renderOrderCard).join('');
     wrap.querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>openChat(b.dataset.chat,'customer'));
+    wrap.querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>rateSeller(b.dataset.rate));
   } catch(err){ wrap.textContent='خطا: '+(err.message||''); }
 }
 
@@ -446,6 +485,12 @@ function renderOrderCard(o){
   const items = o.items || [];
   const phones = Array.from(new Set(items.map(i=>i.seller_phone).filter(Boolean)));
   const isActive = o.status!=='completed' && o.status!=='cancelled';
+  
+  let rateBtn = '';
+  if (o.status === 'completed') {
+      rateBtn = `<button class="secondary fixed" style="background: #f59e0b; color: white;" data-rate="${o.seller_id}">⭐ ثبت امتیاز برای فروشنده</button>`;
+  }
+
   return `<article class="card">
     <b>سفارش ${escapeHtml(String(o.id).slice(0,8))}</b>
     <p class="muted">${new Date(o.created_at).toLocaleString('fa-IR')} · وضعیت: <b>${escapeHtml(statusNames[o.status]||o.status)}</b></p>
@@ -453,9 +498,31 @@ function renderOrderCard(o){
     ${items.map(i=>`<div class="muted">${escapeHtml(i.title)} × ${i.quantity} — ${money(i.unit_price)} · ${escapeHtml(i.seller_name||'')}</div>`).join('')}
     ${o.health_message?`<div class="health-box">🏥 ${escapeHtml(o.health_message)}</div>`:''}
     ${phones.length?`<p class="muted">تماس فروشنده: ${phones.map(p=>`<a href="tel:${encodeURIComponent(p)}">${escapeHtml(p)}</a>`).join('، ')}</p>`:''}
-    ${isActive?`<div class="row" style="margin-top:8px"><button class="secondary fixed" data-chat="${o.id}">💬 چت با فروشنده</button></div>`:''}
+    <div class="row" style="margin-top:8px">
+        ${isActive?`<button class="secondary fixed" data-chat="${o.id}">💬 چت با فروشنده</button>`:''}
+        ${rateBtn}
+    </div>
   </article>`;
 }
+
+window.rateSeller = async (sellerId) => {
+    const score = prompt('لطفاً امتیاز خود را از ۱ تا ۵ وارد کنید:', '5');
+    if(!score) return;
+    const numScore = Number(toAscii(score));
+    if (isNaN(numScore) || numScore < 1 || numScore > 5) return notice('امتیاز باید بین ۱ تا ۵ باشد.', true);
+    
+    try {
+        const { data: seller } = await state.db.from('sellers').select('rating, rating_count').eq('id', sellerId).single();
+        if (seller) {
+            const newCount = (seller.rating_count || 1) + 1;
+            const newRating = (((seller.rating || 5) * (seller.rating_count || 1)) + numScore) / newCount;
+            await state.db.from('sellers').update({ rating: newRating, rating_count: newCount }).eq('id', sellerId);
+            notice('✅ امتیاز شما با موفقیت ثبت شد. متشکریم!');
+        }
+    } catch (e) {
+        notice('خطا در ثبت امتیاز', true);
+    }
+};
 
 function renderLocalOrders(){
   const el=$('#localOrders'); if(!el) return;
@@ -855,13 +922,16 @@ async function loadAdmin(){
     sWrap.innerHTML = '<h3>فروشندگان</h3>' + (sellers||[]).map(s=>`
       <div class="card" style="margin-bottom:8px">
         <b>${escapeHtml(s.name)}</b> - ${escapeHtml(catNames[s.type]||s.type)}<br>
-        <span class="muted">📞 ${escapeHtml(s.phone)}</span><br>
+        <span class="muted">📞 ${escapeHtml(s.phone)}</span> | <span class="muted">⭐ ${Number(s.rating||5).toFixed(1)}</span><br>
         <span class="muted">اشتراک: ${s.subscription_until?new Date(s.subscription_until).toLocaleDateString('fa-IR'):'ندارد'}</span><br>
         <span class="muted">جواز بهداشت: ${s.license_approved?'✅ تأیید':'⏳ تأیید نشده'} | پروانه صنف: ${s.guild_approved?'✅ تأیید':'⏳ تأیید نشده'}</span>
         <div class="row" style="margin-top:6px">
           ${!s.license_approved?`<button class="secondary fixed" data-approve="license" data-id="${s.id}">تأیید جواز</button>`:''}
           ${!s.guild_approved?`<button class="secondary fixed" data-approve="guild" data-id="${s.id}">تأیید صنف</button>`:''}
           <button class="secondary fixed" data-renew="${s.id}">+۳۰ روز</button>
+          <button class="${s.is_gold ? 'danger' : 'secondary'} fixed" data-gold="${s.id}" data-isgold="${s.is_gold}">
+            ${s.is_gold ? 'حذف ستاره طلایی' : 'اعطای ستاره طلایی 🌟'}
+          </button>
           <button class="danger fixed" data-delseller="${s.id}">حذف فروشنده</button>
         </div>
       </div>`).join('');
@@ -874,6 +944,14 @@ async function loadAdmin(){
       const { error } = await state.db.rpc('admin_set_subscription', { p_seller_id:b.dataset.renew, p_days:30 });
       if(error) return notice('خطا: '+error.message,true);
       notice('تمدید شد.'); await loadAdmin();
+    });
+    sWrap.querySelectorAll('[data-gold]').forEach(b=>b.onclick=async()=>{
+      const isGold = b.dataset.isgold === 'true';
+      const newVal = !isGold;
+      const { error } = await state.db.from('sellers').update({ is_gold: newVal }).eq('id', b.dataset.gold);
+      if(error) return notice('خطا در اعطای ستاره', true);
+      notice(newVal ? '🌟 ستاره طلایی اعطا شد.' : 'ستاره طلایی حذف شد.');
+      await loadAdmin();
     });
     sWrap.querySelectorAll('[data-delseller]').forEach(b=>b.onclick=async()=>{
       if(!confirm('حذف فروشنده و همه غذاهایش؟')) return;
