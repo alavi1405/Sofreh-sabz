@@ -7,7 +7,7 @@ const CONFIG = { TRIAL_MODE: true, ZARINPAL_MERCHANT: "", SMS_API_KEY: "" };
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
-const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null, searchMode:'food' };
+const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null };
 
 const catNames = { restaurant:'رستوران', fastfood:'فست‌فود', catering:'کترینگ', home:'خانگی' };
 const statusNames = { pending:'در انتظار پذیرش', accepted:'پذیرفته‌شده', preparing:'در حال آماده‌سازی', ready:'آماده تحویل', completed:'تحویل‌شده', cancelled:'لغو‌شده' };
@@ -32,29 +32,6 @@ function connection(msg, error=false){
   const el=$('#connection'); if(!el)return; 
   if(!msg){ el.classList.add('hidden'); return; }
   el.textContent=msg; el.classList.remove('hidden'); el.classList.toggle('error',error);
-}
-
-function setSearchMode(mode) {
-  state.searchMode = mode;
-  if (mode === 'food') {
-    $('#modeFood').style.background = '#16834a';
-    $('#modeFood').style.color = 'white';
-    $('#modeFood').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
-    $('#modeSeller').style.background = 'transparent';
-    $('#modeSeller').style.color = '#0d6034';
-    $('#modeSeller').style.boxShadow = 'none';
-    $('#mainSearch').placeholder = 'جستجو در نام غذا، توضیحات...';
-    showView('foods');
-  } else {
-    $('#modeSeller').style.background = '#16834a';
-    $('#modeSeller').style.color = 'white';
-    $('#modeSeller').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
-    $('#modeFood').style.background = 'transparent';
-    $('#modeFood').style.color = '#0d6034';
-    $('#modeFood').style.boxShadow = 'none';
-    $('#mainSearch').placeholder = 'جستجوی نام رستوران، فست‌فود، کترینگ...';
-    showView('restaurants');
-  }
 }
 
 function showView(name){
@@ -98,7 +75,9 @@ function cartTotals(){
     const f = state.foods.find(x=>x.id===it.id);
     if(!f) continue;
     let price = Number(f.discounted_price);
-    if(it.extras && it.extras.length){ for(const ex of it.extras) price += Number(ex.price||0); }
+    if(it.extras && it.extras.length){ 
+        for(const ex of it.extras) price += (Number(ex.price||0) * Number(ex.qty||1)); 
+    }
     items += price * it.qty;
   }
   const seller = currentCartSeller();
@@ -112,8 +91,8 @@ function renderRestaurants() {
     const wrap = $('#restaurantList'); if(!wrap) return;
     if (!state.sellers.length) { wrap.innerHTML = '<div class="card">هیچ فروشنده‌ای ثبت نشده است.</div>'; return; }
     
-    const searchQ = normPersian($('#mainSearch')?.value || '');
-    const catFilter = $('#mainCat')?.value || '';
+    const searchQ = normPersian($('#searchRestaurant')?.value || '');
+    const catFilter = $('#restaurantCategory')?.value || '';
 
     let list = state.sellers.filter(s => {
         const matchSearch = !searchQ || normPersian([s.name, s.address, catNames[s.type]].join(' ')).includes(searchQ);
@@ -202,7 +181,7 @@ window.showRestaurantMenuModal = (sellerId) => {
 };
 
 function renderFoods(){
-  const sEl=$('#mainSearch'), cEl=$('#mainCat'); if(!sEl||!cEl) return;
+  const sEl=$('#search'), cEl=$('#category'); if(!sEl||!cEl) return;
   const q=normPersian(sEl.value), cat=cEl.value;
   let list = state.foods.filter(f => {
       const s = sellerOf(f);
@@ -248,25 +227,30 @@ function renderFoods(){
 function openExtrasModal(foodId){
   const f = state.foods.find(x=>x.id===foodId);
   if(!f) return;
-  let extras = f.extras;
-  if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch(e) { extras = []; } }
-  if (!Array.isArray(extras)) extras = [];
-  
-  if(!extras.length){ return addCart(foodId, []); }
+  let rawExtras = f.extras;
+  if (typeof rawExtras === 'string') { try { rawExtras = JSON.parse(rawExtras); } catch(e) { rawExtras = []; } }
+  if (!Array.isArray(rawExtras)) rawExtras = [];
+
+  if(!rawExtras.length){ return addCart(foodId, []); }
+
+  // کپی کردن لیست برای ویرایش تعداد
+  let extrasState = rawExtras.map(ex => ({ ...ex, qty: 0 }));
+
   const modal = document.createElement('div');
   modal.className='modal-bg';
   modal.innerHTML = `<div class="modal">
     <h3>افزودنی‌های اختیاری</h3>
     <p class="muted">${escapeHtml(f.title)}</p>
     <div style="margin: 12px 0;">
-      ${extras.map((ex,i)=>`
-        <label class="ext-item">
-          <div style="display:flex; align-items:center;">
-            <input type="checkbox" data-ex="${i}">
-            <span>${escapeHtml(ex.name)}</span>
+      ${extrasState.map((ex,i)=>`
+        <div class="ext-item" style="justify-content: space-between;">
+          <span>${escapeHtml(ex.name)} — <b style="color:var(--green)">${money(ex.price)}</b></span>
+          <div class="qty-ctrl" style="display:flex; align-items:center; gap:8px; background:#f0f7f2; padding:4px; border-radius:8px;">
+            <button type="button" class="qty-btn" data-ex-dec="${i}">−</button>
+            <span id="ex-qty-${i}" style="min-width:20px; text-align:center; font-weight:bold;">0</span>
+            <button type="button" class="qty-btn" data-ex-inc="${i}">+</button>
           </div>
-          <b style="color:var(--green)">${money(ex.price)}</b>
-        </label>`).join('')}
+        </div>`).join('')}
     </div>
     <div class="row" style="margin-top:12px">
       <button id="exConfirm" class="fixed" style="flex:2;">افزودن به سبد</button>
@@ -274,9 +258,19 @@ function openExtrasModal(foodId){
     </div>
   </div>`;
   document.body.appendChild(modal);
+
+  const updateQty = (idx, delta) => {
+      extrasState[idx].qty += delta;
+      if(extrasState[idx].qty < 0) extrasState[idx].qty = 0;
+      modal.querySelector(`#ex-qty-${idx}`).textContent = extrasState[idx].qty.toLocaleString('fa-IR');
+  };
+
+  modal.querySelectorAll('[data-ex-inc]').forEach(b => b.onclick = () => updateQty(Number(b.dataset.exInc), 1));
+  modal.querySelectorAll('[data-ex-dec]').forEach(b => b.onclick = () => updateQty(Number(b.dataset.exDec), -1));
+
   modal.querySelector('#exCancel').onclick = () => modal.remove();
   modal.querySelector('#exConfirm').onclick = () => {
-    const selected = Array.from(modal.querySelectorAll('[data-ex]:checked')).map(cb => extras[Number(cb.dataset.ex)]);
+    const selected = extrasState.filter(ex => ex.qty > 0);
     modal.remove();
     addCart(foodId, selected);
   };
@@ -287,10 +281,19 @@ function addCart(id, extras){
   if(!f || f.quantity<1) return notice('این غذا دیگر موجود نیست.', true);
   const firstSeller = state.cart[0] ? sellerOf(state.foods.find(x=>x.id===state.cart[0].id)) : null;
   if(firstSeller && firstSeller.id!==f.seller_id) return notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true);
-  const key = id + '|' + JSON.stringify((extras||[]).map(e=>e.name));
+  
+  // ساخت یک کلید یکتا بر اساس نام و تعداد افزودنی‌ها
+  const extrasKey = JSON.stringify((extras||[]).map(e=>`${e.name}:${e.qty}`).sort());
+  const key = id + '|' + extrasKey;
+  
   const existing = state.cart.find(x=>x.key===key);
-  if(existing){ if(existing.qty >= f.quantity) return notice('تعداد از موجودی بیشتر است.', true); existing.qty++; }
-  else state.cart.push({ key, id, qty:1, extras: extras||[] });
+  if(existing){ 
+      if(existing.qty >= f.quantity) return notice('تعداد از موجودی بیشتر است.', true); 
+      existing.qty++; 
+  }
+  else {
+      state.cart.push({ key, id, qty:1, extras: extras||[] });
+  }
   updateCartCount(); notice('غذا به سبد اضافه شد.');
   if(!$('#view-cart').classList.contains('hidden')) renderCart();
 }
@@ -303,7 +306,7 @@ function updateCartCount(){
 function renderCart(){
   const wrap=$('#cartList'), checkout=$('#checkout');
   
-  // فقط در صورتی که داده‌ها لود شده باشند، سبد را فیلتر می‌کنیم (تا سبد پاک نشود)
+  // جلوگیری از پاک شدن سبد تا وقتی دیتابیس لود شده
   if (state.foods.length > 0) {
       state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
   }
@@ -312,13 +315,19 @@ function renderCart(){
   
   wrap.innerHTML = state.cart.map(item=>{
     const f = state.foods.find(x=>x.id===item.id);
-    if(!f) return ''; // جلوگیری از خطا
-    const extrasSum = (item.extras||[]).reduce((a,e)=>a+Number(e.price||0),0);
+    if(!f) return '';
+    
+    // محاسبه قیمت با تعداد
+    const extrasSum = (item.extras||[]).reduce((a,e)=>a + (Number(e.price||0) * Number(e.qty||1)), 0);
     const lineTotal = (Number(f.discounted_price)+extrasSum) * item.qty;
+    
+    // نمایش متنی افزودنی‌ها با تعداد
+    const extrasText = (item.extras||[]).map(e => `${escapeHtml(e.name)} (x${e.qty.toLocaleString('fa-IR')})`).join('، ');
+
     return `<div class="cart-line">
       <div>
         <b>${escapeHtml(f.title)}</b>
-        ${item.extras?.length?`<div class="muted">${item.extras.map(e=>escapeHtml(e.name)).join('، ')}</div>`:''}
+        ${extrasText ? `<div class="muted">${extrasText}</div>` : ''}
         <div class="muted">${money(Number(f.discounted_price)+extrasSum)} × ${item.qty.toLocaleString('fa-IR')} = ${money(lineTotal)}</div>
       </div>
       <div class="row fixed">
@@ -365,7 +374,6 @@ $('#orderForm')?.addEventListener('submit', async (e)=>{
     const items = state.cart.map(x=>({ listing_id:x.id, quantity:x.qty, extras:x.extras||[] }));
     const t = cartTotals();
     
-    // استفاده از تابع جدید برای دور زدن مشکل seller_id
     const { data, error } = await state.db.rpc('place_order_v2', {
       p_customer_name: customer_name, p_customer_phone: customer_phone,
       p_customer_address: customer_address, p_delivery_method: $('#delivery').value,
@@ -491,42 +499,32 @@ async function openChat(orderId, senderType){
   modal.addEventListener('DOMNodeRemoved', ()=>clearInterval(interval));
 }
 
-$('#mainGps')?.addEventListener('click', ()=>{
+$('#gps')?.addEventListener('click', ()=>{
   if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
-  const btn = $('#mainGps');
-  btn.textContent='در حال دریافت…';
+  $('#locationStatus').textContent='در حال دریافت…';
   navigator.geolocation.getCurrentPosition(
-    pos => { 
-      state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; 
-      btn.textContent='📍 موقعیت دریافت شد';
-      notice('موقعیت دریافت شد.'); 
-      if (state.searchMode === 'food') renderFoods();
-      else renderRestaurants();
-    },
-    err => { btn.textContent='📍 ناموفق'; },
+    pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#locationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderFoods(); },
+    err => { $('#locationStatus').textContent='ناموفق.'; },
     { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
   );
 });
 
-$('#mainSearch')?.addEventListener('input', () => {
-  if (state.searchMode === 'food') renderFoods();
-  else renderRestaurants();
+$('#gpsRestaurants')?.addEventListener('click', () => {
+    if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
+    $('#restaurantLocationStatus').textContent='در حال دریافت…';
+    navigator.geolocation.getCurrentPosition(
+        pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#restaurantLocationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderRestaurants(); },
+        err => { $('#restaurantLocationStatus').textContent='ناموفق.'; },
+        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
+    );
 });
-$('#mainCat')?.addEventListener('change', () => {
-  if (state.searchMode === 'food') renderFoods();
-  else renderRestaurants();
-});
 
-$('#modeFood')?.addEventListener('click', () => setSearchMode('food'));
-$('#modeSeller')?.addEventListener('click', () => setSearchMode('seller'));
+$('#search')?.addEventListener('input', renderFoods);
+$('#category')?.addEventListener('change', renderFoods);
+$('#searchRestaurant')?.addEventListener('input', renderRestaurants);
+$('#restaurantCategory')?.addEventListener('change', renderRestaurants);
 
-$$('[data-show]').forEach(b=>b.addEventListener('click',()=>{
-  const v = b.dataset.show;
-  if (v === 'foods') setSearchMode('food');
-  else if (v === 'restaurants') setSearchMode('seller');
-  else showView(v);
-}));
-
+$$('[data-show]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.show)));
 $('#lookupOrders')?.addEventListener('click', lookupOrders);
 
 async function refreshAuth(){
@@ -876,7 +874,7 @@ async function init(){
   state.db.auth.onAuthStateChange(()=>{ refreshAuth().then(()=>{ if(!$('#view-seller')?.classList.contains('hidden')) renderSellerView(); if(!$('#view-admin')?.classList.contains('hidden')) renderAdminView(); }); });
   await loadData();
   await refreshAuth();
-  setSearchMode('food'); 
+  showView('restaurants'); 
 }
 
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
