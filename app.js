@@ -128,7 +128,6 @@ function renderRestaurants() {
         return; 
     }
 
-    // مرتب‌سازی: طلایی‌ها اول، سپس بر اساس فاصله
     list.sort((a, b) => {
         if (a.is_gold && !b.is_gold) return -1;
         if (!a.is_gold && b.is_gold) return 1;
@@ -215,21 +214,18 @@ function renderFoods(){
   const q=normPersian(sEl.value), cat=cEl.value;
   let list = state.foods.filter(f => {
       const s = sellerOf(f);
-      if (!s) return false; // جلوگیری از ارور کرش کردن
+      if (!s) return false; 
       const hay = normPersian([f.title,f.description,s?.name,s?.address,catNames[f.category]].join(' '));
       return (!cat || f.category===cat) && (!q || hay.includes(q));
   });
 
-  // === مرتب‌سازی هوشمند ===
   list.sort((a,b)=>{
     if (state.position) {
-        // اگر GPS روشن است، بر اساس نزدیک‌ترین
         const sa=sellerOf(a), sb=sellerOf(b);
         const da = sa?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sa.latitude,sa.longitude) : Infinity;
         const db = sb?.latitude ? distanceKm(state.position.latitude,state.position.longitude,sb.latitude,sb.longitude) : Infinity;
         return da - db;
     } else {
-        // اگر GPS خاموش است، بر اساس بیشترین تخفیف
         const dA = a.original_price > a.discounted_price ? (1 - a.discounted_price/a.original_price) : 0;
         const dB = b.original_price > b.discounted_price ? (1 - b.discounted_price/b.original_price) : 0;
         return dB - dA;
@@ -264,7 +260,6 @@ function renderFoods(){
     </article>`;
   }).join('');
   
-  // وصل کردن رویدادها
   wrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>openExtrasModal(b.dataset.add)));
 }
 
@@ -406,7 +401,6 @@ function renderCart(){
   
   $('#orderTotal').innerHTML = `جمع غذاها: <b>${money(t.items)}</b>` + (t.shipping?`<br>+ پیک: <b>${money(t.shipping)}</b>`:'') + `<br>⇒ قابل پرداخت: <b>${money(t.total)}</b>`;
   
-  // اضافه کردن نقشه تقریبی (مثل دیوار)
   if (t.seller && t.seller.latitude && t.seller.longitude) {
       const lat = t.seller.latitude, lon = t.seller.longitude;
       mapContainer.classList.remove('hidden');
@@ -440,7 +434,18 @@ $('#orderForm')?.addEventListener('submit', async (e)=>{
     const customer_phone = normPhone($('#customerPhone').value);
     const customer_address = $('#customerAddress').value.trim();
     if(customer_name.length<2 || customer_phone.length<5 || customer_address.length<3) throw new Error('نام، شماره تماس و نشانی را کامل کنید.');
-    const items = state.cart.map(x=>({ listing_id:x.id, quantity:x.qty, extras:x.extras||[] }));
+    
+    // این همون بخش مهمه که اسم غذا رو به دیتابیس پاس میده
+    const items = state.cart.map(x => {
+        const food = state.foods.find(f => f.id === x.id);
+        return {
+            listing_id: x.id, 
+            quantity: x.qty, 
+            extras: x.extras || [],
+            title: food ? food.title : 'غذا' 
+        };
+    });
+    
     const t = cartTotals();
     
     const { data, error } = await state.db.rpc('place_order_v2', {
@@ -495,7 +500,7 @@ function renderOrderCard(o){
     <b>سفارش ${escapeHtml(String(o.id).slice(0,8))}</b>
     <p class="muted">${new Date(o.created_at).toLocaleString('fa-IR')} · وضعیت: <b>${escapeHtml(statusNames[o.status]||o.status)}</b></p>
     <p class="price">${money(o.total_amount)}</p>
-    ${items.map(i=>`<div class="muted">${escapeHtml(i.title)} × ${i.quantity} — ${money(i.unit_price)} · ${escapeHtml(i.seller_name||'')}</div>`).join('')}
+    ${items.map(i=>`<div class="muted">${escapeHtml(i.title || i.title_snapshot || 'غذا')} × ${i.quantity} — ${money(i.unit_price)} · ${escapeHtml(i.seller_name||'')}</div>`).join('')}
     ${o.health_message?`<div class="health-box">🏥 ${escapeHtml(o.health_message)}</div>`:''}
     ${phones.length?`<p class="muted">تماس فروشنده: ${phones.map(p=>`<a href="tel:${encodeURIComponent(p)}">${escapeHtml(p)}</a>`).join('، ')}</p>`:''}
     <div class="row" style="margin-top:8px">
