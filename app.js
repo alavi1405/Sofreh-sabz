@@ -80,6 +80,7 @@ async function loadData(){
     connection(''); 
     if(!$('#view-foods').classList.contains('hidden')) renderFoods();
     if(!$('#view-restaurants').classList.contains('hidden')) renderRestaurants();
+    if(!$('#view-cart').classList.contains('hidden')) renderCart();
   } catch(err){ 
     console.error(err); 
     connection('اتصال به دیتابیس برقرار نشد.',true); 
@@ -257,14 +258,19 @@ function openExtrasModal(foodId){
   modal.innerHTML = `<div class="modal">
     <h3>افزودنی‌های اختیاری</h3>
     <p class="muted">${escapeHtml(f.title)}</p>
-    ${extras.map((ex,i)=>`
-      <label class="ext-item">
-        <input type="checkbox" data-ex="${i}">
-        <span>${escapeHtml(ex.name)} — ${money(ex.price)}</span>
-      </label>`).join('')}
+    <div style="margin: 12px 0;">
+      ${extras.map((ex,i)=>`
+        <label class="ext-item">
+          <div style="display:flex; align-items:center;">
+            <input type="checkbox" data-ex="${i}">
+            <span>${escapeHtml(ex.name)}</span>
+          </div>
+          <b style="color:var(--green)">${money(ex.price)}</b>
+        </label>`).join('')}
+    </div>
     <div class="row" style="margin-top:12px">
-      <button id="exConfirm" class="fixed">افزودن به سبد</button>
-      <button id="exCancel" class="secondary fixed">لغو</button>
+      <button id="exConfirm" class="fixed" style="flex:2;">افزودن به سبد</button>
+      <button id="exCancel" class="secondary fixed" style="flex:1;">لغو</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -296,10 +302,17 @@ function updateCartCount(){
 
 function renderCart(){
   const wrap=$('#cartList'), checkout=$('#checkout');
-  state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
+  
+  // فقط در صورتی که داده‌ها لود شده باشند، سبد را فیلتر می‌کنیم (تا سبد پاک نشود)
+  if (state.foods.length > 0) {
+      state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
+  }
+
   if(!state.cart.length){ wrap.innerHTML='سبد خرید خالی است.'; checkout.classList.add('hidden'); updateCartCount(); return; }
+  
   wrap.innerHTML = state.cart.map(item=>{
     const f = state.foods.find(x=>x.id===item.id);
+    if(!f) return ''; // جلوگیری از خطا
     const extrasSum = (item.extras||[]).reduce((a,e)=>a+Number(e.price||0),0);
     const lineTotal = (Number(f.discounted_price)+extrasSum) * item.qty;
     return `<div class="cart-line">
@@ -352,7 +365,7 @@ $('#orderForm')?.addEventListener('submit', async (e)=>{
     const items = state.cart.map(x=>({ listing_id:x.id, quantity:x.qty, extras:x.extras||[] }));
     const t = cartTotals();
     
-    // استفاده از تابع جدید برای دور زدن مشکل کش
+    // استفاده از تابع جدید برای دور زدن مشکل seller_id
     const { data, error } = await state.db.rpc('place_order_v2', {
       p_customer_name: customer_name, p_customer_phone: customer_phone,
       p_customer_address: customer_address, p_delivery_method: $('#delivery').value,
