@@ -7,7 +7,7 @@ const CONFIG = { TRIAL_MODE: true, ZARINPAL_MERCHANT: "", SMS_API_KEY: "" };
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
-const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null };
+const state = { db:null, sellers:[], foods:[], cart:[], position:null, authUser:null, mySeller:null, isAdmin:false, currentOrderForChat:null, searchMode:'food' };
 
 const catNames = { restaurant:'رستوران', fastfood:'فست‌فود', catering:'کترینگ', home:'خانگی' };
 const statusNames = { pending:'در انتظار پذیرش', accepted:'پذیرفته‌شده', preparing:'در حال آماده‌سازی', ready:'آماده تحویل', completed:'تحویل‌شده', cancelled:'لغو‌شده' };
@@ -32,6 +32,29 @@ function connection(msg, error=false){
   const el=$('#connection'); if(!el)return; 
   if(!msg){ el.classList.add('hidden'); return; }
   el.textContent=msg; el.classList.remove('hidden'); el.classList.toggle('error',error);
+}
+
+function setSearchMode(mode) {
+  state.searchMode = mode;
+  if (mode === 'food') {
+    $('#modeFood').style.background = '#16834a';
+    $('#modeFood').style.color = 'white';
+    $('#modeFood').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
+    $('#modeSeller').style.background = 'transparent';
+    $('#modeSeller').style.color = '#0d6034';
+    $('#modeSeller').style.boxShadow = 'none';
+    $('#mainSearch').placeholder = 'جستجو در نام غذا، توضیحات...';
+    showView('foods');
+  } else {
+    $('#modeSeller').style.background = '#16834a';
+    $('#modeSeller').style.color = 'white';
+    $('#modeSeller').style.boxShadow = '0 2px 6px rgba(0,0,0,.1)';
+    $('#modeFood').style.background = 'transparent';
+    $('#modeFood').style.color = '#0d6034';
+    $('#modeFood').style.boxShadow = 'none';
+    $('#mainSearch').placeholder = 'جستجوی نام رستوران، فست‌فود، کترینگ...';
+    showView('restaurants');
+  }
 }
 
 function showView(name){
@@ -91,8 +114,8 @@ function renderRestaurants() {
     const wrap = $('#restaurantList'); if(!wrap) return;
     if (!state.sellers.length) { wrap.innerHTML = '<div class="card">هیچ فروشنده‌ای ثبت نشده است.</div>'; return; }
     
-    const searchQ = normPersian($('#searchRestaurant')?.value || '');
-    const catFilter = $('#restaurantCategory')?.value || '';
+    const searchQ = normPersian($('#mainSearch')?.value || '');
+    const catFilter = $('#mainCat')?.value || '';
 
     let list = state.sellers.filter(s => {
         const matchSearch = !searchQ || normPersian([s.name, s.address, catNames[s.type]].join(' ')).includes(searchQ);
@@ -181,7 +204,7 @@ window.showRestaurantMenuModal = (sellerId) => {
 };
 
 function renderFoods(){
-  const sEl=$('#search'), cEl=$('#category'); if(!sEl||!cEl) return;
+  const sEl=$('#mainSearch'), cEl=$('#mainCat'); if(!sEl||!cEl) return;
   const q=normPersian(sEl.value), cat=cEl.value;
   let list = state.foods.filter(f => {
       const s = sellerOf(f);
@@ -233,7 +256,6 @@ function openExtrasModal(foodId){
 
   if(!rawExtras.length){ return addCart(foodId, []); }
 
-  // کپی کردن لیست برای ویرایش تعداد
   let extrasState = rawExtras.map(ex => ({ ...ex, qty: 0 }));
 
   const modal = document.createElement('div');
@@ -282,7 +304,6 @@ function addCart(id, extras){
   const firstSeller = state.cart[0] ? sellerOf(state.foods.find(x=>x.id===state.cart[0].id)) : null;
   if(firstSeller && firstSeller.id!==f.seller_id) return notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true);
   
-  // ساخت یک کلید یکتا بر اساس نام و تعداد افزودنی‌ها
   const extrasKey = JSON.stringify((extras||[]).map(e=>`${e.name}:${e.qty}`).sort());
   const key = id + '|' + extrasKey;
   
@@ -299,14 +320,27 @@ function addCart(id, extras){
 }
 
 function updateCartCount(){
-  const el=$('#cartCount'); if(el) el.textContent = state.cart.reduce((a,x)=>a+x.qty,0).toLocaleString('fa-IR');
+  const count = state.cart.reduce((a,x)=>a+x.qty,0);
+  const el=$('#cartCount'); if(el) el.textContent = count.toLocaleString('fa-IR');
   localStorage.setItem('sofreh_cart', JSON.stringify(state.cart));
+  
+  // آپدیت سبد شناور پایین
+  const sticky = $('#stickyCart');
+  if (sticky) {
+      if (count > 0) {
+          sticky.classList.remove('hidden');
+          $('#stickyCartCount').textContent = `${count.toLocaleString('fa-IR')} مورد`;
+          const t = cartTotals();
+          $('#stickyCartTotal').textContent = money(t.items);
+      } else {
+          sticky.classList.add('hidden');
+      }
+  }
 }
 
 function renderCart(){
   const wrap=$('#cartList'), checkout=$('#checkout');
   
-  // جلوگیری از پاک شدن سبد تا وقتی دیتابیس لود شده
   if (state.foods.length > 0) {
       state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
   }
@@ -317,11 +351,8 @@ function renderCart(){
     const f = state.foods.find(x=>x.id===item.id);
     if(!f) return '';
     
-    // محاسبه قیمت با تعداد
     const extrasSum = (item.extras||[]).reduce((a,e)=>a + (Number(e.price||0) * Number(e.qty||1)), 0);
     const lineTotal = (Number(f.discounted_price)+extrasSum) * item.qty;
-    
-    // نمایش متنی افزودنی‌ها با تعداد
     const extrasText = (item.extras||[]).map(e => `${escapeHtml(e.name)} (x${e.qty.toLocaleString('fa-IR')})`).join('، ');
 
     return `<div class="cart-line">
@@ -499,32 +530,42 @@ async function openChat(orderId, senderType){
   modal.addEventListener('DOMNodeRemoved', ()=>clearInterval(interval));
 }
 
-$('#gps')?.addEventListener('click', ()=>{
+$('#mainGps')?.addEventListener('click', ()=>{
   if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
-  $('#locationStatus').textContent='در حال دریافت…';
+  const btn = $('#mainGps');
+  btn.textContent='در حال دریافت…';
   navigator.geolocation.getCurrentPosition(
-    pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#locationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderFoods(); },
-    err => { $('#locationStatus').textContent='ناموفق.'; },
+    pos => { 
+      state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; 
+      btn.textContent='📍 موقعیت دریافت شد';
+      notice('موقعیت دریافت شد.'); 
+      if (state.searchMode === 'food') renderFoods();
+      else renderRestaurants();
+    },
+    err => { btn.textContent='📍 ناموفق'; },
     { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
   );
 });
 
-$('#gpsRestaurants')?.addEventListener('click', () => {
-    if(!navigator.geolocation) return notice('GPS پشتیبانی نمی‌شود.',true);
-    $('#restaurantLocationStatus').textContent='در حال دریافت…';
-    navigator.geolocation.getCurrentPosition(
-        pos => { state.position={latitude:pos.coords.latitude,longitude:pos.coords.longitude}; $('#restaurantLocationStatus').textContent='موقعیت دریافت شد.'; notice('موقعیت دریافت شد.'); renderRestaurants(); },
-        err => { $('#restaurantLocationStatus').textContent='ناموفق.'; },
-        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
-    );
+$('#mainSearch')?.addEventListener('input', () => {
+  if (state.searchMode === 'food') renderFoods();
+  else renderRestaurants();
+});
+$('#mainCat')?.addEventListener('change', () => {
+  if (state.searchMode === 'food') renderFoods();
+  else renderRestaurants();
 });
 
-$('#search')?.addEventListener('input', renderFoods);
-$('#category')?.addEventListener('change', renderFoods);
-$('#searchRestaurant')?.addEventListener('input', renderRestaurants);
-$('#restaurantCategory')?.addEventListener('change', renderRestaurants);
+$('#modeFood')?.addEventListener('click', () => setSearchMode('food'));
+$('#modeSeller')?.addEventListener('click', () => setSearchMode('seller'));
 
-$$('[data-show]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.show)));
+$$('[data-show]').forEach(b=>b.addEventListener('click',()=>{
+  const v = b.dataset.show;
+  if (v === 'foods') setSearchMode('food');
+  else if (v === 'restaurants') setSearchMode('seller');
+  else showView(v);
+}));
+
 $('#lookupOrders')?.addEventListener('click', lookupOrders);
 
 async function refreshAuth(){
@@ -874,7 +915,7 @@ async function init(){
   state.db.auth.onAuthStateChange(()=>{ refreshAuth().then(()=>{ if(!$('#view-seller')?.classList.contains('hidden')) renderSellerView(); if(!$('#view-admin')?.classList.contains('hidden')) renderAdminView(); }); });
   await loadData();
   await refreshAuth();
-  showView('restaurants'); 
+  setSearchMode('food'); 
 }
 
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
