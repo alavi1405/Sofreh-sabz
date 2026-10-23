@@ -1,4 +1,4 @@
-const CACHE = 'sofreh-sabz-v3';
+const CACHE = 'sofreh-sabz-v4';
 const CRITICAL = ['./', './index.html', './app.js', './manifest.webmanifest'];
 const OPTIONAL = [
   './icons/icon.svg', './icons/maskable.svg',
