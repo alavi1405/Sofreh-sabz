@@ -70,6 +70,7 @@ function showView(name){
   if(name==='restaurants') renderRestaurants();
   if(name==='foods') renderFoods();
 }
+window.showView = showView;
 
 async function loadData(){
   try {
@@ -91,13 +92,13 @@ async function loadData(){
   }
 }
 
-const sellerOf = (food) => state.sellers.find(s => s.id === food.seller_id);
-function currentCartSeller(){ if(!state.cart.length) return null; const f = state.foods.find(x => x.id===state.cart[0].id); return f?sellerOf(f):null; }
+const sellerOf = (food) => food ? state.sellers.find(s => String(s.id) === String(food.seller_id)) : null;
+function currentCartSeller(){ if(!state.cart.length) return null; const f = state.foods.find(x => String(x.id) === String(state.cart[0].id)); return f ? sellerOf(f) : null; }
 
 function cartTotals(){
   let items=0;
   for(const it of state.cart){
-    const f = state.foods.find(x=>x.id===it.id);
+    const f = state.foods.find(x=>String(x.id)===String(it.id));
     if(!f) continue;
     let price = Number(f.discounted_price);
     if(it.extras && it.extras.length){ 
@@ -266,7 +267,7 @@ function renderFoods(){
 }
 
 function openExtrasModal(foodId){
-  const f = state.foods.find(x=>x.id===foodId);
+  const f = state.foods.find(x=>String(x.id)===String(foodId));
   if(!f) return;
   let rawExtras = f.extras;
   if (typeof rawExtras === 'string') { try { rawExtras = JSON.parse(rawExtras); } catch(e) { rawExtras = []; } }
@@ -317,9 +318,11 @@ function openExtrasModal(foodId){
 }
 
 function addCart(id, extras){
-  const f = state.foods.find(x=>x.id===id);
-  if(!f || f.quantity<1) return notice('این غذا دیگر موجود نیست.', true);
-  const firstSeller = state.cart[0] ? sellerOf(state.foods.find(x=>x.id===state.cart[0].id)) : null;
+  const f = state.foods.find(x=>String(x.id)===String(id));
+  if(!f || Number(f.quantity)<1) return notice('این غذا دیگر موجود نیست.', true);
+  const firstFood = state.cart[0] ? state.foods.find(x=>String(x.id)===String(state.cart[0].id)) : null;
+  if(state.cart.length && !firstFood) return notice('یک قلم قدیمی یا ناموجود در سبد است؛ ابتدا آن را حذف کنید.', true);
+  const firstSeller = firstFood ? sellerOf(firstFood) : null;
   if(firstSeller && firstSeller.id!==f.seller_id) return notice('برای جلوگیری از اشتباه در ارسال، هر سفارش باید از یک فروشگاه باشد.', true);
   
   const extrasKey = JSON.stringify((extras||[]).map(e=>`${e.name}:${e.qty}`).sort());
@@ -358,10 +361,6 @@ function updateCartCount(){
 function renderCart(){
   const wrap=$('#cartList'), checkout=$('#checkout'), mapContainer=$('#mapContainer');
   
-  if (state.foods.length > 0) {
-      state.cart = state.cart.filter(it => state.foods.some(x=>x.id===it.id));
-  }
-
   if(!state.cart.length){ 
       wrap.innerHTML='سبد خرید خالی است.'; 
       checkout.classList.add('hidden'); 
@@ -371,8 +370,8 @@ function renderCart(){
   }
   
   wrap.innerHTML = state.cart.map(item=>{
-    const f = state.foods.find(x=>x.id===item.id);
-    if(!f) return '';
+    const f = state.foods.find(x=>String(x.id)===String(item.id));
+    if(!f) return `<div class="cart-line"><div><b>این غذا فعلاً در فهرست فعال موجود نیست.</b><div class="muted">برای جلوگیری از حذف ناخواسته، این قلم در سبد نگه داشته شده است.</div></div><button class="danger fixed" data-remove="${escapeHtml(item.key)}">حذف</button></div>`;
     
     const extrasSum = (item.extras||[]).reduce((a,e)=>a + (Number(e.price||0) * Number(e.qty||1)), 0);
     const lineTotal = (Number(f.discounted_price)+extrasSum) * item.qty;
@@ -385,9 +384,9 @@ function renderCart(){
         <div class="muted">${money(Number(f.discounted_price)+extrasSum)} × ${item.qty.toLocaleString('fa-IR')} = ${money(lineTotal)}</div>
       </div>
       <div class="row fixed">
-        <button class="secondary fixed" data-dec="${item.key}">−</button>
-        <button class="secondary fixed" data-inc="${item.key}">+</button>
-        <button class="danger fixed" data-remove="${item.key}">حذف</button>
+        <button class="secondary fixed" data-dec="${escapeHtml(item.key)}">−</button>
+        <button class="secondary fixed" data-inc="${escapeHtml(item.key)}">+</button>
+        <button class="danger fixed" data-remove="${escapeHtml(item.key)}">حذف</button>
       </div>
     </div>`;
   }).join('');
@@ -417,7 +416,7 @@ function renderCart(){
 
 function setQty(key, delta){
   const item = state.cart.find(x=>x.key===key); if(!item) return;
-  const f = state.foods.find(x=>x.id===item.id); if(!f) return;
+  const f = state.foods.find(x=>String(x.id)===String(item.id)); if(!f) return notice('این غذا فعلاً موجود نیست؛ می‌توانید آن را حذف کنید.', true);
   item.qty += delta;
   if(item.qty<=0) state.cart = state.cart.filter(x=>x.key!==key);
   else if(item.qty > f.quantity){ item.qty=f.quantity; notice('تعداد از موجودی بیشتر است.',true); }
@@ -429,6 +428,7 @@ $('#delivery')?.addEventListener('change', () => { if(!$('#view-cart').classList
 $('#orderForm')?.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!state.cart.length) return notice('سبد خرید خالی است.',true);
+  if(state.cart.some(it=>!state.foods.some(f=>String(f.id)===String(it.id)))) return notice('یک یا چند قلم سبد دیگر موجود نیست؛ آن‌ها را حذف کنید و دوباره سفارش دهید.',true);
   if(!$('#healthCheck')?.checked) return notice('لطفاً تیک تایید سلامت غذا را بزنید.',true);
   const btn=$('#submitOrder'); btn.disabled=true;
   try {
@@ -437,8 +437,9 @@ $('#orderForm')?.addEventListener('submit', async (e)=>{
     const customer_address = $('#customerAddress').value.trim();
     if(customer_name.length<2 || customer_phone.length<5 || customer_address.length<3) throw new Error('نام، شماره تماس و نشانی را کامل کنید.');
     
+    // این همون بخش مهمه که اسم غذا رو به دیتابیس پاس میده
     const items = state.cart.map(x => {
-        const food = state.foods.find(f => f.id === x.id);
+        const food = state.foods.find(f => String(f.id) === String(x.id));
         return {
             listing_id: x.id, 
             quantity: x.qty, 
@@ -855,6 +856,7 @@ $('#foodForm')?.addEventListener('submit', async (e)=>{
       category:d.category, original_price:original, discounted_price:price,
       quantity:qty, delivery_minutes: Math.max(0, Number(toAscii(d.delivery_minutes||30))),
       image_url: image_url, extras: extras,
+      // فهرست عمومی فقط غذاهای فعال را نشان می‌دهد.
       is_active: true
     };
 
@@ -1000,7 +1002,22 @@ async function changeOrderStatus(orderId, status, reloadFn){
 async function init(){
   if(!window.supabase?.createClient) return connection('کتابخانه Supabase بارگذاری نشد.',true);
   state.db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{persistSession:true,autoRefreshToken:true} });
-  try { state.cart = JSON.parse(localStorage.getItem('sofreh_cart')||'[]'); } catch(_){ state.cart=[]; }
+  let savedCart = [];
+  try { savedCart = JSON.parse(localStorage.getItem('sofreh_cart') || '[]'); } catch(_) { savedCart = []; }
+  // مهاجرت سبد نسخه قدیمی (safreh_cart / listingId) به ساختار فعلی؛ داده قدیمی پاک نمی‌شود.
+  if (!Array.isArray(savedCart) || savedCart.length === 0) {
+    try {
+      const legacy = JSON.parse(localStorage.getItem('safreh_cart') || '[]');
+      if (Array.isArray(legacy) && legacy.length) savedCart = legacy;
+    } catch(_) {}
+  }
+  state.cart = (Array.isArray(savedCart) ? savedCart : []).map((it, i) => {
+    const id = it.id ?? it.listingId ?? it.listing_id ?? it.food_id;
+    const qty = Math.max(1, Number(it.qty ?? it.quantity ?? 1) || 1);
+    const extras = Array.isArray(it.extras) ? it.extras : [];
+    const key = String(it.key ?? `${id ?? 'legacy'}|migrated-${i}`);
+    return { key, id: id == null ? '' : String(id), qty, extras };
+  }).filter(it => it.id);
   updateCartCount();
   state.db.auth.onAuthStateChange(()=>{ refreshAuth().then(()=>{ if(!$('#view-seller')?.classList.contains('hidden')) renderSellerView(); if(!$('#view-admin')?.classList.contains('hidden')) renderAdminView(); }); });
   await loadData();
