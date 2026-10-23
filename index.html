@@ -4,12 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#16834a">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <title>سفره سبز | غذاهای تخفیف‌دار</title>
 <style>
 :root{--green:#16834a;--dark:#0d6034;--bg:#f4f8f4;--line:#dce8de;--red:#c62828;--amber:#8c4d00}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:#203026;font-family:Tahoma,Arial,sans-serif;line-height:1.65; padding-bottom: 80px;}
 
+/* هدر کاملاً ثابت در بالای صفحه */
 header{position:sticky;top:0;background:#fff;z-index:100;padding:12px 16px;box-shadow:0 2px 12px #0001;display:flex;flex-direction:column;gap:10px}
 .brand{display:flex;align-items:center;justify-content:space-between;width:100%}
 .brand-title{font-weight:800;font-size:22px;color:var(--dark)}
@@ -17,6 +20,7 @@ header{position:sticky;top:0;background:#fff;z-index:100;padding:12px 16px;box-s
 .slogan{font-size:13px;font-weight:normal;color:#617066;max-width:55%;text-align:right}
 nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%}
 
+/* حذف کامل انیمیشن‌های دکمه‌ها برای جلوگیری از حرکت */
 .btn,button{border:0;border-radius:10px;padding:10px 13px;background:var(--green);color:white;font:inherit;font-weight:700;cursor:pointer;transition:none !important;}
 .btn.secondary,button.secondary{background:#e6f2e9;color:var(--dark)}
 button.danger{background:#b3261e}
@@ -28,10 +32,12 @@ h1{font-size:23px;margin:0 0 5px}h2{font-size:20px;margin:18px 0 8px}h3{font-siz
 p{margin:5px 0}
 input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd9ce;border-radius:10px;background:white;color:#203026}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:10px}
+/* کارت‌های غذا و فروشگاه حدود ۲۰٪ جمع‌وجورتر */
 .grid > .card{padding:11px;border-radius:12px}
 .grid .food-img{height:116px;font-size:44px}
 .grid .price{font-size:16px}
 .grid .badge{padding:1px 6px}
+/* کادر جست‌وجوی فشرده */
 #searchPanel{padding:8px!important;border-width:1px!important;border-radius:10px!important}
 #searchPanel .row{gap:6px}
 #searchPanel .row:first-child{margin-bottom:5px!important;padding:3px!important}
@@ -68,6 +74,7 @@ input,select,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cbd
 .qty-btn{width:32px;height:32px;border-radius:8px;background:#e6f2e9;color:var(--dark);font-size:18px;display:grid;place-items:center;font-weight:bold;border:1px solid #cbd9ce;}
 footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 
+/* سبد خرید شناور */
 #stickyCart {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
     background: var(--green); color: white; padding: 12px 16px;
@@ -82,6 +89,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </head>
 <body>
 
+<!-- هدر شامل لوگو، منو و کادر جستجو (همه ثابت) -->
 <header>
   <div class="brand">
     <span class="slogan">پلی برای استفاده بهینه از غذا 🌿</span>
@@ -95,6 +103,7 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
     <button class="secondary" data-show="cart" style="display:none;">سبد <span id="cartCount">۰</span></button>
   </nav>
 
+  <!-- کادر جستجوی دوگانه (منتقل شده به هدر برای ثابت بودن) -->
   <div id="searchPanel" class="card" style="margin-top: 2px; padding: 8px; box-shadow: none; border: 1px solid var(--green); border-radius: 10px; width: 100%; background: #fff;">
     <div class="row" style="margin-bottom: 8px; background: #f0f7f2; padding: 4px; border-radius: 8px;">
       <button id="modeFood" class="btn" style="flex: 1; background: #16834a; color: white; border-radius: 6px;">🍲 جستجوی غذا</button>
@@ -252,31 +261,11 @@ footer{text-align:center;padding:25px;color:#68776c;font-size:12px}
 </div>
 
 <footer>سفره سبز v15 — نهایی</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./app.js"></script>
 <script>
-/* ==== موقت: چون app.js موجود نیست، یک نسخه ساده برای تست ==== */
-(function(){
-  const views = ['restaurants','foods','cart','orders','seller','admin'];
-  function show(name){
-    views.forEach(v=>{
-      const el = document.getElementById('view-'+v);
-      if(el) el.classList.toggle('hidden', v!==name);
-    });
-  }
-  document.querySelectorAll('[data-show]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const t = btn.getAttribute('data-show');
-      if(t==='cart' || t==='orders' || t==='seller' || t==='admin') show(t);
-    });
-  });
-  show('restaurants');
-  console.log('سفره سبز: app.js یافت نشد؛ اسکریپت موقت اجرا شد.');
-})();
-</script>
-
-<script>
-/* جست‌وجو فقط هنگام مرور غذاها و فروشگاه‌ها نمایش داده شود. */
+/* جست‌وجو فقط هنگام مرور غذاها و فروشگاه‌ها نمایش داده شود.
+   این بخش فقط نمایش را تغییر می‌دهد و منطق سفارش/پایگاه داده را دست نمی‌زند. */
 (function () {
   const searchPanel = document.getElementById('searchPanel');
   const browseViews = [document.getElementById('view-restaurants'), document.getElementById('view-foods')];
